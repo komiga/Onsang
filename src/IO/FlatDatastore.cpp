@@ -84,14 +84,14 @@ FlatDatastore::FlatDatastore(
 	Hord::String root_path
 )
 	: base(std::move(root_path))
+	, m_lock()
+	, m_index()
 	, m_prop{
 		{},
 		{Hord::Object::NULL_ID, Hord::IO::PropType::object_metadata},
 		{},
 		false
 	}
-	, m_lock()
-	, m_index()
 {}
 
 void
@@ -141,6 +141,7 @@ FlatDatastore::assign_prop(
 }
 
 #define HORD_SCOPE_FUNC_IDENT__ acquire_stream
+namespace {
 HORD_FMT_SCOPED_FQN(
 	s_err_acquire_prop_unsupplied,
 	"prop %08x -> %s is not supplied for type %s"
@@ -149,13 +150,16 @@ HORD_FMT_SCOPED_FQN(
 	s_err_acquire_prop_open_failed,
 	"prop %08x -> %s is void (or open otherwise failed)"
 );
+} // anonymous namespace
 
 void
 FlatDatastore::acquire_stream(
 	Hord::IO::PropInfo const& prop_info,
 	bool const is_input
 ) {
-	auto const it = make_const(m_index).find(prop_info.object_id);
+	auto const it = make_const(m_index).find(
+		prop_info.object_id
+	);
 	if (m_index.cend() == it) {
 		HORD_THROW_ERROR_F(
 			Hord::ErrorCode::datastore_object_not_found,
@@ -165,20 +169,20 @@ FlatDatastore::acquire_stream(
 		);
 	}
 
-	Identity const& identity = it->second;
-	if (!type_supplies_prop(identity.type)) {
+	Index::Entry const& entry = *it;
+	if (!type_supplies_prop(entry.type)) {
 		HORD_THROW_ERROR_F(
 			Hord::ErrorCode::datastore_prop_unsupplied,
 			s_err_acquire_prop_unsupplied,
 			prop_info.object_id,
 			Hord::IO::get_prop_type_name(prop_info.prop_type),
-			Hord::Object::get_type_name(identity.type)
+			Hord::Object::get_type_name(entry.type)
 		);
 	}
 
 	// TODO: stat() path, throw other custom/standard error if
 	// non-existent
-	assign_prop(prop_info, identity.is_trash, is_input);
+	assign_prop(prop_info, entry.is_trash, is_input);
 	m_prop.stream.open(
 		m_prop.path,
 		std::ios_base::binary
@@ -200,10 +204,12 @@ FlatDatastore::acquire_stream(
 #undef HORD_SCOPE_FUNC_IDENT__
 
 #define HORD_SCOPE_FUNC_IDENT__ release_stream
+namespace {
 HORD_FMT_SCOPED_FQN(
 	s_err_release_prop_not_locked,
 	"prop %08x -> %s is not locked"
 );
+} // anonymous namespace
 
 void
 FlatDatastore::release_stream(
@@ -239,6 +245,8 @@ FlatDatastore::release_stream(
 
 
 // Hord::IO::Datastore implementation
+
+
 #define HORD_SCOPE_FUNC_IDENT__ open_impl
 void
 FlatDatastore::open_impl() {
@@ -305,24 +313,62 @@ FlatDatastore::release_output_stream_impl(
 // objects
 Hord::Object::ID
 FlatDatastore::generate_id_impl(
-	Hord::System::IDGenerator&
+	Hord::System::IDGenerator& id_generator
 ) const noexcept {
-	return Hord::Object::NULL_ID;
+	// TODO: seed()? Are we allowed to mutate id_generator?
+	return id_generator.generate_unique(m_index);
 }
 
 #define HORD_SCOPE_FUNC_IDENT__ create_object_impl
+namespace {
+HORD_FMT_SCOPED_FQN(
+	s_err_create_object_already_exists,
+	"object %08x (of type %s) already exists"
+);
+} // anonymous namespace
+
 void
 FlatDatastore::create_object_impl(
-	Hord::Object::ID const,
-	Hord::Object::Type const
-) {}
+	Hord::Object::ID const object_id,
+	Hord::Object::Type const /*object_type*/
+) {
+	// NB: Base protects us from prohibited types
+
+	auto const it = make_const(m_index).find(object_id);
+	if (m_index.cend() != it) {
+		HORD_THROW_ERROR_F(
+			Hord::ErrorCode::datastore_object_already_exists,
+			s_err_create_object_already_exists,
+			object_id,
+			Hord::Object::get_type_name(it->type)
+		);
+	}
+
+	// Currently only nodes are supported
+	m_index.insert(object_id);
+}
 #undef HORD_SCOPE_FUNC_IDENT__
 
 #define HORD_SCOPE_FUNC_IDENT__ destroy_object_impl
 void
 FlatDatastore::destroy_object_impl(
-	Hord::Object::ID const
-) {}
+	Hord::Object::ID const object_id
+) {
+	auto const it = m_index.find(object_id);
+	if (m_index.cend() == it) {
+		HORD_THROW_ERROR_F(
+			Hord::ErrorCode::datastore_object_not_found,
+			s_err_object_not_found,
+			HORD_SCOPE_FQN,
+			object_id
+		);
+	}
+
+	// Sending to trash; will purge later
+	// NB: is_trash has no bearing on hash, so this should not
+	// affect the container
+	const_cast<Index::Entry&>(*it).is_trash = true;
+}
 #undef HORD_SCOPE_FUNC_IDENT__
 
 #undef HORD_SCOPE_CLASS_IDENT__ // FlatDatastore

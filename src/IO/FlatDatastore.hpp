@@ -32,7 +32,8 @@ Structure:
 
 "hive/"
 	".lock" LockFile;
-	"index" set<Identity>;
+	"index" Index;
+	"data/$id/i" <identity>;
 	"data/$id/m" Metadata;
 	"data/$id/p" <primary data>;
 	"data/$id/a" <aux data>;
@@ -47,6 +48,107 @@ namespace IO {
 
 // Forward declarations
 class FlatDatastore;
+
+namespace {
+
+class Index final {
+public:
+	// NB: Currently only Nodes can be created, so we don't track
+	// the type dynamically
+	struct Entry final {
+		static constexpr Hord::Object::Type const
+		type = Hord::Object::Type::Node;
+
+		Hord::Object::ID id;
+		bool is_trash;
+
+		// TODO: C++14: Also add operator== for Object::ID <-> Entry
+		// comparison in unordered_set::find() so that we can
+		// use unordered_set and Object::ID directly.
+
+		struct hash final {
+			constexpr std::size_t
+			operator()(
+				Entry const& entry
+			) const noexcept {
+				return static_cast<std::size_t>(entry.id);
+			}
+		};
+
+		// For lookup purposes; only considering entries equal
+		// if the IDs are equal
+		constexpr bool
+		operator==(
+			Entry const& other
+		) const noexcept {
+			return id == other.id;
+		}
+	};
+
+	using container_type
+	= aux::unordered_set<
+		Entry,
+		Entry::hash
+	>;
+
+	using key_type = Hord::Object::ID;
+	using iterator = container_type::iterator;
+	using const_iterator = container_type::const_iterator;
+
+private:
+	container_type m_entries;
+
+	Index(Index const&) = delete;
+	Index(Index&&) = delete;
+	Index& operator=(Index const&) = delete;
+	Index& operator=(Index&&) = delete;
+
+public:
+	Index() = default;
+
+// properties
+	iterator
+	begin() noexcept { return m_entries.begin(); }
+	iterator
+	end() noexcept { return m_entries.end(); }
+
+	const_iterator
+	cbegin() const noexcept { return m_entries.cbegin(); }
+	const_iterator
+	cend() const noexcept { return m_entries.cend(); }
+
+// lookup
+	iterator
+	find(
+		key_type const& key
+	) noexcept {
+		return m_entries.find(Entry{key, false});
+	}
+
+	const_iterator
+	find(
+		key_type const& key
+	) const noexcept {
+		return m_entries.find(Entry{key, false});
+	}
+
+// operations
+	std::pair<iterator, bool>
+	insert(
+		Hord::Object::ID const id
+	) {
+		return m_entries.insert(Entry{id, false});
+	}
+
+	iterator
+	erase(
+		const_iterator pos
+	) noexcept {
+		return m_entries.erase(pos);
+	}
+};
+
+} // anonymous namespace
 
 /**
 	Flat-file datastore.
@@ -63,24 +165,8 @@ public:
 	s_type_info;
 
 private:
-	// NB: Currently only Nodes can be created, so we don't track
-	// the type dynamically
-	struct Identity final {
-		static constexpr Hord::Object::Type const
-		type = Hord::Object::Type::Node;
-
-		Hord::Object::ID id;
-		bool is_trash;
-
-		/*struct hash {
-			std::size_t
-			operator()(
-				Identity const& identity
-			) noexcept {
-				return static_cast<std::size_t>(identity.id);
-			}
-		};*/
-	};
+	Hord::LockFile m_lock;
+	Index m_index;
 
 	struct {
 		String path;
@@ -89,18 +175,11 @@ private:
 		bool is_input;
 
 		void
-		reset() {
+		reset() noexcept {
 			path.clear();
 			info.object_id = Hord::Object::NULL_ID;
 		}
 	} m_prop;
-
-	Hord::LockFile m_lock;
-	aux::unordered_map<
-		Hord::Object::ID,
-		Identity/*,
-		Identity::hash*/
-	> m_index; // contains trash objects
 
 	static Hord::IO::Datastore*
 	construct(
