@@ -1,0 +1,37 @@
+{
+	"folders":
+	[
+		{
+			"name": "Root",
+			"path": "./",
+			"folder_exclude_patterns": [
+				"doc",
+				"dep",
+				"include",
+				"src",
+				"test",
+				"out",
+				"lib"
+			],
+			"file_exclude_patterns": [
+				"Makefile",
+				"*.make"
+			]
+		},
+		{
+			"name": "- Dependencies",
+			"path": "./dep/",
+			"folder_exclude_patterns": [
+				"*"
+			]
+		},
+		{
+			"name": "- Source",
+			"path": "./src/"
+		}
+	],
+	"settings":
+	{
+		"tab_size": 4
+	}
+}

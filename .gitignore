@@ -1,0 +1,8 @@
+
+Onsang.sublime-workspace
+
+*.make
+Makefile
+out/
+lib/
+bin/
