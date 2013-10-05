@@ -35,9 +35,9 @@ Structure:
 	"index" Index;
 	"data/$id/i" <identity>;
 	"data/$id/m" Metadata;
+	"data/$id/s" <scratch space>;
 	"data/$id/p" <primary data>;
 	"data/$id/a" <aux data>;
-	"data/$id/s" <scratch space>;
 	"trash/"
 		[same layout]
 

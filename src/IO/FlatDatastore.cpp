@@ -34,10 +34,11 @@ s_fmt_object_id{
 
 static char const* const
 s_prop_type_abbr[]{
+	ONSANG_STR_LIT("i"),
 	ONSANG_STR_LIT("m"),
+	ONSANG_STR_LIT("s"),
 	ONSANG_STR_LIT("p"),
 	ONSANG_STR_LIT("a"),
-	ONSANG_STR_LIT("s")
 };
 static_assert(
 	static_cast<std::size_t>(Hord::IO::PropType::LAST)
@@ -88,7 +89,7 @@ FlatDatastore::FlatDatastore(
 	, m_index()
 	, m_prop{
 		{},
-		{Hord::Object::NULL_ID, Hord::IO::PropType::object_metadata},
+		{Hord::Object::NULL_ID, Hord::IO::PropType::metadata},
 		{},
 		false
 	}
@@ -187,8 +188,8 @@ FlatDatastore::acquire_stream(
 		m_prop.path,
 		std::ios_base::binary
 		| (is_input)
-		? std::ios_base::in
-		: std::ios_base::out
+			? std::ios_base::in
+			: std::ios_base::out
 	);
 	if (!m_prop.stream.is_open()) {
 		HORD_THROW_ERROR_F(
