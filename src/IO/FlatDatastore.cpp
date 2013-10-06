@@ -136,7 +136,7 @@ FlatDatastore::assign_prop(
 		)
 		.append(obj_id_str)
 		.append(s_prop_type_abbr[
-			static_cast<std::size_t>(prop_info.prop_type)
+			enum_cast(prop_info.prop_type)
 		])
 	;
 }

@@ -17,6 +17,7 @@ see @ref index or the accompanying LICENSE file for full text.
 namespace Onsang {
 
 using Hord::make_const;
+using Hord::enum_cast;
 
 } // namespace Onsang
 
