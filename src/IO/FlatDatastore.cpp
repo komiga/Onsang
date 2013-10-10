@@ -134,7 +134,7 @@ FlatDatastore::assign_prop(
 			? "/trash/data/"
 			: "/data/"
 		)
-		.append(obj_id_str)
+		.append(obj_id_str, std::extent<decltype(obj_id_str)>::value)
 		.append(s_prop_type_abbr[
 			enum_cast(prop_info.prop_type)
 		])
