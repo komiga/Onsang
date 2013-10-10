@@ -238,7 +238,10 @@ FlatDatastore::release_stream(
 		);
 	}
 
-	m_prop.stream.close();
+	try {
+		// Ignore exceptions during close
+		m_prop.stream.close();
+	} catch (...) {}
 	m_prop.reset();
 	base::disable_state(State::locked);
 }
