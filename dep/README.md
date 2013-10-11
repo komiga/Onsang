@@ -21,5 +21,6 @@ into the proper directories):
 
 And compile-copy/download/magically spontaniate the following libraries:
 
-* [ØMQ](https://github.com/zeromq/zeromq3-x) 3.2.4 into `zeromq/`:
-  - `zmq.h`; `libzmq.a` and/or `libzmq.so`
+* [ØMQ](http://zeromq.org/intro:get-the-software) 4.0.1 into `zeromq/`:
+  - Compile with [libsodium](https://github.com/jedisct1/libsodium) support
+  - Copy `zmq.h` and `libzmq.a` (or `libzmq.so`)
