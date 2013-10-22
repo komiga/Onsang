@@ -12,12 +12,12 @@ see @ref index or the accompanying LICENSE file for full text.
 
 #include "./config.hpp"
 
-#include <Hord/utility.hpp>
+#include <duct/utility.hpp>
 
 namespace Onsang {
 
-using Hord::make_const;
-using Hord::enum_cast;
+using duct::make_const;
+using duct::enum_cast;
 
 } // namespace Onsang
 
