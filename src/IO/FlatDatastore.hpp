@@ -104,6 +104,7 @@ private:
 	Index& operator=(Index&&) = delete;
 
 public:
+	~Index() = default;
 	Index() = default;
 
 // properties

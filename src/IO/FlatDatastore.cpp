@@ -89,7 +89,11 @@ FlatDatastore::FlatDatastore(
 	, m_index()
 	, m_prop{
 		{},
-		{Hord::Object::NULL_ID, Hord::IO::PropType::metadata},
+		{
+			Hord::Object::NULL_ID,
+			Hord::Object::Type::Hive,
+			Hord::IO::PropType::identity
+		},
 		{},
 		false
 	}
@@ -134,7 +138,7 @@ FlatDatastore::assign_prop(
 			? "/trash/data/"
 			: "/data/"
 		)
-		.append(obj_id_str, std::extent<decltype(obj_id_str)>::value)
+		.append(obj_id_str, std::extent<decltype(obj_id_str)>::value - 1u)
 		.append(s_prop_type_abbr[
 			enum_cast(prop_info.prop_type)
 		])
