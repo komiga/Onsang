@@ -1,12 +1,10 @@
 
 #include "../utility.hpp"
+#include "../detail/Hord/gr_ceformat.hpp"
 #include "../String.hpp"
 #include "./FlatDatastore.hpp"
 
-#include <Hord/Error.hpp>
 #include <Hord/IO/PropStream.hpp>
-
-#include <ceformat/print.hpp>
 
 #include <cstdio>
 #include <type_traits>
@@ -18,11 +16,11 @@ namespace IO {
 
 // class FlatDatastore implementation
 
-#define HORD_SCOPE_CLASS_IDENT__ Onsang::IO::FlatDatastore
+#define HORD_SCOPE_CLASS IO::FlatDatastore
 
 namespace {
 
-HORD_FMT_UNSCOPED(
+HORD_DEF_FMT(
 	s_err_object_not_found,
 	"%s: object %08x does not exist"
 );
@@ -145,13 +143,13 @@ FlatDatastore::assign_prop(
 	;
 }
 
-#define HORD_SCOPE_FUNC_IDENT__ acquire_stream
+#define HORD_SCOPE_FUNC acquire_stream
 namespace {
-HORD_FMT_SCOPED_FQN(
+HORD_DEF_FMT_FQN(
 	s_err_acquire_prop_unsupplied,
 	"prop %08x -> %s is not supplied for type %s"
 );
-HORD_FMT_SCOPED_FQN(
+HORD_DEF_FMT_FQN(
 	s_err_acquire_prop_open_failed,
 	"prop %08x -> %s is void (or open otherwise failed)"
 );
@@ -166,17 +164,17 @@ FlatDatastore::acquire_stream(
 		prop_info.object_id
 	);
 	if (m_index.cend() == it) {
-		HORD_THROW_ERROR_F(
+		HORD_THROW_FMT(
 			Hord::ErrorCode::datastore_object_not_found,
 			s_err_object_not_found,
-			HORD_SCOPE_FQN,
+			HORD_SCOPE_FQN_STR_LIT,
 			prop_info.object_id
 		);
 	}
 
 	Index::Entry const& entry = *it;
 	if (!type_supplies_prop(entry.type)) {
-		HORD_THROW_ERROR_F(
+		HORD_THROW_FMT(
 			Hord::ErrorCode::datastore_prop_unsupplied,
 			s_err_acquire_prop_unsupplied,
 			prop_info.object_id,
@@ -196,7 +194,7 @@ FlatDatastore::acquire_stream(
 			: std::ios_base::out
 	);
 	if (!m_prop.stream.is_open()) {
-		HORD_THROW_ERROR_F(
+		HORD_THROW_FMT(
 			Hord::ErrorCode::datastore_prop_void,
 			s_err_acquire_prop_open_failed,
 			prop_info.object_id,
@@ -206,11 +204,11 @@ FlatDatastore::acquire_stream(
 
 	base::enable_state(State::locked);
 }
-#undef HORD_SCOPE_FUNC_IDENT__
+#undef HORD_SCOPE_FUNC
 
-#define HORD_SCOPE_FUNC_IDENT__ release_stream
+#define HORD_SCOPE_FUNC release_stream
 namespace {
-HORD_FMT_SCOPED_FQN(
+HORD_DEF_FMT_FQN(
 	s_err_release_prop_not_locked,
 	"prop %08x -> %s is not locked"
 );
@@ -234,7 +232,7 @@ FlatDatastore::release_stream(
 		!prop_info_equal(m_prop.info, prop_info) ||
 		is_input != m_prop.is_input
 	) {
-		HORD_THROW_ERROR_F(
+		HORD_THROW_FMT(
 			Hord::ErrorCode::datastore_prop_not_locked,
 			s_err_release_prop_not_locked,
 			prop_info.object_id,
@@ -249,13 +247,13 @@ FlatDatastore::release_stream(
 	m_prop.reset();
 	base::disable_state(State::locked);
 }
-#undef HORD_SCOPE_FUNC_IDENT__
+#undef HORD_SCOPE_FUNC
 
 
 // Hord::IO::Datastore implementation
 
 
-#define HORD_SCOPE_FUNC_IDENT__ open_impl
+#define HORD_SCOPE_FUNC open_impl
 void
 FlatDatastore::open_impl() {
 	// NB: open() protects us from the ill logic of trying to open
@@ -267,7 +265,7 @@ FlatDatastore::open_impl() {
 		m_lock.acquire();
 		base::enable_state(State::opened);
 	} catch (Hord::Error&) {
-		HORD_THROW_ERROR_SCOPED_FQN(
+		HORD_THROW_FQN(
 			Hord::ErrorCode::datastore_open_failed,
 			"failed to obtain hive lockfile"
 		);
@@ -275,7 +273,7 @@ FlatDatastore::open_impl() {
 		throw;
 	}
 }
-#undef HORD_SCOPE_FUNC_IDENT__
+#undef HORD_SCOPE_FUNC
 
 void
 FlatDatastore::close_impl() {
@@ -327,9 +325,9 @@ FlatDatastore::generate_id_impl(
 	return id_generator.generate_unique(m_index);
 }
 
-#define HORD_SCOPE_FUNC_IDENT__ create_object_impl
+#define HORD_SCOPE_FUNC create_object_impl
 namespace {
-HORD_FMT_SCOPED_FQN(
+HORD_DEF_FMT_FQN(
 	s_err_create_object_already_exists,
 	"object %08x (of type %s) already exists"
 );
@@ -344,7 +342,7 @@ FlatDatastore::create_object_impl(
 
 	auto const it = make_const(m_index).find(object_id);
 	if (m_index.cend() != it) {
-		HORD_THROW_ERROR_F(
+		HORD_THROW_FMT(
 			Hord::ErrorCode::datastore_object_already_exists,
 			s_err_create_object_already_exists,
 			object_id,
@@ -355,19 +353,19 @@ FlatDatastore::create_object_impl(
 	// Currently only nodes are supported
 	m_index.insert(object_id);
 }
-#undef HORD_SCOPE_FUNC_IDENT__
+#undef HORD_SCOPE_FUNC
 
-#define HORD_SCOPE_FUNC_IDENT__ destroy_object_impl
+#define HORD_SCOPE_FUNC destroy_object_impl
 void
 FlatDatastore::destroy_object_impl(
 	Hord::Object::ID const object_id
 ) {
 	auto const it = m_index.find(object_id);
 	if (m_index.cend() == it) {
-		HORD_THROW_ERROR_F(
+		HORD_THROW_FMT(
 			Hord::ErrorCode::datastore_object_not_found,
 			s_err_object_not_found,
-			HORD_SCOPE_FQN,
+			HORD_SCOPE_FQN_STR_LIT,
 			object_id
 		);
 	}
@@ -377,9 +375,9 @@ FlatDatastore::destroy_object_impl(
 	// affect the container
 	const_cast<Index::Entry&>(*it).is_trash = true;
 }
-#undef HORD_SCOPE_FUNC_IDENT__
+#undef HORD_SCOPE_FUNC
 
-#undef HORD_SCOPE_CLASS_IDENT__ // FlatDatastore
+#undef HORD_SCOPE_CLASS // FlatDatastore
 
 } // namespace IO
 } // namespace Onsang
