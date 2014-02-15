@@ -10,7 +10,7 @@ see @ref index or the accompanying LICENSE file for full text.
 #ifndef ONSANG_STRING_HPP_
 #define ONSANG_STRING_HPP_
 
-#include "./config.hpp"
+#include <Onsang/config.hpp>
 
 #include <Hord/String.hpp>
 

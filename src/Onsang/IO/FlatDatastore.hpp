@@ -10,10 +10,10 @@ see @ref index or the accompanying LICENSE file for full text.
 #ifndef ONSANG_IO_FLATDATASTORE_HPP_
 #define ONSANG_IO_FLATDATASTORE_HPP_
 
-#include "../config.hpp"
-#include "../aux.hpp"
-#include "../utility.hpp"
-#include "../String.hpp"
+#include <Onsang/config.hpp>
+#include <Onsang/aux.hpp>
+#include <Onsang/utility.hpp>
+#include <Onsang/String.hpp>
 
 #include <Hord/LockFile.hpp>
 #include <Hord/Object/Defs.hpp>

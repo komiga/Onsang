@@ -1,5 +1,5 @@
 
-#include "./config.hpp"
+#include <Onsang/config.hpp>
 
 signed
 main(

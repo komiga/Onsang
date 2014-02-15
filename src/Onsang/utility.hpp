@@ -10,7 +10,7 @@ see @ref index or the accompanying LICENSE file for full text.
 #ifndef ONSANG_UTILITY_HPP_
 #define ONSANG_UTILITY_HPP_
 
-#include "./config.hpp"
+#include <Onsang/config.hpp>
 
 #include <duct/utility.hpp>
 

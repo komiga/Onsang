@@ -7,6 +7,6 @@
 see @ref index or the accompanying LICENSE file for full text.
 */
 
-#include "./gr_core.hpp"
+#include <Onsang/detail/Hord/gr_core.hpp>
 
 #include <Hord/detail/gr_ceformat.hpp>

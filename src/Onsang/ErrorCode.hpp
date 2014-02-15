@@ -10,7 +10,7 @@ see @ref index or the accompanying LICENSE file for full text.
 #ifndef ONSANG_ERRORCODE_HPP_
 #define ONSANG_ERRORCODE_HPP_
 
-#include "./config.hpp"
+#include <Onsang/config.hpp>
 
 namespace Onsang {
 

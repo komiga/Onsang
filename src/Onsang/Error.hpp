@@ -10,8 +10,8 @@ see @ref index or the accompanying LICENSE file for full text.
 #ifndef ONSANG_ERROR_HPP_
 #define ONSANG_ERROR_HPP_
 
-#include "./config.hpp"
-#include "./ErrorCode.hpp"
+#include <Onsang/config.hpp>
+#include <Onsang/ErrorCode.hpp>
 
 #include <duct/GR/Error.hpp>
 

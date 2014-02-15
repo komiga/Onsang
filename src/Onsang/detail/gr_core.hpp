@@ -10,9 +10,9 @@ see @ref index or the accompanying LICENSE file for full text.
 #ifndef ONSANG_DETAIL_GR_CORE_HPP_
 #define ONSANG_DETAIL_GR_CORE_HPP_
 
-#include "../config.hpp"
-#include "../String.hpp"
-#include "../Error.hpp"
+#include <Onsang/config.hpp>
+#include <Onsang/String.hpp>
+#include <Onsang/Error.hpp>
 
 #ifndef ONSANG_DETAIL_GR_CORE_NS_GUARD_
 #define ONSANG_DETAIL_GR_CORE_NS_GUARD_

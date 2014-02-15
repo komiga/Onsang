@@ -11,14 +11,15 @@ precore.make_solution(
 	{
 		"precore-generic",
 		"onsang-strict",
-		"onsang-deps"
+		"onsang-deps",
+		"onsang-import"
 	}
 )
 
--- Core library
+-- Client
 
 precore.make_project(
-	"onsang",
+	"onsang-client",
 	"C++", "ConsoleApp",
 	"bin/", "out/",
 	nil, nil
@@ -30,6 +31,9 @@ configuration {"debug"}
 configuration {}
 	files {
 		"src/**.cpp"
+	}
+	excludes {
+		"src/Onsang/Server/**"
 	}
 
 action_clean()

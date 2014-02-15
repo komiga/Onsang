@@ -88,6 +88,15 @@ project = function()
 		links {"murk"}
 end}})
 
+precore.make_config(
+"onsang-import", {{
+project = function()
+	configuration {}
+		includedirs {
+			"src/"
+		}
+end}})
+
 -- Initialize precore
 
 precore.init(

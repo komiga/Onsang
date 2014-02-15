@@ -1,8 +1,8 @@
 
-#include "../utility.hpp"
-#include "../detail/Hord/gr_ceformat.hpp"
-#include "../String.hpp"
-#include "./FlatDatastore.hpp"
+#include <Onsang/utility.hpp>
+#include <Onsang/detail/Hord/gr_ceformat.hpp>
+#include <Onsang/String.hpp>
+#include <Onsang/IO/FlatDatastore.hpp>
 
 #include <Hord/IO/PropStream.hpp>
 

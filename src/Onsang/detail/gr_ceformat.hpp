@@ -10,8 +10,8 @@ see @ref index or the accompanying LICENSE file for full text.
 #ifndef ONSANG_DETAIL_GR_CEFORMAT_HPP_
 #define ONSANG_DETAIL_GR_CEFORMAT_HPP_
 
-#include "../config.hpp"
-#include "./gr_core.hpp"
+#include <Onsang/config.hpp>
+#include <Onsang/detail/gr_core.hpp>
 
 #include <duct/GR/ceformat.hpp>
 
