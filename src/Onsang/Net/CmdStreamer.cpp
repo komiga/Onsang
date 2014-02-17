@@ -53,13 +53,13 @@ CmdStreamer::read_header() {
 	std::size_t const size
 	= duct::IO::read_arithmetic<uint32_t>(
 		stream,
-		duct::Endian::LITTLE
+		duct::Endian::little
 	);
 
 	uint32_t const type
 	= duct::IO::read_arithmetic<uint32_t>(
 		stream,
-		duct::Endian::LITTLE
+		duct::Endian::little
 	);
 
 	if (stream.fail()) {
@@ -316,7 +316,7 @@ CmdStreamer::context_output(
 	duct::IO::write_arithmetic<uint32_t>(
 		stream,
 		static_cast<uint32_t>(h_size),
-		duct::Endian::LITTLE
+		duct::Endian::little
 	);
 
 	uint32_t const h_type
@@ -326,7 +326,7 @@ CmdStreamer::context_output(
 	duct::IO::write_arithmetic<uint32_t>(
 		stream,
 		h_type,
-		duct::Endian::LITTLE
+		duct::Endian::little
 	);
 
 	if (stream.fail()) {
