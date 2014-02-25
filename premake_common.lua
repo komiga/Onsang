@@ -70,14 +70,12 @@ project = function()
 			precore.subst("${ROOT}/dep/murk/include/"),
 			precore.subst("${ROOT}/dep/trait_wrangler/"),
 			precore.subst("${ROOT}/dep/ceformat/"),
-			precore.subst("${ROOT}/dep/beard/include/"),
 			precore.subst("${ROOT}/dep/hord/include/"),
 			precore.subst("${ROOT}/dep/boost/include/"),
 		}
 
 		libdirs {
 			precore.subst("${ROOT}/dep/murk/lib"),
-			precore.subst("${ROOT}/dep/beard/lib"),
 			precore.subst("${ROOT}/dep/hord/lib"),
 			precore.subst("${ROOT}/dep/boost/lib"),
 		}
@@ -86,14 +84,32 @@ project = function()
 		--links {"boost_filesystem"}
 
 	configuration {"debug"}
-		links {"beard_d"}
 		links {"hord_d"}
 		links {"murk_d"}
 
 	configuration {"release"}
-		links {"beard"}
 		links {"hord"}
 		links {"murk"}
+end}})
+
+precore.make_config(
+"onsang-client-deps", {{
+project = function()
+	configuration {}
+		includedirs {
+			precore.subst("${ROOT}/dep/am/"),
+			precore.subst("${ROOT}/dep/beard/include/"),
+		}
+
+		libdirs {
+			precore.subst("${ROOT}/dep/beard/lib"),
+		}
+
+	configuration {"debug"}
+		links {"beard_d"}
+
+	configuration {"release"}
+		links {"beard"}
 end}})
 
 precore.make_config(

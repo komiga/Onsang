@@ -22,7 +22,10 @@ precore.make_project(
 	"onsang-client",
 	"C++", "ConsoleApp",
 	"bin/", "out/",
-	nil, nil
+	nil,
+	{
+		"onsang-client-deps"
+	}
 )
 
 configuration {"debug"}
