@@ -89,7 +89,7 @@ CmdStreamer::read_stage() {
 	);
 	if (!type_info) {
 		Log::acquire(Log::error)
-			<< Log::Pre::current << ONSANG_SCOPE_FQN_STR_LIT
+			<< ONSANG_SCOPE_FQN_STR_LIT
 			<< ceformat::write_sentinel<
 				s_err_command_type_invalid
 			>(
@@ -108,7 +108,7 @@ CmdStreamer::read_stage() {
 		switch (ex.get_code()) {
 		case Hord::ErrorCode::cmd_construct_stage_type_invalid:
 			Log::acquire(Log::error)
-				<< Log::Pre::current << ONSANG_SCOPE_FQN_STR_LIT
+				<< ONSANG_SCOPE_FQN_STR_LIT
 				<< ceformat::write_sentinel<s_err_stage_type_invalid>(
 					enum_cast(stage_type),
 					enum_cast(command_type)
@@ -127,7 +127,7 @@ CmdStreamer::read_stage() {
 	std::size_t const remaining = m_streambuf_in.get_remaining();
 	if (0u < remaining) {
 		Log::acquire(Log::debug)
-			<< Log::Pre::current << ONSANG_SCOPE_FQN_STR_LIT
+			<< ONSANG_SCOPE_FQN_STR_LIT
 			<< ": "
 			<< remaining
 			<< " bytes left in buffer after stage deserialization\n"
@@ -247,7 +247,7 @@ CmdStreamer::run() {
 		}
 	} catch (std::exception& ex) {
 		Log::acquire(Log::error)
-			<< Log::Pre::current << ONSANG_SCOPE_FQN_STR_LIT
+			<< ONSANG_SCOPE_FQN_STR_LIT
 			<< ": caught exception from io_service::run(): "
 			<< ex.what()
 			<< "\n"
