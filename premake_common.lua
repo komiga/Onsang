@@ -36,6 +36,9 @@ project = function()
 		flags {
 			"FatalWarnings"
 		}
+		buildoptions {
+			"-Wno-missing-braces"
+		}
 
 	configuration {"linux"}
 		buildoptions {
