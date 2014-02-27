@@ -17,7 +17,14 @@ see @ref index or the accompanying LICENSE file for full text.
 namespace Onsang {
 
 using duct::make_const;
+using duct::signed_cast;
+using duct::unsigned_cast;
 using duct::enum_cast;
+using duct::enum_bitor;
+using duct::enum_bitand;
+using duct::enum_combine;
+using duct::min_ce;
+using duct::max_ce;
 
 } // namespace Onsang
 
