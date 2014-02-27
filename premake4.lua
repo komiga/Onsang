@@ -32,6 +32,9 @@ configuration {"debug"}
 	targetsuffix("_d")
 
 configuration {}
+	defines {
+		"ONSANG_CLIENT"
+	}
 	files {
 		"src/**.cpp"
 	}
