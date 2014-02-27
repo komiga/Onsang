@@ -8,6 +8,15 @@
 #include <duct/ScriptParser.hpp>
 #include <duct/ScriptWriter.hpp>
 
+#include <Beard/tty/Defs.hpp>
+#include <Beard/tty/Ops.hpp>
+#include <Beard/tty/Terminal.hpp>
+#include <Beard/tty/TerminalInfo.hpp>
+#include <Beard/txt/Defs.hpp>
+#include <Beard/ui/Defs.hpp>
+#include <Beard/ui/Root.hpp>
+#include <Beard/ui/Context.hpp>
+
 namespace Onsang {
 namespace Client {
 
@@ -221,6 +230,9 @@ Unit::init(
 		return false;
 	}
 
+	// Update terminal cap cache
+	m_ui_ctx.get_terminal().update_cache();
+
 	// Add sessions
 	Log::acquire()
 		<< "Creating sessions\n"
@@ -241,7 +253,36 @@ Unit::init(
 }
 
 void
-Unit::start() {
+Unit::start() try {
+	Log::acquire()
+		<< "Opening UI context\n"
+	;
+	m_ui_ctx.open(Beard::tty::this_path(), true);
+	auto root = Beard::ui::Root::make(m_ui_ctx, Beard::Axis::horizontal);
+	m_ui_ctx.set_root(root);
+
+	// The terminal will get all screwy if we don't disable stdout
+	Log::acquire()
+		<< "Disabling stdout\n"
+	;
+	Log::get_controller().stdout(false);
+
+	// Event loop
+	m_ui_ctx.render(true);
+	while (!m_ui_ctx.update(10u)) {
+		// TODO: process data from sessions, handle global hotkeys
+	}
+	m_ui_ctx.close();
+	Log::get_controller().stdout(true);
+	Log::acquire()
+		<< "Re-enabled stdout\n"
+	;
+} catch (...) {
+	Log::get_controller().stdout(true);
+	Log::acquire()
+		<< "Re-enabled stdout\n"
+	;
+	throw;
 }
 
 } // namespace Client

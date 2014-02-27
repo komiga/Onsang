@@ -40,11 +40,8 @@ main(
 		Log::acquire()
 			<< "Client: starting\n"
 		;
-		// The terminal will get all screwy if we don't disable stdout
-		lc.stdout(false);
 		unit.start();
 	} catch (Error& err) {
-		lc.stdout(true);
 		Log::acquire(Log::error)
 			<< "Client: caught exception from start():\n"
 		;
