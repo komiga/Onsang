@@ -24,6 +24,8 @@ see @ref index or the accompanying LICENSE file for full text.
 
 #include <Hord/System/Driver.hpp>
 
+#include <duct/StateStore.hpp>
+
 namespace Onsang {
 namespace Client {
 
@@ -32,6 +34,11 @@ public:
 	using session_vector_type = aux::vector<Net::Session>;
 
 private:
+	enum class Flags : unsigned {
+		no_auto_connect = 1u << 0,
+	};
+
+	duct::StateStore<Flags> m_flags;
 	Hord::System::Driver m_driver;
 
 	asio::io_service m_io_service;
@@ -52,43 +59,50 @@ public:
 	Unit& operator=(Unit&&) = default;
 
 	Unit()
-		: m_driver()
+		: m_flags()
+		, m_driver()
 		, m_io_service()
 		, m_sessions()
 		, m_ui_ctx(Beard::ui::PropertyMap{true})
 		, m_config(
 			{},
 			{
-				{"log", {
+				{"log", {ConfigNode::Flags::optional, {
 					{"path", {
-						{duct::var_mask(
-							duct::VarType::string,
-							duct::VarType::null
-						)},
+						{duct::VarType::string},
 						ConfigNode::Flags::optional
+					}}
+				}}},
+				{"term", {
+					{"info", {
+						{duct::VarType::string}
 					}}
 				}},
 				{"sessions", {
-					{"", {
+					{"builder", {
 						new ConfigNode({
 							{"type", {
-								{duct::var_mask(duct::VarType::string)}
+								{duct::VarType::string}
 							}},
 							{"addr", {
-								{duct::var_mask(duct::VarType::string)}
+								{duct::VarType::string}
 							}}
-						})
+						}),
+						ConfigNode::Flags::node_matcher_named
 					}}
 				}}
 			}
 		)
 		, m_args({
 			{"--config", {
-				{duct::VarMask::value},
-				ConfigNode::Flags::optional
+				{duct::VarMask::value}
 			}},
 			{"--log", {
 				{duct::VarMask::value},
+				ConfigNode::Flags::optional
+			}},
+			{"--no-auto", {
+				{duct::VarType::null},
 				ConfigNode::Flags::optional
 			}}
 		})
@@ -111,7 +125,9 @@ public:
 	// May throw Hord::Error
 	void
 	add_session(
-		String address
+		String name,
+		String type,
+		String addr
 	);
 
 	bool
