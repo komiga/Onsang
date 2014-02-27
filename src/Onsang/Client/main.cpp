@@ -29,7 +29,7 @@ main(
 		report_error(err);
 	}
 	if (!initialized) {
-		Log::acquire(Log::error)
+		Log::acquire()
 			<< "Client: failed to initialize\n"
 		;
 		return -1;
@@ -46,7 +46,7 @@ main(
 	} catch (Error& err) {
 		lc.stdout(true);
 		Log::acquire(Log::error)
-			<< "Client: caught exception from start()\n"
+			<< "Client: caught exception from start():\n"
 		;
 		report_error(err);
 		return -2;
