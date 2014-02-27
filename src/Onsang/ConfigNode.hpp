@@ -14,6 +14,7 @@ see @ref index or the accompanying LICENSE file for full text.
 #include <Onsang/config.hpp>
 #include <Onsang/aux.hpp>
 #include <Onsang/utility.hpp>
+#include <Onsang/iterator_proxy.hpp>
 #include <Onsang/String.hpp>
 
 #include <duct/debug.hpp>
@@ -34,6 +35,14 @@ public:
 		optional = 1u << 0,
 		assigned = 1u << 1,
 
+		// Only used for Entry
+		collect = 1u << 2,
+		node_matcher = 1u << 3,
+		node_matcher_named = 1u << 4,
+
+		// Only used for ConfigNode
+		node_built = 1u << 5,
+
 		supplied
 			= optional
 			| assigned
@@ -45,6 +54,7 @@ public:
 		duct::VarTemplate tpl{};
 		duct::Var value{duct::VarType::null};
 		std::shared_ptr<ConfigNode> node_tpl{nullptr};
+		std::size_t node_count{0u};
 
 		~Entry() = default;
 		Entry() = delete;
@@ -59,13 +69,18 @@ public:
 		)
 			: flags(flags)
 			, tpl(std::move(tpl))
+			, value(
+				enum_bitand(flags, Flags::collect)
+				? duct::VarType::node
+				: duct::VarType::null
+			)
 		{}
 
 		Entry(
 			ConfigNode* node_tpl,
 			Flags const flags = Flags::none
 		)
-			: flags(flags)
+			: flags(enum_combine(flags, Flags::node_matcher))
 			, node_tpl(std::move(node_tpl))
 		{
 			DUCT_ASSERTE(nullptr != node_tpl);
@@ -111,9 +126,15 @@ public:
 		node_map_type::value_type
 	>;
 
+	using entry_iterator_proxy = iterator_proxy<entry_map_type>;
+	using const_entry_iterator_proxy = const_iterator_proxy<entry_map_type>;
+	using node_iterator_proxy = iterator_proxy<node_map_type>;
+	using const_node_iterator_proxy = const_iterator_proxy<node_map_type>;
+
 	struct ValidationInfo final {
 		bool valid;
 		bool has_iter;
+		String node;
 		entry_map_type::const_iterator iter;
 	};
 
@@ -121,9 +142,23 @@ private:
 	duct::StateStore<Flags> m_flags;
 	entry_map_type m_entries;
 	node_map_type m_nodes;
+	bool m_has_node_matcher{false};
+	String m_node_matcher{};
 
 	ConfigNode() = delete;
 	ConfigNode& operator=(ConfigNode const&) = delete;
+
+	void
+	designate_node_matcher() {
+		for (auto& epair : m_entries) {
+			if (epair.second.flags.test(Flags::node_matcher)) {
+				// There should only be one builder
+				DUCT_ASSERTE(!m_has_node_matcher);
+				m_has_node_matcher = true;
+				m_node_matcher = epair.first;
+			}
+		}
+	}
 
 public:
 // constructors, destructor, and operators
@@ -138,7 +173,9 @@ public:
 		: m_flags(Flags::none)
 		, m_entries(entries)
 		, m_nodes()
-	{}
+	{
+		designate_node_matcher();
+	}
 
 	ConfigNode(
 		entry_initializer_list entries,
@@ -147,7 +184,20 @@ public:
 		: m_flags(Flags::none)
 		, m_entries(entries)
 		, m_nodes(nodes)
-	{}
+	{
+		designate_node_matcher();
+	}
+
+	ConfigNode(
+		Flags const flags,
+		entry_initializer_list entries
+	)
+		: m_flags(flags)
+		, m_entries(entries)
+		, m_nodes()
+	{
+		designate_node_matcher();
+	}
 
 	ConfigNode(
 		Flags const flags,
@@ -157,9 +207,44 @@ public:
 		: m_flags(flags)
 		, m_entries(entries)
 		, m_nodes(nodes)
-	{}
+	{
+		designate_node_matcher();
+	}
 
 // properties
+	void
+	set_flags(
+		Flags const flags,
+		bool const enable
+	) noexcept {
+		m_flags.set(flags, enable);
+	}
+
+	bool
+	built() const noexcept {
+		return m_flags.test(Flags::node_built);
+	}
+
+	entry_iterator_proxy
+	entry_proxy() noexcept {
+		return {m_entries};
+	}
+
+	const_entry_iterator_proxy
+	entry_proxy() const noexcept {
+		return {m_entries};
+	}
+
+	node_iterator_proxy
+	node_proxy() noexcept {
+		return {m_nodes};
+	}
+
+	const_node_iterator_proxy
+	node_proxy() const noexcept {
+		return {m_nodes};
+	}
+
 	// TODO: Use a custom hasher and add overload for char const*
 	/** @throws std::out_of_range */
 	Entry&
@@ -210,6 +295,13 @@ public:
 		duct::Var const& node
 	);
 
+private:
+	ValidationInfo
+	validate(
+		String&& name
+	) const noexcept;
+
+public:
 	/**
 		@returns
 		-# {false, m_entries.cend()} if the node isn't supplied;

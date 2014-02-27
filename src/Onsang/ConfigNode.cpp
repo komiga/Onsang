@@ -17,15 +17,26 @@ ConfigNode::Entry::assign(
 	duct::Var const& var
 ) {
 	if (node_tpl) {
+		if (
+			flags.test(Flags::node_matcher_named) &&
+			var.get_name().empty()
+		) {
+			return false;
+		}
 		ConfigNode splice{*node_tpl};
+		splice.set_flags(Flags::node_built, true);
 		splice.import(var);
-		// TODO: Generate name if var.get_name().empty()?
 		cnode.emplace_node(var.get_name(), std::move(splice));
+		++node_count;
 	} else {
 		if (!validate(var)) {
 			return false;
 		}
-		value = var;
+		if (flags.test(Flags::collect)) {
+			value.emplace_back(var);
+		} else {
+			value = var;
+		}
 	}
 	flags.enable(Flags::assigned);
 	return true;
@@ -68,7 +79,7 @@ ONSANG_DEF_FMT_FQN(
 
 ONSANG_DEF_FMT_FQN(
 	s_err_var_invalid,
-	"invalid variable '%s' (type = %s)"
+	"invalid variable '%s' (type = %s): %s"
 );
 } // anonymous namespace
 
@@ -77,10 +88,19 @@ ConfigNode::import(
 	duct::Var const& node
 ) {
 	DUCT_ASSERTE(node.is_type(duct::VarType::node));
+	auto const matcher_it
+		= m_has_node_matcher
+		? m_entries.find(m_node_matcher)
+		: m_entries.end()
+	;
 	for (auto const& var : node) {
 		auto entry_it = m_entries.find(var.get_name());
-		if (var.is_type(duct::VarType::node) && m_entries.cend() != entry_it) {
-			entry_it = m_entries.find(String{});
+		if (
+			m_entries.cend() == entry_it &&
+			m_has_node_matcher &&
+			var.is_type(duct::VarType::node)
+		) {
+			entry_it = matcher_it;
 		}
 		if (m_entries.cend() != entry_it) {
 			if (entry_it->second.assign(*this, var)) {
@@ -90,7 +110,10 @@ ConfigNode::import(
 					ErrorCode::config_var_invalid,
 					s_err_var_invalid,
 					var.get_name(),
-					duct::var_type_name(var.get_type())
+					duct::var_type_name(var.get_type()),
+					entry_it->second.flags.test(Flags::node_matcher_named)
+					? "node requires name"
+					: "template validation failed"
 				);
 			}
 		} else if (var.is_type(duct::VarType::node)) {
@@ -112,9 +135,11 @@ ConfigNode::import(
 #undef ONSANG_SCOPE_FUNC
 
 ConfigNode::ValidationInfo
-ConfigNode::validate() const noexcept {
+ConfigNode::validate(
+	String&& name
+) const noexcept {
 	if (!m_flags.test_any(Flags::supplied)) {
-		return {false, false, m_entries.cend()};
+		return {false, false, std::move(name), m_entries.cend()};
 	}
 	for (
 		auto it = m_entries.cbegin();
@@ -122,16 +147,21 @@ ConfigNode::validate() const noexcept {
 		++it
 	) {
 		if (!it->second.supplied()) {
-			return {false, true, it};
+			return {false, true, std::move(name), it};
 		}
 	}
-	for (auto const& node : m_nodes) {
-		auto vinfo = node.second.validate();
+	for (auto const& npair : m_nodes) {
+		auto vinfo = npair.second.validate(String{npair.first});
 		if (!vinfo.valid) {
 			return vinfo;
 		}
 	}
-	return {true, false, m_entries.cend()};
+	return {true, false, std::move(name), m_entries.cend()};
+}
+
+ConfigNode::ValidationInfo
+ConfigNode::validate() const noexcept {
+	return validate("<root>");
 }
 
 #undef ONSANG_SCOPE_CLASS // ConfigNode
