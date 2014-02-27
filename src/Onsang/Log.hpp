@@ -30,7 +30,7 @@ report_error(
 	Beard::Error const& err
 ) {
 	Log::acquire(Log::error)
-		<< '[' << Beard::get_error_name(err.get_code()) << "]\n"
+		<< "[Beard:" << Beard::get_error_name(err.get_code()) << "] "
 		<< err.get_message()
 		<< '\n'
 	;
@@ -42,7 +42,7 @@ report_error(
 	Hord::Error const& err
 ) {
 	Log::acquire(Log::error)
-		<< '[' << Hord::get_error_name(err.get_code()) << "]\n"
+		<< "[Hord:" << Hord::get_error_name(err.get_code()) << "] "
 		<< err.get_message()
 		<< '\n'
 	;
@@ -53,7 +53,7 @@ report_error(
 	Onsang::Error const& err
 ) {
 	Log::acquire(Log::error)
-		<< '[' << get_error_name(err.get_code()) << "]\n"
+		<< "[Onsang:" << get_error_name(err.get_code()) << "] "
 		<< err.get_message()
 		<< '\n'
 	;
