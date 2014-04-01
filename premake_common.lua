@@ -67,15 +67,14 @@ project = function()
 	configuration {}
 		includedirs {
 			precore.subst("${ROOT}/dep/duct/"),
-			precore.subst("${ROOT}/dep/murk/include/"),
 			precore.subst("${ROOT}/dep/trait_wrangler/"),
 			precore.subst("${ROOT}/dep/ceformat/"),
+			precore.subst("${ROOT}/dep/Cacophony/"),
 			precore.subst("${ROOT}/dep/Hord/include/"),
 			precore.subst("${ROOT}/dep/boost/include/"),
 		}
 
 		libdirs {
-			precore.subst("${ROOT}/dep/murk/lib"),
 			precore.subst("${ROOT}/dep/Hord/lib"),
 			precore.subst("${ROOT}/dep/boost/lib"),
 		}
@@ -85,11 +84,9 @@ project = function()
 
 	configuration {"debug"}
 		links {"hord_d"}
-		links {"murk_d"}
 
 	configuration {"release"}
 		links {"hord"}
-		links {"murk"}
 end}})
 
 precore.make_config(

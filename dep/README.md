@@ -20,6 +20,10 @@ into the proper directories):
 
   `git clone git://github.com/komiga/ceformat.git ceformat/`
 
+* [Cacophony](https://github.com/komiga/Cacophony) into `Cacophony/`:
+
+  `git clone git://github.com/komiga/Cacophony.git Cacophony/`
+
 * [All the Maths‽](https://github.com/komiga/am) into `am/`:
 
   `git clone git://github.com/komiga/am.git am/`

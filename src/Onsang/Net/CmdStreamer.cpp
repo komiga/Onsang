@@ -2,6 +2,7 @@
 #include <Onsang/utility.hpp>
 #include <Onsang/Log.hpp>
 #include <Onsang/asio.hpp>
+#include <Onsang/serialization.hpp>
 #include <Onsang/Net/CmdStreamer.hpp>
 
 #include <Hord/Error.hpp>
@@ -10,6 +11,7 @@
 #include <duct/IO/arithmetic.hpp>
 
 #include <cassert>
+#include <limits>
 #include <mutex>
 #include <iomanip>
 #include <iostream>
@@ -103,7 +105,8 @@ CmdStreamer::read_stage() {
 	try {
 		stage_uptr.reset(type_info->construct_stage(stage_type));
 		std::istream stream{&m_streambuf_in};
-		stage_uptr->deserialize(stream);
+		auto ser = make_input_serializer(stream);
+		ser(*stage_uptr);
 	} catch (Hord::Error& ex) {
 		stage_uptr.reset();
 		switch (ex.get_code()) {
@@ -280,6 +283,8 @@ CmdStreamer::context_input(
 }
 #undef ONSANG_SCOPE_FUNC
 
+// TODO: What should the exception specifications for this be?
+// Does it leave it up to the callee? Seems to be the intention.
 #define ONSANG_SCOPE_FUNC context_output
 bool
 CmdStreamer::context_output(
@@ -296,6 +301,7 @@ CmdStreamer::context_output(
 		msg_header_size + (m_streambuf_out.get_max_size() >> 2)
 	);
 	std::ostream stream{&m_streambuf_out};
+	auto ser = make_output_serializer(stream);
 
 	// Seek past header to reserve it; we need the size of the
 	// stage payload
@@ -303,9 +309,7 @@ CmdStreamer::context_output(
 
 	// data
 	auto& stage = *context.get_output().front();
-	stage.serialize(
-		stream
-	);
+	ser(stage);
 
 	// Can't use buffer.size() later because it might've grown
 	// beyond our write amount
@@ -314,21 +318,14 @@ CmdStreamer::context_output(
 	// header
 	stream.seekp(0);
 	std::size_t const h_size = m_outgoing_size - msg_header_size;
-	duct::IO::write_arithmetic<uint32_t>(
-		stream,
-		static_cast<uint32_t>(h_size),
-		duct::Endian::little
-	);
+	assert(std::numeric_limits<uint32_t>::max() >= h_size);
+	ser(static_cast<uint32_t>(h_size));
 
 	uint32_t const h_type
 		= enum_cast(stage.get_stage_type())
 		| enum_cast(stage.get_command_type())
 	;
-	duct::IO::write_arithmetic<uint32_t>(
-		stream,
-		h_type,
-		duct::Endian::little
-	);
+	ser(h_type);
 
 	if (stream.fail()) {
 		return false;
