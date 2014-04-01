@@ -1,11 +1,12 @@
 
 #include <Onsang/utility.hpp>
-#include <Onsang/detail/gr_core.hpp>
-#include <Onsang/detail/gr_ceformat.hpp>
 #include <Onsang/ConfigNode.hpp>
 
 #include <duct/debug.hpp>
 #include <duct/VarType.hpp>
+
+#include <Onsang/detail/gr_core.hpp>
+#include <Onsang/detail/gr_ceformat.hpp>
 
 namespace Onsang {
 

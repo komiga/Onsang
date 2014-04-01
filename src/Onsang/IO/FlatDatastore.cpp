@@ -1,6 +1,5 @@
 
 #include <Onsang/utility.hpp>
-#include <Onsang/detail/Hord/gr_ceformat.hpp>
 #include <Onsang/String.hpp>
 #include <Onsang/IO/FlatDatastore.hpp>
 
@@ -10,6 +9,8 @@
 #include <type_traits>
 #include <utility>
 #include <new>
+
+#include <Onsang/detail/Hord/gr_ceformat.hpp>
 
 namespace Onsang {
 namespace IO {
@@ -251,7 +252,6 @@ FlatDatastore::release_stream(
 
 
 // Hord::IO::Datastore implementation
-
 
 #define HORD_SCOPE_FUNC open_impl
 void

@@ -1,6 +1,5 @@
 
 #include <Onsang/utility.hpp>
-#include <Onsang/detail/gr_ceformat.hpp>
 #include <Onsang/Log.hpp>
 #include <Onsang/asio.hpp>
 #include <Onsang/Net/CmdStreamer.hpp>
@@ -14,6 +13,8 @@
 #include <mutex>
 #include <iomanip>
 #include <iostream>
+
+#include <Onsang/detail/gr_ceformat.hpp>
 
 namespace Onsang {
 namespace Net {
