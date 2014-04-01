@@ -70,13 +70,13 @@ project = function()
 			precore.subst("${ROOT}/dep/murk/include/"),
 			precore.subst("${ROOT}/dep/trait_wrangler/"),
 			precore.subst("${ROOT}/dep/ceformat/"),
-			precore.subst("${ROOT}/dep/hord/include/"),
+			precore.subst("${ROOT}/dep/Hord/include/"),
 			precore.subst("${ROOT}/dep/boost/include/"),
 		}
 
 		libdirs {
 			precore.subst("${ROOT}/dep/murk/lib"),
-			precore.subst("${ROOT}/dep/hord/lib"),
+			precore.subst("${ROOT}/dep/Hord/lib"),
 			precore.subst("${ROOT}/dep/boost/lib"),
 		}
 
@@ -98,11 +98,11 @@ project = function()
 	configuration {}
 		includedirs {
 			precore.subst("${ROOT}/dep/am/"),
-			precore.subst("${ROOT}/dep/beard/include/"),
+			precore.subst("${ROOT}/dep/Beard/include/"),
 		}
 
 		libdirs {
-			precore.subst("${ROOT}/dep/beard/lib"),
+			precore.subst("${ROOT}/dep/Beard/lib"),
 		}
 
 	configuration {"debug"}

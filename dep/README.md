@@ -24,13 +24,13 @@ into the proper directories):
 
   `git clone git://github.com/komiga/am.git am/`
 
-* [Beard](https://github.com/komiga/Beard) into `beard/`:
+* [Beard](https://github.com/komiga/Beard) into `Beard/`:
 
-  `git clone git://github.com/komiga/Beard.git beard/`
+  `git clone git://github.com/komiga/Beard.git Beard/`
 
-* [Hord](https://github.com/komiga/hord) into `hord/`:
+* [Hord](https://github.com/komiga/hord) into `Hord/`:
 
-  `git clone git://github.com/komiga/hord.git hord/`
+  `git clone git://github.com/komiga/hord.git Hord/`
 
 And compile-copy/download/magically spontaniate the following libraries:
 
