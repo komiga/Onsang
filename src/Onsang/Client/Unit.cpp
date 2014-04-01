@@ -1,6 +1,7 @@
 
 #include <Onsang/asio.hpp>
 #include <Onsang/Log.hpp>
+#include <Onsang/init.hpp>
 #include <Onsang/Client/Unit.hpp>
 
 #include <duct/debug.hpp>
@@ -232,6 +233,9 @@ Unit::init(
 
 	// Update terminal cap cache
 	m_ui_ctx.get_terminal().update_cache();
+
+	// Initialize driver
+	driver_init(m_driver);
 
 	// Add sessions
 	Log::acquire()
