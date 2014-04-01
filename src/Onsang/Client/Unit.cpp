@@ -277,15 +277,19 @@ Unit::start() try {
 		// TODO: process data from sessions, handle global hotkeys
 	}
 	m_ui_ctx.close();
+
 	Log::get_controller().stdout(true);
 	Log::acquire()
 		<< "Re-enabled stdout\n"
 	;
 } catch (...) {
-	Log::get_controller().stdout(true);
-	Log::acquire()
-		<< "Re-enabled stdout\n"
-	;
+	// TODO: Terminate UI?
+	if (!Log::get_controller().stdout_enabled()) {
+		Log::get_controller().stdout(true);
+		Log::acquire()
+			<< "Re-enabled stdout\n"
+		;
+	}
 	throw;
 }
 
