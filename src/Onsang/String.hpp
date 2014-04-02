@@ -16,7 +16,7 @@ see @ref index or the accompanying LICENSE file for full text.
 
 namespace Onsang {
 
-#define ONSANG_STR_LIT(x__) HORD_STR_LIT(x__)
+#define ONSANG_STR_LIT(x_) HORD_STR_LIT(x_)
 using String = Hord::String;
 
 } // namespace Onsang
