@@ -54,13 +54,13 @@ bool
 CmdStreamer::read_header() {
 	std::istream stream{&m_streambuf_in};
 	std::size_t const size
-	= duct::IO::read_arithmetic<uint32_t>(
+	= duct::IO::read_arithmetic<std::uint32_t>(
 		stream,
 		duct::Endian::little
 	);
 
-	uint32_t const type
-	= duct::IO::read_arithmetic<uint32_t>(
+	std::uint32_t const type
+	= duct::IO::read_arithmetic<std::uint32_t>(
 		stream,
 		duct::Endian::little
 	);
@@ -318,10 +318,10 @@ CmdStreamer::context_output(
 	// header
 	stream.seekp(0);
 	std::size_t const h_size = m_outgoing_size - msg_header_size;
-	assert(std::numeric_limits<uint32_t>::max() >= h_size);
-	ser(static_cast<uint32_t>(h_size));
+	assert(std::numeric_limits<std::uint32_t>::max() >= h_size);
+	ser(static_cast<std::uint32_t>(h_size));
 
-	uint32_t const h_type
+	std::uint32_t const h_type
 		= enum_cast(stage.get_stage_type())
 		| enum_cast(stage.get_command_type())
 	;
