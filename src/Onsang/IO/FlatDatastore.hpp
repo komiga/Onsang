@@ -20,6 +20,7 @@ see @ref index or the accompanying LICENSE file for full text.
 #include <Hord/Hive/Defs.hpp>
 #include <Hord/IO/Defs.hpp>
 #include <Hord/IO/Prop.hpp>
+#include <Hord/IO/StorageInfo.hpp>
 #include <Hord/IO/Datastore.hpp>
 
 #include <fstream>
@@ -30,15 +31,15 @@ Flat-file datastore.
 
 Structure:
 
-"hive/"
+"root/"
 	".lock" LockFile;
-	"index" Index;
-	"data/$id/i" <identity>;
-	"data/$id/m" Metadata;
-	"data/$id/s" <scratch space>;
-	"data/$id/p" <primary data>;
-	"data/$id/a" <aux data>;
-	"trash/"
+	"index" <storage info>;
+	"resident/$id/i" <identity>;
+	"resident/$id/m" Metadata;
+	"resident/$id/s" <scratch space>;
+	"resident/$id/p" <primary data>;
+	"resident/$id/a" <aux data>;
+	"orphan/"
 		[same layout]
 
 */
@@ -48,108 +49,6 @@ namespace IO {
 
 // Forward declarations
 class FlatDatastore;
-
-namespace {
-
-class Index final {
-public:
-	// NB: Currently only Nodes can be created, so we don't track
-	// the type dynamically
-	struct Entry final {
-		static constexpr Hord::Object::Type const
-		type = Hord::Object::Type::Node;
-
-		Hord::Object::ID id;
-		bool is_trash;
-
-		// TODO: C++14: Also add operator== for Object::ID <-> Entry
-		// comparison in unordered_set::find() so that we can
-		// use unordered_set and Object::ID directly.
-
-		struct hash final {
-			constexpr std::size_t
-			operator()(
-				Entry const& entry
-			) const noexcept {
-				return static_cast<std::size_t>(entry.id);
-			}
-		};
-
-		// For lookup purposes; only considering entries equal
-		// if the IDs are equal
-		constexpr bool
-		operator==(
-			Entry const& other
-		) const noexcept {
-			return id == other.id;
-		}
-	};
-
-	using container_type
-	= aux::unordered_set<
-		Entry,
-		Entry::hash
-	>;
-
-	using key_type = Hord::Object::ID;
-	using iterator = container_type::iterator;
-	using const_iterator = container_type::const_iterator;
-
-private:
-	container_type m_entries;
-
-	Index(Index const&) = delete;
-	Index(Index&&) = delete;
-	Index& operator=(Index const&) = delete;
-	Index& operator=(Index&&) = delete;
-
-public:
-	~Index() = default;
-	Index() = default;
-
-// properties
-	iterator
-	begin() noexcept { return m_entries.begin(); }
-	iterator
-	end() noexcept { return m_entries.end(); }
-
-	const_iterator
-	cbegin() const noexcept { return m_entries.cbegin(); }
-	const_iterator
-	cend() const noexcept { return m_entries.cend(); }
-
-// lookup
-	iterator
-	find(
-		key_type const& key
-	) noexcept {
-		return m_entries.find(Entry{key, false});
-	}
-
-	const_iterator
-	find(
-		key_type const& key
-	) const noexcept {
-		return m_entries.find(Entry{key, false});
-	}
-
-// operations
-	std::pair<iterator, bool>
-	insert(
-		Hord::Object::ID const id
-	) {
-		return m_entries.insert(Entry{id, false});
-	}
-
-	iterator
-	erase(
-		const_iterator pos
-	) noexcept {
-		return m_entries.erase(pos);
-	}
-};
-
-} // anonymous namespace
 
 /**
 	Flat-file datastore.
@@ -167,18 +66,21 @@ public:
 
 private:
 	Hord::LockFile m_lock;
-	Index m_index;
 
 	struct {
-		String path;
-		Hord::IO::PropInfo info;
-		std::fstream stream;
-		bool is_input;
+		String path{};
+		Hord::IO::PropInfo info{
+			Hord::Object::ID_NULL,
+			Hord::Object::TYPE_NULL,
+			Hord::IO::PropType::identity
+		};
+		std::fstream stream{};
+		bool is_input{false};
 
 		void
 		reset() noexcept {
 			path.clear();
-			info.object_id = Hord::Object::NULL_ID;
+			info.object_id = Hord::Object::ID_NULL;
 		}
 	} m_prop;
 
@@ -204,7 +106,7 @@ private:
 	void
 	assign_prop(
 		Hord::IO::PropInfo const&,
-		bool const is_trash,
+		Hord::IO::StorageInfo const&,
 		bool const is_input
 	);
 
@@ -258,7 +160,8 @@ private:
 	void
 	create_object_impl(
 		Hord::Object::ID const,
-		Hord::Object::Type const
+		Hord::Object::type_info const&,
+		Hord::IO::Linkage const
 	) override;
 
 	void
