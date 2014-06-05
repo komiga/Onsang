@@ -165,7 +165,7 @@ CmdStreamer::chain_read_header() {
 			std::size_t /*length*/
 		) {
 			if (!ec) {
-				m_streambuf_in.commit_direct(msg_header_size);
+				m_streambuf_in.commit_direct(msg_header_size, false);
 				read_header();
 				chain_read_stage();
 			} else {
@@ -195,7 +195,7 @@ CmdStreamer::chain_read_stage() {
 			std::size_t /*length*/
 		) {
 			if (!ec) {
-				m_streambuf_in.commit_direct(m_incoming_size);
+				m_streambuf_in.commit_direct(m_incoming_size, true);
 				read_stage();
 				chain_read_header();
 			} else {
