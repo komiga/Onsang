@@ -103,7 +103,7 @@ CmdStreamer::read_stage() {
 	}
 
 	try {
-		stage_uptr.reset(type_info->construct_stage(stage_type));
+		stage_uptr = type_info->make_stage(stage_type);
 		std::istream stream{&m_streambuf_in};
 		auto ser = make_input_serializer(stream);
 		ser(*stage_uptr);
@@ -273,7 +273,7 @@ CmdStreamer::context_input(
 	{
 		std::lock_guard<std::mutex> m_lock{m_stage_buffer_mutex};
 		for (auto& stage_uptr : m_stage_buffer) {
-			context.push_input(stage_uptr);
+			context.push_input(std::move(stage_uptr));
 		}
 		m_stage_buffer.clear();
 		m_sig_have_stages.store(false);
@@ -308,7 +308,7 @@ CmdStreamer::context_output(
 	stream.seekp(msg_header_size);
 
 	// data
-	auto& stage = *context.get_output().front();
+	auto& stage = *context.get_output().front().stage;
 	ser(stage);
 
 	// Can't use buffer.size() later because it might've grown
