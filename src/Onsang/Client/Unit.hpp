@@ -59,7 +59,7 @@ public:
 
 	Unit()
 		: m_flags()
-		, m_driver()
+		, m_driver(true)
 		, m_io_service()
 		, m_sessions()
 		, m_ui_ctx(Beard::ui::PropertyMap{true})
