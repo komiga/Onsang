@@ -135,15 +135,15 @@ FlatDatastore::assign_prop(
 namespace {
 HORD_DEF_FMT_FQN(
 	s_err_acquire_prop_unsupplied,
-	DUCT_GR_MSG_FQN("prop %s -> %s is not supplied for type %s")
+	"prop %s -> %s is not supplied for type %s"
 );
 HORD_DEF_FMT_FQN(
 	s_err_acquire_prop_void,
-	DUCT_GR_MSG_FQN("prop %s -> %s is void")
+	"prop %s -> %s is void"
 );
 HORD_DEF_FMT_FQN(
 	s_err_acquire_prop_open_failed,
-	DUCT_GR_MSG_FQN("prop %s -> %s is void (or open otherwise failed)")
+	"prop %s -> %s is void (or open otherwise failed)"
 );
 } // anonymous namespace
 
