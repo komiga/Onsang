@@ -98,11 +98,14 @@ public:
 	void
 	run();
 
+	// Pushes input stages to the context
 	bool
 	context_input(
 		Hord::System::Context& context
 	);
 
+	// Pulls output stages from the context and sends them to the
+	// remote endpoint
 	bool
 	context_output(
 		Hord::System::Context& context

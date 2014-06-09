@@ -38,15 +38,6 @@ enum : unsigned {
 	mask_type_cmd	= 0xFFFFFF00
 };
 
-static constexpr ceformat::Format const
-	s_err_command_type_invalid{
-		": command type %#08x is invalid\n"
-	},
-	s_err_stage_type_invalid{
-		": stage type %#02x is invalid for command type %#08x\n"
-	}
-;
-
 } // anonymous namespace
 
 #define ONSANG_SCOPE_FUNC read_header
@@ -76,6 +67,17 @@ CmdStreamer::read_header() {
 #undef ONSANG_SCOPE_FUNC
 
 #define ONSANG_SCOPE_FUNC read_stage
+namespace {
+ONSANG_DEF_FMT_FQN(
+	s_err_command_type_invalid,
+	"command type %#08x is invalid\n"
+);
+ONSANG_DEF_FMT_FQN(
+	s_err_stage_type_invalid,
+	"stage type %#02x is invalid for command type %#08x\n"
+);
+} // anonymous namespace
+
 bool
 CmdStreamer::read_stage() {
 	auto const command_type = static_cast<Hord::Cmd::Type>(
@@ -92,10 +94,7 @@ CmdStreamer::read_stage() {
 	);
 	if (!type_info) {
 		Log::acquire(Log::error)
-			<< ONSANG_SCOPE_FQN_STR_LIT
-			<< ceformat::write_sentinel<
-				s_err_command_type_invalid
-			>(
+			<< ceformat::write_sentinel<s_err_command_type_invalid>(
 				enum_cast(command_type)
 			)
 		;
@@ -112,7 +111,6 @@ CmdStreamer::read_stage() {
 		switch (ex.get_code()) {
 		case Hord::ErrorCode::cmd_construct_stage_type_invalid:
 			Log::acquire(Log::error)
-				<< ONSANG_SCOPE_FQN_STR_LIT
 				<< ceformat::write_sentinel<s_err_stage_type_invalid>(
 					enum_cast(stage_type),
 					enum_cast(command_type)
