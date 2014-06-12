@@ -14,6 +14,8 @@ see @ref index or the accompanying LICENSE file for full text.
 
 #include <string>
 #include <vector>
+#include <deque>
+#include <map>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -52,6 +54,32 @@ using vector
 = std::vector<
 	T,
 	ONSANG_AUX_ALLOCATOR<T>
+>;
+
+/**
+	@c std::deque<T>.
+*/
+template<
+	typename T
+>
+using deque
+= std::deque<
+	T,
+	ONSANG_AUX_ALLOCATOR<T>
+>;
+
+/**
+	@c std::unordered_map<Key, T, Hash, KeyEqual>.
+*/
+template<
+	typename Key,
+	typename T,
+	class Compare = std::less<Key>
+>
+using map
+= std::map<
+	Key, T, Compare,
+	ONSANG_AUX_ALLOCATOR<std::pair<Key const, T> >
 >;
 
 /**
