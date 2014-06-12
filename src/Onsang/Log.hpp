@@ -12,6 +12,7 @@ see @ref index or the accompanying LICENSE file for full text.
 
 #include <Onsang/config.hpp>
 #include <Onsang/Error.hpp>
+#include <Onsang/serialization.hpp>
 
 #ifdef ONSANG_CLIENT
 #include <Beard/Error.hpp>
@@ -20,9 +21,33 @@ see @ref index or the accompanying LICENSE file for full text.
 #include <Hord/Log.hpp>
 #include <Hord/Error.hpp>
 
+#include <exception>
+
 namespace Onsang {
 
 namespace Log = Hord::Log;
+
+inline void
+report_error(
+	std::exception const& err
+) {
+	Log::acquire(Log::error)
+		<< "[std] "
+		<< err.what()
+		<< '\n'
+	;
+}
+
+inline void
+report_error(
+	SerializerError const& err
+) {
+	Log::acquire(Log::error)
+		<< "[Serializer:" << get_ser_error_name(err.get_code()) << "] "
+		<< err.get_message()
+		<< '\n'
+	;
+}
 
 #ifdef ONSANG_CLIENT
 inline void
@@ -58,6 +83,11 @@ report_error(
 		<< '\n'
 	;
 }
+
+void
+report_error(
+	std::exception_ptr
+);
 
 } // namespace Onsang
 
