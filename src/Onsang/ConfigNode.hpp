@@ -119,6 +119,9 @@ public:
 	using entry_map_type = aux::unordered_map<String, Entry>;
 	using node_map_type = aux::unordered_map<String, ConfigNode>;
 
+	using entry_pair_type = entry_map_type::value_type;
+	using node_pair_type = node_map_type::value_type;
+
 	using entry_initializer_list = std::initializer_list<
 		entry_map_type::value_type
 	>;
@@ -142,6 +145,7 @@ private:
 	duct::StateStore<Flags> m_flags;
 	entry_map_type m_entries;
 	node_map_type m_nodes;
+	std::size_t const m_index{0u};
 	bool m_has_node_matcher{false};
 	String m_node_matcher{};
 
@@ -211,6 +215,18 @@ public:
 		designate_node_matcher();
 	}
 
+	ConfigNode(
+		ConfigNode const& other,
+		std::size_t const index
+	)
+		: m_flags(other.m_flags)
+		, m_entries(other.m_entries)
+		, m_nodes(other.m_nodes)
+		, m_index(index)
+	{
+		designate_node_matcher();
+	}
+
 // properties
 	void
 	set_flags(
@@ -223,6 +239,11 @@ public:
 	bool
 	built() const noexcept {
 		return m_flags.test(Flags::node_built);
+	}
+
+	std::size_t
+	get_index() const noexcept {
+		return m_index;
 	}
 
 	entry_iterator_proxy

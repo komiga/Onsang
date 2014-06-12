@@ -24,7 +24,7 @@ ConfigNode::Entry::assign(
 		) {
 			return false;
 		}
-		ConfigNode splice{*node_tpl};
+		ConfigNode splice{*node_tpl, node_count};
 		splice.set_flags(Flags::node_built, true);
 		splice.import(var);
 		cnode.emplace_node(var.get_name(), std::move(splice));
