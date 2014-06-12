@@ -129,8 +129,7 @@ CmdStreamer::read_stage() {
 	std::size_t const remaining = m_streambuf_in.get_remaining();
 	if (0u < remaining) {
 		Log::acquire(Log::debug)
-			<< ONSANG_SCOPE_FQN_STR_LIT
-			<< ": "
+			<< DUCT_GR_MSG_FQN("")
 			<< remaining
 			<< " bytes left in buffer after stage deserialization\n"
 		;
@@ -249,8 +248,7 @@ CmdStreamer::run() {
 		}
 	} catch (std::exception& ex) {
 		Log::acquire(Log::error)
-			<< ONSANG_SCOPE_FQN_STR_LIT
-			<< ": caught exception from io_service::run(): "
+			<< DUCT_GR_MSG_FQN("caught exception from io_service::run(): ")
 			<< ex.what()
 			<< "\n"
 		;
@@ -276,7 +274,6 @@ CmdStreamer::context_input(
 		m_stage_buffer.clear();
 		m_sig_have_stages.store(false);
 	}
-
 	return true;
 }
 #undef ONSANG_SCOPE_FUNC
