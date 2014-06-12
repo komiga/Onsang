@@ -12,6 +12,7 @@
 
 #include <cassert>
 #include <limits>
+#include <exception>
 #include <mutex>
 #include <iomanip>
 #include <iostream>
@@ -292,50 +293,52 @@ CmdStreamer::context_output(
 		return false;
 	}
 
-	m_streambuf_out.reset(
-		msg_header_size + (m_streambuf_out.get_max_size() >> 2)
-	);
-	std::ostream stream{&m_streambuf_out};
-	auto ser = make_output_serializer(stream);
+	try {
+		m_streambuf_out.reset(
+			msg_header_size + (m_streambuf_out.get_max_size() >> 2)
+		);
+		std::ostream stream{&m_streambuf_out};
+		auto ser = make_output_serializer(stream);
 
-	// Seek past header to reserve it; we need the size of the
-	// stage payload
-	stream.seekp(msg_header_size);
+		// Seek past header to reserve it; we need the size of the
+		// stage payload
+		stream.seekp(msg_header_size);
 
-	// data
-	auto& stage = *context.get_output().front().stage;
-	ser(stage);
+		// data
+		auto& stage = *context.get_output().front().stage;
+		ser(stage);
 
-	// Can't use buffer.size() later because it might've grown
-	// beyond our write amount
-	m_outgoing_size = m_streambuf_out.get_sequence_size();
+		// Can't use buffer.size() later because it might've grown
+		// beyond our write amount
+		m_outgoing_size = m_streambuf_out.get_sequence_size();
 
-	// header
-	stream.seekp(0);
-	std::size_t const h_size = m_outgoing_size - msg_header_size;
-	assert(std::numeric_limits<std::uint32_t>::max() >= h_size);
-	ser(static_cast<std::uint32_t>(h_size));
+		// header
+		stream.seekp(0);
+		std::size_t const h_size = m_outgoing_size - msg_header_size;
+		assert(std::numeric_limits<std::uint32_t>::max() >= h_size);
+		ser(static_cast<std::uint32_t>(h_size));
 
-	std::uint32_t const h_type
-		= enum_cast(stage.get_stage_type())
-		| enum_cast(stage.get_command_type())
-	;
-	ser(h_type);
-
-	if (stream.fail()) {
+		std::uint32_t const h_type
+			= enum_cast(stage.get_stage_type())
+			| enum_cast(stage.get_command_type())
+		;
+		ser(h_type);
+		m_streambuf_out.commit();
+	} catch (...) {
+		Log::acquire(Log::error)
+			<< DUCT_GR_MSG_FQN("caught error while serializing\n")
+		;
+		report_error(std::current_exception());
 		return false;
 	}
-	m_streambuf_out.commit();
 
 	context.get_output().pop_front();
 	m_sig_pending_output.store(true);
-
 	m_socket.get_io_service().post(
 		[this]() {
 			chain_flush_output();
 		}
 	);
-
 	return true;
 }
 #undef ONSANG_SCOPE_FUNC
