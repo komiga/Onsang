@@ -17,6 +17,11 @@ see @ref index or the accompanying LICENSE file for full text.
 
 namespace Onsang {
 
+/**
+	Cheap container-referencing iterator interface that hides
+	the container.
+*/
+
 template<
 	class C
 >
