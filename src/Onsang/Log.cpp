@@ -12,25 +12,26 @@
 #include <exception>
 
 namespace Onsang {
+namespace Log {
 
 void
-report_error(
+report_error_ptr(
 	std::exception_ptr err
 ) {
 	try {
 		std::rethrow_exception(err);
 	} catch (std::exception& err) {
-		report_error(err);
+		Log::report_error(err);
 	} catch (SerializerError const& err) {
-		report_error(err);
+		Log::report_error(err);
+	} catch (Hord::Error const& err) {
+		Log::report_error(err);
 #ifdef ONSANG_CLIENT
 	} catch (Beard::Error const& err) {
-		report_error(err);
+		Log::report_error(err);
 #endif
 	} catch (Onsang::Error const& err) {
-		report_error(err);
-	} catch (Hord::Error const& err) {
-		report_error(err);
+		Log::report_error(err);
 	} catch (...) {
 		Log::acquire(Log::error)
 			<< "[unknown exception]\n"
@@ -38,4 +39,5 @@ report_error(
 	}
 }
 
+} // namespace Log
 } // namespace Onsang

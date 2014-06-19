@@ -24,30 +24,10 @@ see @ref index or the accompanying LICENSE file for full text.
 #include <exception>
 
 namespace Onsang {
+namespace Log {
 
-namespace Log = Hord::Log;
-
-inline void
-report_error(
-	std::exception const& err
-) {
-	Log::acquire(Log::error)
-		<< "[std] "
-		<< err.what()
-		<< '\n'
-	;
-}
-
-inline void
-report_error(
-	SerializerError const& err
-) {
-	Log::acquire(Log::error)
-		<< "[Serializer:" << get_ser_error_name(err.get_code()) << "] "
-		<< err.get_message()
-		<< '\n'
-	;
-}
+using Hord::Log::report_error;
+using namespace Hord::Log;
 
 #ifdef ONSANG_CLIENT
 inline void
@@ -64,17 +44,6 @@ report_error(
 
 inline void
 report_error(
-	Hord::Error const& err
-) {
-	Log::acquire(Log::error)
-		<< "[Hord:" << Hord::get_error_name(err.get_code()) << "] "
-		<< err.get_message()
-		<< '\n'
-	;
-}
-
-inline void
-report_error(
 	Onsang::Error const& err
 ) {
 	Log::acquire(Log::error)
@@ -85,10 +54,11 @@ report_error(
 }
 
 void
-report_error(
+report_error_ptr(
 	std::exception_ptr
 );
 
+} // namespace Log
 } // namespace Onsang
 
 #endif // ONSANG_LOG_HPP_
