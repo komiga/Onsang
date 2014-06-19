@@ -23,6 +23,7 @@ see @ref index or the accompanying LICENSE file for full text.
 #include <Hord/IO/StorageInfo.hpp>
 #include <Hord/IO/Datastore.hpp>
 
+#include <iostream>
 #include <fstream>
 
 /*
@@ -34,11 +35,12 @@ Structure:
 "root/"
 	".lock" LockFile;
 	"index" <storage info>;
-	"resident/$id/i" <identity>;
-	"resident/$id/m" Metadata;
-	"resident/$id/s" <scratch space>;
-	"resident/$id/p" <primary data>;
-	"resident/$id/a" <aux data>;
+	"resident/"
+		"$id/i" <identity>;
+		"$id/m" Metadata;
+		"$id/s" <scratch space>;
+		"$id/p" <primary data>;
+		"$id/a" <aux data>;
 	"orphan/"
 		[same layout]
 
@@ -58,10 +60,9 @@ class FlatDatastore final
 {
 public:
 	using base = Hord::IO::Datastore;
-	using base::type_info;
 	using base::State;
 
-	static FlatDatastore::type_info const
+	static base::type_info const
 	s_type_info;
 
 private:
@@ -104,6 +105,16 @@ public:
 
 private:
 	void
+	read_index(
+		std::istream&
+	);
+
+	void
+	write_index(
+		std::ostream&
+	);
+
+	void
 	assign_prop(
 		Hord::IO::PropInfo const&,
 		Hord::IO::StorageInfo const&,
@@ -121,10 +132,12 @@ private:
 		bool const is_input
 	);
 
-// Hord::Datastore implementation
+// Hord::IO::Datastore implementation
 private:
 	void
-	open_impl() override;
+	open_impl(
+		bool const create_if_nonexistent
+	) override;
 
 	void
 	close_impl() override;
@@ -157,7 +170,7 @@ private:
 		Hord::System::IDGenerator&
 	) const noexcept override;
 
-	void
+	Hord::IO::Datastore::storage_info_map_type::const_iterator
 	create_object_impl(
 		Hord::Object::ID const,
 		Hord::Object::type_info const&,
@@ -168,6 +181,19 @@ private:
 	destroy_object_impl(
 		Hord::Object::ID const
 	) override;
+
+public:
+// operations
+	/**
+		Creates the datastore if the root path is empty.
+
+		Throws Hord::Error:
+		- see Hord::IO::Datastore::open()
+	*/
+	void
+	open(
+		bool const create_if_empty
+	);
 };
 
 } // namespace IO

@@ -1,16 +1,25 @@
 
 #include <Onsang/utility.hpp>
 #include <Onsang/String.hpp>
+#include <Onsang/serialization.hpp>
+#include <Onsang/Log.hpp>
 #include <Onsang/IO/FlatDatastore.hpp>
 
 #include <Hord/IO/StorageInfo.hpp>
 #include <Hord/IO/PropStream.hpp>
 #include <Hord/Object/Ops.hpp>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#include <boost/system/error_code.hpp>
+#include <boost/filesystem.hpp>
+#pragma GCC diagnostic pop
+
 #include <cstdio>
 #include <type_traits>
 #include <utility>
 #include <new>
+#include <exception>
 
 #include <Onsang/detail/Hord/gr_ceformat.hpp>
 
@@ -64,21 +73,59 @@ Hord::IO::Datastore*
 FlatDatastore::construct(
 	Hord::String root_path
 ) noexcept {
-	return new(std::nothrow) FlatDatastore(std::move(root_path));
+	return new(std::nothrow) IO::FlatDatastore(std::move(root_path));
 }
 
-FlatDatastore::type_info const
+IO::FlatDatastore::base::type_info const
 FlatDatastore::s_type_info{
-	FlatDatastore::construct
+	IO::FlatDatastore::construct
 };
 
 FlatDatastore::FlatDatastore(
 	Hord::String root_path
 )
-	: base(std::move(root_path))
+	: base(
+		IO::FlatDatastore::s_type_info,
+		std::move(root_path)
+	)
 	, m_lock()
 	, m_prop()
 {}
+
+void
+FlatDatastore::read_index(
+	std::istream& stream
+) {
+	auto ser = make_input_serializer(stream);
+	auto& si_map = get_storage_info();
+	si_map.clear();
+
+	std::uint32_t size = 0u;
+	ser(size);
+
+	Hord::IO::StorageInfo sinfo{
+		Hord::Object::ID_NULL,
+		Hord::Object::TYPE_NULL,
+		{true, true},
+		Hord::IO::Linkage::resident
+	};
+	while (size--) {
+		ser(sinfo);
+		si_map.emplace(sinfo.object_id, sinfo);
+	}
+}
+
+void
+FlatDatastore::write_index(
+	std::ostream& stream
+) {
+	auto ser = make_output_serializer(stream);
+	auto& si_map = get_storage_info();
+	ser(static_cast<uint32_t>(si_map.size()));
+	for (auto const& si_pair : si_map) {
+		ser(si_pair.second);
+	}
+}
 
 static_assert(
 	4u == sizeof(Hord::Object::IDValue),
@@ -256,34 +303,129 @@ FlatDatastore::release_stream(
 
 #define HORD_SCOPE_FUNC open_impl
 void
-FlatDatastore::open_impl() {
+FlatDatastore::open_impl(
+	bool const create_if_nonexistent
+) try {
 	// NB: open() protects us from the ill logic of trying to open
 	// when the datastore is already open
 
+	bool do_index = true;
+
+	// wow
+	namespace fs = boost::filesystem;
+	boost::system::error_code ec;
+	fs::path const path{get_root_path()};
+	auto const stat = fs::status(path, ec);
+	if (
+		fs::is_directory(stat)
+	) {
+		// Only create stubs if the directory exists and is empty
+		// (Hord generalizes the parameter as "if datastore does not
+		// exist")
+		if (
+			create_if_nonexistent &&
+			fs::directory_iterator(path, ec) == fs::directory_iterator()
+		) {
+			// boost plz no
+			fs::path path_resident{path};
+			fs::path path_orphan{path};
+			path_resident /= "resident";
+			path_orphan /= "orphan";
+			if (
+				!fs::create_directory(path_resident) ||
+				!fs::create_directory(path_orphan)
+			) {
+				HORD_THROW_FQN(
+					Hord::ErrorCode::datastore_open_failed,
+					"failed to create object directories"
+				);
+			}
+			do_index = false;
+		}
+	} else {
+		HORD_THROW_FQN(
+			Hord::ErrorCode::datastore_open_failed,
+			"root path does not exist or is not a directory"
+		);
+	}
+
 	// Path could've changed (and we don't assign it in the ctor)
-	m_lock.set_path(get_root_path());
+	m_lock.set_path(get_root_path() + "/.lock");
 	try {
 		m_lock.acquire();
 		base::enable_state(State::opened);
-	} catch (Hord::Error&) {
+	} catch (...) {
 		HORD_THROW_FQN(
 			Hord::ErrorCode::datastore_open_failed,
 			"failed to obtain hive lockfile"
 		);
-	} catch (...) {
-		throw;
 	}
-	// TODO: Read storage info
+
+	if (do_index) {
+		auto const index_path = get_root_path() + "/index";
+		std::ifstream index_stream{index_path};
+		if (index_stream.is_open()) {
+			std::exception_ptr eptr;
+			try {
+				read_index(index_stream);
+			} catch (...) {
+				eptr = std::current_exception();
+			}
+			index_stream.close();
+			if (eptr) {
+				Log::acquire(Log::error)
+					<< DUCT_GR_MSG_FQN("failed to read index file:\n")
+				;
+				Log::report_error_ptr(eptr);
+				HORD_THROW_FQN(
+					Hord::ErrorCode::datastore_open_failed,
+					"failed to read index file"
+				);
+			}
+		} else {
+			HORD_THROW_FQN(
+				Hord::ErrorCode::datastore_open_failed,
+				"failed to open index file for reading"
+			);
+		}
+	}
+} catch (...) {
+	m_lock.release();
+	throw;
 }
 #undef HORD_SCOPE_FUNC
 
+#define HORD_SCOPE_FUNC close_impl
 void
 FlatDatastore::close_impl() {
 	// NB: close() protects us from is_locked()
+
+	auto const index_path = get_root_path() + "/index";
+	std::ofstream index_stream{index_path};
+	if (index_stream.is_open()) {
+		try {
+			write_index(index_stream);
+			index_stream.close();
+		} catch (...) {
+			Log::acquire(Log::error)
+				<< DUCT_GR_MSG_FQN("failed to write index file: '")
+				<< index_path
+				<< "':\n"
+			;
+			Log::report_error_ptr(std::current_exception());
+		}
+	} else {
+		Log::acquire(Log::error)
+			<< DUCT_GR_MSG_FQN("failed to open index file for writing: '")
+			<< index_path
+			<< "'\n"
+		;
+	}
+
 	m_lock.release();
 	base::disable_state(State::opened);
 }
-
+#undef HORD_SCOPE_FUNC
 
 // acquire
 std::istream&
@@ -328,7 +470,7 @@ FlatDatastore::generate_id_impl(
 }
 
 #define HORD_SCOPE_FUNC create_object_impl
-void
+Hord::IO::Datastore::storage_info_map_type::const_iterator
 FlatDatastore::create_object_impl(
 	Hord::Object::ID const object_id,
 	Hord::Object::type_info const& type_info,
@@ -336,16 +478,17 @@ FlatDatastore::create_object_impl(
 ) {
 	// NB: Base protects us from: closed state, locked state, and
 	// IDs that already exist
-	auto prop_storage = type_info.props;
-	get_storage_info().emplace(
+	auto const emplace_pair = get_storage_info().emplace(
 		object_id,
 		Hord::IO::StorageInfo{
 			object_id,
 			type_info.type,
-			prop_storage.reset_all(),
+			{true, true},
 			linkage
 		}
 	);
+	// TODO: Throw if !emplace_pair.second
+	return emplace_pair.first;
 }
 #undef HORD_SCOPE_FUNC
 
