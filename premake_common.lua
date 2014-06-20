@@ -80,7 +80,7 @@ project = function()
 		}
 
 		links {"boost_system"}
-		--links {"boost_filesystem"}
+		links {"boost_filesystem"}
 
 	configuration {"debug"}
 		links {"hord_d"}

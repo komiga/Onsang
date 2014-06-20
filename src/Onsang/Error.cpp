@@ -17,6 +17,12 @@ s_error_invalid[]{ONSANG_STR_LIT("INVALID")},
 	ONSANG_STR_LIT("config_var_unknown"),
 	ONSANG_STR_LIT("config_var_invalid"),
 	ONSANG_STR_LIT("config_node_already_exists"),
+
+// session / session manager
+	ONSANG_STR_LIT("session_type_unrecognized"),
+
+// command
+	ONSANG_STR_LIT("command_failed"),
 };
 } // anonymous namespace
 

@@ -16,10 +16,16 @@ see @ref index or the accompanying LICENSE file for full text.
 #include <Onsang/asio.hpp>
 #include <Onsang/ConfigNode.hpp>
 #include <Onsang/Net/Defs.hpp>
-#include <Onsang/Net/Session.hpp>
+#include <Onsang/System/Session.hpp>
+#include <Onsang/System/SessionManager.hpp>
 
+#include <Beard/ui/Defs.hpp>
+#include <Beard/ui/Widget/Defs.hpp>
 #include <Beard/ui/Context.hpp>
 #include <Beard/ui/PropertyMap.hpp>
+#include <Beard/ui/Container.hpp>
+#include <Beard/ui/Label.hpp>
+#include <Beard/ui/Field.hpp>
 
 #include <Hord/System/Driver.hpp>
 
@@ -30,39 +36,46 @@ namespace Client {
 
 class Unit final {
 public:
-	using session_vector_type = aux::vector<Net::Session>;
+	struct UIBucket {
+		Beard::aux::shared_ptr<Beard::ui::Container> viewc{};
+		Beard::aux::shared_ptr<Beard::ui::Label> sline{};
+		Beard::aux::shared_ptr<Beard::ui::Field> cline{};
+	};
 
 private:
 	enum class Flags : unsigned {
-		no_auto_connect = 1u << 0,
+		no_auto_open = bit(0u),
+		no_stdout    = bit(1u),
 	};
 
-	duct::StateStore<Flags> m_flags;
-	Hord::System::Driver m_driver;
+	duct::StateStore<Flags> m_flags{};
+	Hord::System::Driver m_driver{true};
 
-	asio::io_service m_io_service;
-	session_vector_type m_sessions;
+	System::SessionManager m_session_manager;
 
-	Beard::ui::Context m_ui_ctx;
+	bool m_running{false};
+	Beard::ui::Context m_ui_ctx{Beard::ui::PropertyMap{true}};
+	UIBucket m_ui{};
 
 	ConfigNode m_config;
 	ConfigNode m_args;
 
 	Unit(Unit const&) = delete;
 	Unit& operator=(Unit const&) = delete;
+	Unit& operator=(Unit&&) = delete;
+
+	void
+	toggle_stdout(
+		bool const enable
+	);
 
 public:
 // constructors, destructor, and operators
 	~Unit() = default;
 	Unit(Unit&&) = default;
-	Unit& operator=(Unit&&) = default;
 
 	Unit()
-		: m_flags()
-		, m_driver(true)
-		, m_io_service()
-		, m_sessions()
-		, m_ui_ctx(Beard::ui::PropertyMap{true})
+		: m_session_manager(m_driver)
 		, m_config(
 			{},
 			{
@@ -83,8 +96,16 @@ public:
 							{"type", {
 								{duct::VarType::string}
 							}},
-							{"addr", {
+							{"path", {
 								{duct::VarType::string}
+							}},
+							{"auto-open", {
+								{duct::VarType::boolean},
+								ConfigNode::Flags::optional
+							}},
+							{"auto-create", {
+								{duct::VarType::boolean},
+								ConfigNode::Flags::optional
 							}}
 						}),
 						ConfigNode::Flags::node_matcher_named
@@ -103,6 +124,10 @@ public:
 			{"--no-auto", {
 				{duct::VarType::null},
 				ConfigNode::Flags::optional
+			}},
+			{"--no-stdout", {
+				{duct::VarType::null},
+				ConfigNode::Flags::optional
 			}}
 		})
 	{}
@@ -113,26 +138,59 @@ public:
 		return m_driver;
 	}
 
-	session_vector_type const&
-	get_sessions() const noexcept {
-		return m_sessions;
+	System::SessionManager&
+	get_session_manager() noexcept {
+		return m_session_manager;
+	}
+
+	Beard::ui::Context&
+	get_ui_context() noexcept {
+		return m_ui_ctx;
+	}
+
+	UIBucket&
+	get_ui() noexcept {
+		return m_ui;
 	}
 
 // operations
-	// May throw Hord::Error
-	void
+	bool
 	add_session(
-		String name,
-		String type,
-		String addr
+		String const& type,
+		String const& name,
+		String const& path,
+		bool const auto_open,
+		bool const auto_create
 	);
 
+private:
+	void
+	init_session(
+		System::Session&
+	);
+
+	void
+	close_session(
+		System::Session&
+	);
+
+public:
 	bool
 	init(
 		signed const argc,
 		char* argv[]
 	);
 
+private:
+	void
+	start_ui();
+
+	void
+	ui_event_filter(
+		Beard::ui::Event const&
+	);
+
+public:
 	void
 	start();
 };

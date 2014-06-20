@@ -29,6 +29,19 @@ enum class ErrorCode : unsigned {
 	*/
 	config_node_already_exists,
 
+// session / session manager
+	/**
+		Session type was not recognized.
+	*/
+	session_type_unrecognized,
+
+// command
+	/**
+		Command failed.
+	*/
+	command_failed,
+
+// -
 	LAST
 };
 

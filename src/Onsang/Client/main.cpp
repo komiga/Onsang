@@ -4,6 +4,8 @@
 #include <Onsang/ConfigNode.hpp>
 #include <Onsang/Client/Unit.hpp>
 
+#include <exception>
+
 using namespace Onsang;
 
 signed
@@ -11,26 +13,21 @@ main(
 	signed argc,
 	char* argv[]
 ) {
-	Log::Controller& lc = Log::get_controller();
-	lc.file(false);
-	lc.stdout(true);
-	/*lc.set_file_path("~/.local/share/Onsang/log");
-	lc.file(true);*/
+	auto& log_controller = Log::get_controller();
+	log_controller.file(false);
+	log_controller.stdout(true);
 
 	// Initialize
+	Client::Unit unit{};
 	bool initialized = false;
-	Client::Unit unit;
 	try {
-		Log::acquire()
-			<< "Client: initializing\n"
-		;
 		initialized = unit.init(argc, argv);
-	} catch (Error& err) {
-		report_error(err);
+	} catch (...) {
+		Log::report_error_ptr(std::current_exception());
 	}
 	if (!initialized) {
 		Log::acquire()
-			<< "Client: failed to initialize\n"
+			<< "Failed to initialize\n"
 		;
 		return -1;
 	}
@@ -38,20 +35,19 @@ main(
 	// Start
 	try {
 		Log::acquire()
-			<< "Client: starting\n"
+			<< "Starting\n"
 		;
 		unit.start();
-	} catch (Error& err) {
+	} catch (...) {
 		Log::acquire(Log::error)
-			<< "Client: caught exception from start():\n"
+			<< "Error running unit:\n"
 		;
-		report_error(err);
+		Log::report_error_ptr(std::current_exception());
 		return -2;
 	}
 
-	lc.stdout(true);
 	Log::acquire()
-		<< "Client: stopping\n"
+		<< "Stopping\n"
 	;
 	return 0;
 }

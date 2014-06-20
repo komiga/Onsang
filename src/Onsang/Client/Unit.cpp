@@ -4,11 +4,7 @@
 #include <Onsang/init.hpp>
 #include <Onsang/Client/Unit.hpp>
 
-#include <duct/debug.hpp>
-#include <duct/Args.hpp>
-#include <duct/ScriptParser.hpp>
-#include <duct/ScriptWriter.hpp>
-
+#include <Beard/keys.hpp>
 #include <Beard/tty/Defs.hpp>
 #include <Beard/tty/Ops.hpp>
 #include <Beard/tty/Terminal.hpp>
@@ -17,17 +13,69 @@
 #include <Beard/ui/Defs.hpp>
 #include <Beard/ui/Root.hpp>
 #include <Beard/ui/Context.hpp>
+#include <Beard/ui/Container.hpp>
+#include <Beard/ui/Field.hpp>
+
+#include <Hord/IO/Defs.hpp>
+#include <Hord/Hive/UnitBasic.hpp>
+#include <Hord/Cmd/Hive.hpp>
+
+#include <duct/debug.hpp>
+#include <duct/Args.hpp>
+#include <duct/ScriptParser.hpp>
+#include <duct/ScriptWriter.hpp>
+
+#include <exception>
+#include <functional>
+
+#include <Onsang/detail/gr_ceformat.hpp>
 
 namespace Onsang {
 namespace Client {
 
 // class Unit implementation
 
+#define ONSANG_SCOPE_CLASS Client::Unit
+
+namespace {
+ONSANG_DEF_FMT_CLASS(
+	s_err_command_failed,
+	"command %s failed: %s"
+);
+} // anonymous namespace
+
 void
+Unit::toggle_stdout(
+	bool const enable
+) {
+	if (m_flags.test(Flags::no_stdout)) {
+		return;
+	}
+
+	auto& log_controller = Log::get_controller();
+	if (enable == log_controller.stdout_enabled()) {
+		return;
+	}
+	if (enable) {
+		log_controller.stdout(true);
+		Log::acquire()
+			<< "Enabled stdout\n"
+		;
+	} else {
+		Log::acquire()
+			<< "Disabling stdout\n"
+		;
+		log_controller.stdout(false);
+	}
+}
+
+bool
 Unit::add_session(
-	String name,
-	String type,
-	String addr
+	String const& type,
+	String const& name,
+	String const& path,
+	bool const auto_open,
+	bool const auto_create
 ) {
 	Log::acquire(Log::debug)
 		<< "Adding session '"
@@ -35,26 +83,27 @@ Unit::add_session(
 		<< "': '"
 		<< type
 		<< "' @ '"
-		<< addr
+		<< path
 		<< "'\n"
 	;
-	/*auto const ds_pair = m_driver.placehold_hive(
-		CacheDatastore::s_type_info,
-		std::move(address)
-	);
-
-	// TODO: Read protocol from address string
-	m_sessions.emplace_back(
-		Hord::System::Context{
-			Hord::System::Context::Type::client,
-			m_driver,
-			ds_pair.hive.get_id()
-		},
-		Net::Socket{
-			m_io_service,
-			Net::StreamProtocol{asio::tcp::v4()}
-		}
-	);*/
+	try {
+		// TODO
+		m_session_manager.add_session(
+			Hord::Object::type_cast<Hord::Hive::UnitType>(
+				Hord::Hive::UnitBasic::info.type
+			),
+			type, name, path, auto_open, auto_create
+		);
+		return true;
+	} catch (...) {
+		Log::acquire(Log::error)
+			<< "failed to add session: '"
+			<< name
+			<< "'\n"
+		;
+		Log::report_error_ptr(std::current_exception());
+		return false;
+	}
 }
 
 bool
@@ -62,6 +111,7 @@ Unit::init(
 	signed const argc,
 	char* argv[]
 ) {
+	auto& log_controller = Log::get_controller();
 	duct::Var opt;
 	duct::Args::parse_raw(argc, argv, opt);
 
@@ -81,16 +131,23 @@ Unit::init(
 	// Leak exceptions to caller
 	m_args.import(opt);
 
+	// Disable stdout before validation
+	auto const& arg_no_stdout = m_args.entry("--no-stdout");
+	if (arg_no_stdout.assigned()) {
+		m_flags.enable(Flags::no_stdout);
+		log_controller.stdout(false);
+	}
+
 	// Set the log file before validation
 	auto const& arg_log = m_args.entry("--log");
 	if (arg_log.assigned()) {
 		if (arg_log.value.is_null()) {
-			Log::get_controller().file(false);
+			log_controller.file(false);
 		} else {
-			Log::get_controller().set_file_path(
+			log_controller.set_file_path(
 				arg_log.value.get_as_str()
 			);
-			Log::get_controller().file(true);
+			log_controller.file(true);
 		}
 	}
 
@@ -111,7 +168,7 @@ Unit::init(
 	}
 
 	if (m_args.entry("--no-auto").assigned()) {
-		m_flags.enable(Flags::no_auto_connect);
+		m_flags.enable(Flags::no_auto_open);
 	}
 
 	// Load config
@@ -131,15 +188,13 @@ Unit::init(
 		try {
 			parser.process(cfg_root, stream);
 			stream.close();
-		} catch (std::exception& err) {
+		} catch (...) {
 			Log::acquire(Log::error)
 				<< "Failed to parse config file '"
 				<< cfg_path
 				<< "':\n"
-				<< Log::Pre::current
-				<< err.what()
-				<< '\n'
 			;
+			Log::report_error_ptr(std::current_exception());
 			return false;
 		}
 	} else {
@@ -190,12 +245,17 @@ Unit::init(
 		auto const& cfg_log_path = m_config.node("log").entry("path");
 		if (cfg_log_path.assigned()) {
 			if (cfg_log_path.value.is_null()) {
-				Log::get_controller().file(false);
+				log_controller.file(false);
 			} else {
-				Log::get_controller().set_file_path(
+				log_controller.set_file_path(
 					cfg_log_path.value.get_string_ref()
 				);
-				Log::get_controller().file(true);
+				log_controller.file(true);
+				Log::acquire()
+					<< "Log note: using config from '"
+					<< cfg_path
+					<< "'\n"
+				;
 			}
 		}
 	}
@@ -219,7 +279,7 @@ Unit::init(
 				<< terminfo_path
 				<< "':\n"
 			;
-			report_error(err);
+			Log::report_error(err);
 			return false;
 		}
 	} else {
@@ -241,19 +301,153 @@ Unit::init(
 	Log::acquire()
 		<< "Creating sessions\n"
 	;
+	aux::vector<ConfigNode::node_pair_type const*>
+	session_vec{cfg_sessions_builder.node_count};
 	for (auto const& spair : cfg_sessions.node_proxy()) {
-		auto const session = spair.second;
+		session_vec[spair.second.get_index()] = &spair;
+	}
+
+	for (auto const& spair : session_vec) {
+		auto const session = spair->second;
 		if (!session.built()) {
 			continue;
 		}
+		auto const& auto_open_entry = session.entry("auto-open");
+		auto const& auto_create_entry = session.entry("auto-create");
 		add_session(
-			spair.first,
 			session.entry("type").value.get_string_ref(),
-			session.entry("addr").value.get_string_ref()
+			spair->first,
+			session.entry("path").value.get_string_ref(),
+			!auto_open_entry.assigned() || auto_open_entry.value.get_bool(),
+			!auto_create_entry.assigned() || auto_create_entry.value.get_bool()
 		);
 	}
-
 	return true;
+}
+
+void
+Unit::init_session(
+	System::Session& session
+) {
+	if (session.is_open()) {
+		return;
+	}
+
+	Log::acquire()
+		<< "Initializing session: "
+		<< session.get_name()
+		<< '\n'
+	;
+	try {
+		session.open();
+		auto cmd = Hord::Cmd::Hive::Init{session};
+		if (!cmd(Hord::IO::PropTypeBit::base)) {
+			// TODO: set status line
+			ONSANG_THROW_FMT(
+				ErrorCode::command_failed,
+				s_err_command_failed,
+				cmd.command_name(),
+				cmd.get_message()
+			);
+		}
+	} catch (...) {
+		Log::acquire(Log::error)
+			<< "Failed to initialize session '"
+			<< session.get_name()
+			<< "':\n"
+		;
+		Log::report_error_ptr(std::current_exception());
+	}
+}
+
+void
+Unit::close_session(
+	System::Session& session
+) {
+	if (!session.is_open()) {
+		return;
+	}
+
+	Log::acquire()
+		<< "Closing session: "
+		<< session.get_name()
+		<< '\n'
+	;
+	try {
+		// TODO: Cmd::Hive::StoreAll
+		session.close();
+	} catch (...) {
+		Log::acquire(Log::error)
+			<< "Failed to close session '"
+			<< session.get_name()
+			<< "':\n"
+		;
+		Log::report_error_ptr(std::current_exception());
+	}
+}
+
+static Beard::KeyInputMatch const
+s_kim_c{Beard::KeyMod::ctrl , Beard::KeyCode::none,  'c', false};
+
+void
+Unit::ui_event_filter(
+	Beard::ui::Event const& event
+) {
+	if (Beard::ui::EventType::key_input != event.type) {
+		return;
+	}
+
+	Log::acquire(Log::debug)
+		<< "key_input\n"
+	;
+	if (Beard::key_input_match(event.key_input, s_kim_c)) {
+		m_running = false;
+	}
+}
+
+void
+Unit::start_ui() {
+	using namespace std::placeholders;
+
+	m_ui_ctx.open(Beard::tty::this_path(), true);
+	auto& pmap = m_ui_ctx.get_property_map().find(
+		Beard::ui::group_default
+	)->second;
+	pmap.find(
+		Beard::ui::property_field_content_underline
+	)->second.set_boolean(false);
+
+	auto root = Beard::ui::Root::make(m_ui_ctx, Beard::Axis::vertical);
+	m_ui_ctx.set_root(root);
+
+	// TODO: Tabbed/switch container
+	m_ui.viewc = Beard::ui::Container::make(
+		root, Beard::Axis::vertical, 1u
+	);
+	m_ui.viewc->get_geometry().set_sizing(
+		Beard::Axis::both,
+		Beard::Axis::both
+	);
+
+	// TODO: Custom widget
+	m_ui.sline = Beard::ui::Label::make(root, "(status)");
+	m_ui.sline->get_geometry().set_sizing(
+		Beard::Axis::horizontal,
+		Beard::Axis::horizontal
+	);
+	m_ui.viewc->push_back(m_ui.sline);
+
+	// TODO: Custom widget or just event filtering?
+	m_ui.cline = Beard::ui::Field::make(root, "");
+	// m_ui.cline->set_focus_index(Beard::ui::focus_index_none);
+	m_ui.cline->get_geometry().set_sizing(
+		Beard::Axis::horizontal,
+		Beard::Axis::horizontal
+	);
+	// m_ui.cline->set_visible(false);
+	m_ui.viewc->push_back(m_ui.cline);
+
+	root->push_back(m_ui.viewc);
 }
 
 void
@@ -261,37 +455,41 @@ Unit::start() try {
 	Log::acquire()
 		<< "Opening UI context\n"
 	;
-	m_ui_ctx.open(Beard::tty::this_path(), true);
-	auto root = Beard::ui::Root::make(m_ui_ctx, Beard::Axis::horizontal);
-	m_ui_ctx.set_root(root);
+	start_ui();
+
+	for (auto& session : m_session_manager) {
+		if (session.get_auto_open()) {
+			init_session(session);
+		}
+	}
 
 	// The terminal will get all screwy if we don't disable stdout
-	Log::acquire()
-		<< "Disabling stdout\n"
-	;
-	Log::get_controller().stdout(false);
+	toggle_stdout(false);
 
 	// Event loop
 	m_ui_ctx.render(true);
-	while (!m_ui_ctx.update(10u)) {
-		// TODO: process data from sessions, handle global hotkeys
+	m_running = true;
+	while (m_running) {
+		if (!m_ui_ctx.update(20u)) {
+			ui_event_filter(m_ui_ctx.get_last_event());
+		}
+		// TODO: Process data from sessions, handle global hotkeys
+		m_session_manager.process();
 	}
 	m_ui_ctx.close();
 
-	Log::get_controller().stdout(true);
-	Log::acquire()
-		<< "Re-enabled stdout\n"
-	;
+	for (auto& session : m_session_manager) {
+		close_session(session);
+	}
+
+	toggle_stdout(true);
 } catch (...) {
 	// TODO: Terminate UI?
-	if (!Log::get_controller().stdout_enabled()) {
-		Log::get_controller().stdout(true);
-		Log::acquire()
-			<< "Re-enabled stdout\n"
-		;
-	}
+	toggle_stdout(true);
 	throw;
 }
+
+#undef ONSANG_SCOPE_CLASS
 
 } // namespace Client
 } // namespace Onsang

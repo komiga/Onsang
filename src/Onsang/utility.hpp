@@ -16,6 +16,7 @@ see @ref index or the accompanying LICENSE file for full text.
 
 namespace Onsang {
 
+using duct::bit;
 using duct::make_const;
 using duct::signed_cast;
 using duct::unsigned_cast;
