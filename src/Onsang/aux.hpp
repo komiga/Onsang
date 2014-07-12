@@ -7,8 +7,7 @@
 see @ref index or the accompanying LICENSE file for full text.
 */
 
-#ifndef ONSANG_AUX_HPP_
-#define ONSANG_AUX_HPP_
+#pragma once
 
 #include <Onsang/config.hpp>
 
@@ -116,5 +115,3 @@ using unordered_set
 
 } // namespace aux
 } // namespace Onsang
-
-#endif // ONSANG_AUX_HPP_

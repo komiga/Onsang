@@ -8,8 +8,7 @@
 see @ref index or the accompanying LICENSE file for full text.
 */
 
-#ifndef ONSANG_ITERATOR_PROXY_HPP_
-#define ONSANG_ITERATOR_PROXY_HPP_
+#pragma once
 
 #include <Onsang/config.hpp>
 
@@ -132,5 +131,3 @@ public:
 };
 
 } // namespace Onsang
-
-#endif // ONSANG_ITERATOR_PROXY_HPP_

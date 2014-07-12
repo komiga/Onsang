@@ -7,8 +7,7 @@
 see @ref index or the accompanying LICENSE file for full text.
 */
 
-#ifndef ONSANG_NET_DEFS_HPP_
-#define ONSANG_NET_DEFS_HPP_
+#pragma once
 
 #include <Onsang/config.hpp>
 #include <Onsang/asio.hpp>
@@ -30,5 +29,3 @@ using DynamicStreamBuf
 
 } // namespace Net
 } // namespace Onsang
-
-#endif // ONSANG_NET_DEFS_HPP_

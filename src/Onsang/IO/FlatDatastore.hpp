@@ -7,8 +7,7 @@
 see @ref index or the accompanying LICENSE file for full text.
 */
 
-#ifndef ONSANG_IO_FLATDATASTORE_HPP_
-#define ONSANG_IO_FLATDATASTORE_HPP_
+#pragma once
 
 #include <Onsang/config.hpp>
 #include <Onsang/aux.hpp>
@@ -202,5 +201,3 @@ public:
 template struct Hord::IO::Datastore::ensure_traits<
 	Onsang::IO::FlatDatastore
 >;
-
-#endif // ONSANG_IO_FLATDATASTORE_HPP_

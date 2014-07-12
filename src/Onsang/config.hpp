@@ -7,8 +7,7 @@
 see @ref index or the accompanying LICENSE file for full text.
 */
 
-#ifndef ONSANG_CONFIG_HPP_
-#define ONSANG_CONFIG_HPP_
+#pragma once
 
 #include <Hord/config.hpp>
 
@@ -25,5 +24,3 @@ namespace Onsang {
 #define ONSANG_AUX_ALLOCATOR std::allocator
 
 } // namespace Onsang
-
-#endif // ONSANG_CONFIG_HPP_

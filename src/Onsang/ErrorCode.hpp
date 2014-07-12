@@ -7,8 +7,7 @@
 see @ref index or the accompanying LICENSE file for full text.
 */
 
-#ifndef ONSANG_ERRORCODE_HPP_
-#define ONSANG_ERRORCODE_HPP_
+#pragma once
 
 #include <Onsang/config.hpp>
 
@@ -46,5 +45,3 @@ enum class ErrorCode : unsigned {
 };
 
 } // namespace Onsang
-
-#endif // ONSANG_ERRORCODE_HPP_

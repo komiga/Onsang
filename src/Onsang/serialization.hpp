@@ -7,8 +7,7 @@
 see @ref index or the accompanying LICENSE file for full text.
 */
 
-#ifndef ONSANG_SERIALIZATION_HPP_
-#define ONSANG_SERIALIZATION_HPP_
+#pragma once
 
 #include <Onsang/config.hpp>
 
@@ -38,5 +37,3 @@ using Hord::make_input_serializer;
 using Hord::make_output_serializer;
 
 } // namespace Onsang
-
-#endif // ONSANG_SERIALIZATION_HPP_

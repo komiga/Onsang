@@ -7,8 +7,7 @@
 see @ref index or the accompanying LICENSE file for full text.
 */
 
-#ifndef ONSANG_STRING_HPP_
-#define ONSANG_STRING_HPP_
+#pragma once
 
 #include <Onsang/config.hpp>
 
@@ -20,5 +19,3 @@ namespace Onsang {
 using String = Hord::String;
 
 } // namespace Onsang
-
-#endif // ONSANG_STRING_HPP_

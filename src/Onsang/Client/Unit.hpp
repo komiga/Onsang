@@ -7,8 +7,7 @@
 see @ref index or the accompanying LICENSE file for full text.
 */
 
-#ifndef ONSANG_CLIENT_UNIT_HPP_
-#define ONSANG_CLIENT_UNIT_HPP_
+#pragma once
 
 #include <Onsang/config.hpp>
 #include <Onsang/aux.hpp>
@@ -197,5 +196,3 @@ public:
 
 } // namespace Client
 } // namespace Onsang
-
-#endif // ONSANG_CLIENT_UNIT_HPP_

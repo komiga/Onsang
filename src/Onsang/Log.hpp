@@ -7,8 +7,7 @@
 see @ref index or the accompanying LICENSE file for full text.
 */
 
-#ifndef ONSANG_LOG_HPP_
-#define ONSANG_LOG_HPP_
+#pragma once
 
 #include <Onsang/config.hpp>
 #include <Onsang/Error.hpp>
@@ -60,5 +59,3 @@ report_error_ptr(
 
 } // namespace Log
 } // namespace Onsang
-
-#endif // ONSANG_LOG_HPP_

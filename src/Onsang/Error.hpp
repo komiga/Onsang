@@ -7,8 +7,7 @@
 see @ref index or the accompanying LICENSE file for full text.
 */
 
-#ifndef ONSANG_ERROR_HPP_
-#define ONSANG_ERROR_HPP_
+#pragma once
 
 #include <Onsang/config.hpp>
 #include <Onsang/ErrorCode.hpp>
@@ -30,5 +29,3 @@ get_error_name(
 ) noexcept;
 
 } // namespace Onsang
-
-#endif // ONSANG_ERROR_HPP_

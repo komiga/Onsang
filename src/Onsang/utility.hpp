@@ -7,8 +7,7 @@
 see @ref index or the accompanying LICENSE file for full text.
 */
 
-#ifndef ONSANG_UTILITY_HPP_
-#define ONSANG_UTILITY_HPP_
+#pragma once
 
 #include <Onsang/config.hpp>
 
@@ -28,5 +27,3 @@ using duct::min_ce;
 using duct::max_ce;
 
 } // namespace Onsang
-
-#endif // ONSANG_UTILITY_HPP_

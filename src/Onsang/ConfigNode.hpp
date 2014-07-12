@@ -8,8 +8,7 @@
 see @ref index or the accompanying LICENSE file for full text.
 */
 
-#ifndef ONSANG_CONFIGNODE_HPP_
-#define ONSANG_CONFIGNODE_HPP_
+#pragma once
 
 #include <Onsang/config.hpp>
 #include <Onsang/aux.hpp>
@@ -336,5 +335,3 @@ public:
 };
 
 } // namespace Onsang
-
-#endif // ONSANG_CONFIGNODE_HPP_

@@ -7,8 +7,7 @@
 see @ref index or the accompanying LICENSE file for full text.
 */
 
-#ifndef ONSANG_INIT_HPP_
-#define ONSANG_INIT_HPP_
+#pragma once
 
 #include <Onsang/config.hpp>
 
@@ -23,5 +22,3 @@ driver_init(
 );
 
 } // namespace Onsang
-
-#endif // ONSANG_INIT_HPP_

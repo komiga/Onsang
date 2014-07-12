@@ -7,8 +7,7 @@
 see @ref index or the accompanying LICENSE file for full text.
 */
 
-#ifndef ONSANG_SYSTEM_SESSION_HPP_
-#define ONSANG_SYSTEM_SESSION_HPP_
+#pragma once
 
 #include <Onsang/config.hpp>
 #include <Onsang/aux.hpp>
@@ -119,5 +118,3 @@ public:
 
 } // namespace System
 } // namespace Onsang
-
-#endif // ONSANG_SYSTEM_SESSION_HPP_

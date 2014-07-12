@@ -7,8 +7,7 @@
 see @ref index or the accompanying LICENSE file for full text.
 */
 
-#ifndef ONSANG_ASIO_HPP_
-#define ONSANG_ASIO_HPP_
+#pragma once
 
 #include <Onsang/config.hpp>
 
@@ -25,5 +24,3 @@ namespace Onsang {
 ONSANG_LOCALIZE_NS_ASIO();
 
 } // namespace Onsang
-
-#endif // ONSANG_ASIO_HPP_
