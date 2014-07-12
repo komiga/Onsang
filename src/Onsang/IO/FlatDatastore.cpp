@@ -316,37 +316,35 @@ FlatDatastore::open_impl(
 	boost::system::error_code ec;
 	fs::path const path{get_root_path()};
 	auto const stat = fs::status(path, ec);
-	if (
-		fs::is_directory(stat)
-	) {
-		// Only create stubs if the directory exists and is empty
-		// (Hord generalizes the parameter as "if datastore does not
-		// exist")
-		if (
-			create_if_nonexistent &&
-			fs::directory_iterator(path, ec) == fs::directory_iterator()
-		) {
-			// boost plz no
-			fs::path path_resident{path};
-			fs::path path_orphan{path};
-			path_resident /= "resident";
-			path_orphan /= "orphan";
-			if (
-				!fs::create_directory(path_resident) ||
-				!fs::create_directory(path_orphan)
-			) {
-				HORD_THROW_FQN(
-					Hord::ErrorCode::datastore_open_failed,
-					"failed to create object directories"
-				);
-			}
-			do_index = false;
-		}
-	} else {
+	if (!fs::is_directory(stat)) {
 		HORD_THROW_FQN(
 			Hord::ErrorCode::datastore_open_failed,
 			"root path does not exist or is not a directory"
 		);
+	}
+
+	// Only create stubs if the directory exists and is empty
+	// (Hord generalizes the parameter as "if datastore does not
+	// exist")
+	if (
+		create_if_nonexistent &&
+		fs::directory_iterator(path, ec) == fs::directory_iterator()
+	) {
+		// boost plz no
+		fs::path path_resident{path};
+		fs::path path_orphan{path};
+		path_resident /= "resident";
+		path_orphan /= "orphan";
+		if (
+			!fs::create_directory(path_resident) ||
+			!fs::create_directory(path_orphan)
+		) {
+			HORD_THROW_FQN(
+				Hord::ErrorCode::datastore_open_failed,
+				"failed to create object directories"
+			);
+		}
+		do_index = false;
 	}
 
 	// Path could've changed (and we don't assign it in the ctor)
@@ -364,28 +362,27 @@ FlatDatastore::open_impl(
 	if (do_index) {
 		auto const index_path = get_root_path() + "/index";
 		std::ifstream index_stream{index_path};
-		if (index_stream.is_open()) {
-			std::exception_ptr eptr;
-			try {
-				read_index(index_stream);
-			} catch (...) {
-				eptr = std::current_exception();
-			}
-			index_stream.close();
-			if (eptr) {
-				Log::acquire(Log::error)
-					<< DUCT_GR_MSG_FQN("failed to read index file:\n")
-				;
-				Log::report_error_ptr(eptr);
-				HORD_THROW_FQN(
-					Hord::ErrorCode::datastore_open_failed,
-					"failed to read index file"
-				);
-			}
-		} else {
+		if (!index_stream.is_open()) {
 			HORD_THROW_FQN(
 				Hord::ErrorCode::datastore_open_failed,
 				"failed to open index file for reading"
+			);
+		}
+		std::exception_ptr eptr;
+		try {
+			read_index(index_stream);
+		} catch (...) {
+			eptr = std::current_exception();
+		}
+		index_stream.close();
+		if (eptr) {
+			Log::acquire(Log::error)
+				<< DUCT_GR_MSG_FQN("failed to read index file:\n")
+			;
+			Log::report_error_ptr(eptr);
+			HORD_THROW_FQN(
+				Hord::ErrorCode::datastore_open_failed,
+				"failed to read index file"
 			);
 		}
 	}
