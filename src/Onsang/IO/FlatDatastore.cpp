@@ -221,7 +221,7 @@ FlatDatastore::acquire_stream(
 		);
 	}
 
-	if (!is_input && !sinfo.prop_storage.is_initialized(prop_info.prop_type)) {
+	if (is_input && !sinfo.prop_storage.is_initialized(prop_info.prop_type)) {
 		HORD_THROW_FMT(
 			Hord::ErrorCode::datastore_prop_void,
 			s_err_acquire_prop_void,
