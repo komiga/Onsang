@@ -11,6 +11,7 @@ see @ref index or the accompanying LICENSE file for full text.
 
 #include <Onsang/config.hpp>
 
+#include <memory>
 #include <string>
 #include <vector>
 #include <deque>
@@ -29,6 +30,31 @@ namespace aux {
 	@addtogroup aux
 	@{
 */
+
+/**
+	@c std::shared_ptr<T>.
+*/
+template<
+	typename T
+>
+using shared_ptr = std::shared_ptr<T>;
+
+/**
+	@c std::weak_ptr<T>.
+*/
+template<
+	typename T
+>
+using weak_ptr = std::weak_ptr<T>;
+
+/** Alias for @c std::make_shared(). */
+using std::make_shared;
+
+/** Alias for @c std::owner_less<T>. */
+using std::owner_less;
+
+/** Alias for @c std::enable_shared_from_this<T>. */
+using std::enable_shared_from_this;
 
 /**
 	@c std::basic_string<CharT, Traits>.
