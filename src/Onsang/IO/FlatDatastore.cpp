@@ -336,8 +336,8 @@ FlatDatastore::open_impl(
 		path_resident /= "resident";
 		path_orphan /= "orphan";
 		if (
-			!fs::create_directory(path_resident) ||
-			!fs::create_directory(path_orphan)
+			(fs::create_directory(path_resident, ec), ec) ||
+			(fs::create_directory(path_orphan, ec), ec)
 		) {
 			HORD_THROW_FQN(
 				Hord::ErrorCode::datastore_open_failed,
