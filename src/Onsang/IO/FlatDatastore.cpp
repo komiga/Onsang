@@ -136,11 +136,12 @@ static_assert(
 void
 FlatDatastore::assign_prop(
 	Hord::IO::PropInfo const& prop_info,
-	Hord::IO::StorageInfo const& storage_info,
+	Hord::IO::StorageInfo& sinfo,
 	bool const is_input
 ) {
-	bool const is_orphan = Hord::IO::Linkage::orphan == storage_info.linkage;
+	bool const is_orphan = Hord::IO::Linkage::orphan == sinfo.linkage;
 	m_prop.info = prop_info;
+	m_prop.sinfo = &sinfo;
 	m_prop.is_input = is_input;
 	m_prop.directory.reserve(
 		get_root_path().size() +	// root
@@ -199,8 +200,8 @@ FlatDatastore::acquire_stream(
 	Hord::IO::PropInfo const& prop_info,
 	bool const is_input
 ) {
-	auto const& sinfo_map = get_storage_info();
-	auto const it = sinfo_map.find(prop_info.object_id);
+	auto& sinfo_map = get_storage_info();
+	auto it = sinfo_map.find(prop_info.object_id);
 	if (sinfo_map.cend() == it) {
 		HORD_THROW_FMT(
 			Hord::ErrorCode::datastore_object_not_found,
@@ -210,7 +211,7 @@ FlatDatastore::acquire_stream(
 		);
 	}
 
-	auto const& sinfo = it->second;
+	auto& sinfo = it->second;
 	if (!sinfo.prop_storage.supplies(prop_info.prop_type)) {
 		HORD_THROW_FMT(
 			Hord::ErrorCode::datastore_prop_unsupplied,
@@ -300,6 +301,13 @@ FlatDatastore::release_stream(
 			Hord::IO::get_prop_type_name(prop_info.prop_type)
 		);
 	}
+	// TODO: Should this be implemented in base? It would have to
+	// keep track of the current StorageInfo (we already have it in
+	// FlatDatastore) or lookup every time...
+	m_prop.sinfo->prop_storage.assign(
+		m_prop.info.prop_type,
+		Hord::IO::PropState::original
+	);
 
 	try {
 		// Ignore exceptions during close

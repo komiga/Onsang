@@ -74,6 +74,7 @@ private:
 			Hord::Object::TYPE_NULL,
 			Hord::IO::PropType::identity
 		};
+		Hord::IO::StorageInfo* sinfo;
 		std::fstream stream{};
 		bool is_input{false};
 
@@ -81,6 +82,7 @@ private:
 		reset() noexcept {
 			directory.clear();
 			info.object_id = Hord::Object::ID_NULL;
+			sinfo = nullptr;
 		}
 	} m_prop;
 
@@ -116,7 +118,7 @@ private:
 	void
 	assign_prop(
 		Hord::IO::PropInfo const&,
-		Hord::IO::StorageInfo const&,
+		Hord::IO::StorageInfo&,
 		bool const is_input
 	);
 
