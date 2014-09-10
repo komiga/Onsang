@@ -68,7 +68,7 @@ private:
 	Hord::LockFile m_lock;
 
 	struct {
-		String path{};
+		String directory{};
 		Hord::IO::PropInfo info{
 			Hord::Object::ID_NULL,
 			Hord::Object::TYPE_NULL,
@@ -79,7 +79,7 @@ private:
 
 		void
 		reset() noexcept {
-			path.clear();
+			directory.clear();
 			info.object_id = Hord::Object::ID_NULL;
 		}
 	} m_prop;

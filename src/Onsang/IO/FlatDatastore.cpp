@@ -142,11 +142,10 @@ FlatDatastore::assign_prop(
 	bool const is_orphan = Hord::IO::Linkage::orphan == storage_info.linkage;
 	m_prop.info = prop_info;
 	m_prop.is_input = is_input;
-	m_prop.path.reserve(
+	m_prop.directory.reserve(
 		get_root_path().size() +	// root
 		(is_orphan ? 8u : 10u) +	// "/orphan/" or "/resident/"
-		8u +						// ID
-		2u							// "/" + prop abbr
+		8u							// ID
 	);
 
 	// Taking runtime parsing cost over dynamic memory allocation
@@ -164,17 +163,14 @@ FlatDatastore::assign_prop(
 		"%08x",
 		prop_info.object_id.value()
 	);
-	m_prop.path
+	m_prop.directory
 		.assign(get_root_path())
 		.append(
-			(is_orphan)
+			is_orphan
 			? "/orphan/"
 			: "/resident/"
 		)
 		.append(obj_id_str, obj_id_str_len - 1u)
-		.append(s_prop_type_abbr_rel[
-			enum_cast(prop_info.prop_type)
-		])
 	;
 }
 
@@ -191,6 +187,10 @@ HORD_DEF_FMT_FQN(
 HORD_DEF_FMT_FQN(
 	s_err_acquire_prop_open_failed,
 	"prop %s -> %s is void (or open otherwise failed)"
+);
+HORD_DEF_FMT_FQN(
+	s_err_acquire_dir_creation_failed,
+	"failed to create directory for prop %s -> %s: %s"
 );
 } // anonymous namespace
 
@@ -230,15 +230,27 @@ FlatDatastore::acquire_stream(
 		);
 	}
 
-	// TODO: stat() path, throw other custom/standard error if
-	// non-existent
 	assign_prop(prop_info, sinfo, is_input);
+	namespace fs = boost::filesystem;
+	boost::system::error_code ec;
+	if (!is_input && (fs::create_directory(fs::path{m_prop.directory}, ec), ec)) {
+		HORD_THROW_FMT(
+			Hord::ErrorCode::datastore_prop_void,
+			s_err_acquire_dir_creation_failed,
+			Hord::Object::IDPrinter{prop_info.object_id},
+			Hord::IO::get_prop_type_name(prop_info.prop_type),
+			ec.message()
+		);
+	}
+	String prop_path{m_prop.directory};
+	prop_path.append(s_prop_type_abbr_rel[enum_cast(prop_info.prop_type)]);
 	m_prop.stream.open(
-		m_prop.path,
+		prop_path,
 		std::ios_base::binary
-		| (is_input)
+		| (is_input
 			? std::ios_base::in
 			: std::ios_base::out
+		)
 	);
 	if (!m_prop.stream.is_open()) {
 		// TODO: This should really not be datastore_prop_void (see above)
