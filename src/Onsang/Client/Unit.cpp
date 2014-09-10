@@ -374,7 +374,20 @@ Unit::close_session(
 		<< '\n'
 	;
 	try {
-		// TODO: Cmd::Hive::StoreAll
+		auto cmd = Hord::Cmd::Hive::StoreAll{session};
+		if (!cmd()) {
+			ONSANG_THROW_FMT(
+				ErrorCode::command_failed,
+				s_err_command_failed,
+				cmd.command_name(),
+				cmd.get_message()
+			);
+		}
+		Log::acquire()
+			<< "Stored "
+			<< cmd.num_objects_stored() << " objects and "
+			<< cmd.num_props_stored() << " props\n"
+		;
 		session.close();
 	} catch (...) {
 		Log::acquire(Log::error)
