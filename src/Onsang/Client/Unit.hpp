@@ -18,6 +18,7 @@ see @ref index or the accompanying LICENSE file for full text.
 #include <Onsang/System/Session.hpp>
 #include <Onsang/System/SessionManager.hpp>
 #include <Onsang/UI/Defs.hpp>
+#include <Onsang/UI/TabbedContainer.hpp>
 
 #include <Beard/ui/Defs.hpp>
 #include <Beard/ui/Widget/Defs.hpp>
@@ -37,7 +38,7 @@ namespace Client {
 class Unit final {
 public:
 	struct UIBucket {
-		Beard::aux::shared_ptr<UI::Container> viewc{};
+		Beard::aux::shared_ptr<UI::TabbedContainer> viewc{};
 		Beard::aux::shared_ptr<UI::Label> sline{};
 		Beard::aux::shared_ptr<UI::Field> cline{};
 	};

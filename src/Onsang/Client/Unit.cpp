@@ -3,6 +3,9 @@
 #include <Onsang/Log.hpp>
 #include <Onsang/init.hpp>
 #include <Onsang/UI/Defs.hpp>
+#include <Onsang/UI/TabbedContainer.hpp>
+#include <Onsang/UI/ObjectView.hpp>
+#include <Onsang/UI/BasicPropView.hpp>
 #include <Onsang/Client/Unit.hpp>
 
 #include <Beard/keys.hpp>
@@ -401,7 +404,8 @@ Unit::close_session(
 }
 
 static Beard::KeyInputMatch const
-s_kim_c{Beard::KeyMod::ctrl , Beard::KeyCode::none,  'c', false};
+s_kim_c{Beard::KeyMod::ctrl, Beard::KeyCode::none, 'c', false},
+s_kim_cline{Beard::KeyMod::none, Beard::KeyCode::none, ':', false};
 
 void
 Unit::ui_event_filter(
@@ -413,6 +417,36 @@ Unit::ui_event_filter(
 
 	if (Beard::key_input_match(event.key_input, s_kim_c)) {
 		m_running = false;
+	} else if (Beard::key_input_match(event.key_input, s_kim_cline)) {
+		m_ui.sline->set_visible(false);
+		m_ui.cline->set_visible(true);
+		m_ui.cline->set_input_control(true);
+		m_ui_ctx.get_root()->set_focus(m_ui.cline);
+	} else {
+		switch (event.key_input.cp) {
+		case '1': m_ui.viewc->prev_tab(); break;
+		case '2': m_ui.viewc->next_tab(); break;
+		case '!': m_ui.viewc->move_left(m_ui.viewc->get_tab()); break;
+		case '@': m_ui.viewc->move_right(m_ui.viewc->get_tab()); break;
+		case '3': m_ui.viewc->move_tab(m_ui.viewc->get_tab(), 0, true); break;
+
+		case 'n': {
+			if (m_session_manager.cbegin() != m_session_manager.cend()) {
+				auto& session = *m_session_manager.begin();
+				auto hive_view = UI::ObjectView::make(
+					m_ui_ctx.get_root(),
+					session,
+					session.get_hive()
+				);
+				UI::add_basic_prop_view(hive_view);
+				m_ui.viewc->push_back(session.get_hive().get_slug(), std::move(hive_view));
+			}
+		} break;
+
+		case 'c':
+			m_ui.viewc->remove_current();
+			break;
+		}
 	}
 }
 
@@ -428,10 +462,7 @@ Unit::start_ui() {
 	auto root = UI::Root::make(m_ui_ctx, UI::Axis::vertical);
 	m_ui_ctx.set_root(root);
 
-	// TODO: Tabbed/switch container
-	m_ui.viewc = UI::Container::make(
-		root, Beard::Axis::vertical, 1u
-	);
+	m_ui.viewc = UI::TabbedContainer::make(root);
 	m_ui.viewc->get_geometry().set_sizing(
 		UI::Axis::both,
 		UI::Axis::both
