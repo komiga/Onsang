@@ -2,6 +2,7 @@
 #include <Onsang/asio.hpp>
 #include <Onsang/Log.hpp>
 #include <Onsang/init.hpp>
+#include <Onsang/UI/Defs.hpp>
 #include <Onsang/Client/Unit.hpp>
 
 #include <Beard/keys.hpp>
@@ -404,15 +405,12 @@ s_kim_c{Beard::KeyMod::ctrl , Beard::KeyCode::none,  'c', false};
 
 void
 Unit::ui_event_filter(
-	Beard::ui::Event const& event
+	UI::Event const& event
 ) {
-	if (Beard::ui::EventType::key_input != event.type) {
+	if (UI::EventType::key_input != event.type) {
 		return;
 	}
 
-	Log::acquire(Log::debug)
-		<< "key_input\n"
-	;
 	if (Beard::key_input_match(event.key_input, s_kim_c)) {
 		m_running = false;
 	}
@@ -423,44 +421,55 @@ Unit::start_ui() {
 	using namespace std::placeholders;
 
 	m_ui_ctx.open(Beard::tty::this_path(), true);
-	auto& pmap = m_ui_ctx.get_property_map().find(
-		Beard::ui::group_default
-	)->second;
-	pmap.find(
-		Beard::ui::property_field_content_underline
-	)->second.set_boolean(false);
+	auto& pmap = m_ui_ctx.get_property_map().find(UI::group_default)->second;
+	pmap.find(UI::property_field_content_underline)->second.set_boolean(false);
+	pmap.find(UI::property_frame_debug_enabled)->second.set_boolean(false);
 
-	auto root = Beard::ui::Root::make(m_ui_ctx, Beard::Axis::vertical);
+	auto root = UI::Root::make(m_ui_ctx, UI::Axis::vertical);
 	m_ui_ctx.set_root(root);
 
 	// TODO: Tabbed/switch container
-	m_ui.viewc = Beard::ui::Container::make(
+	m_ui.viewc = UI::Container::make(
 		root, Beard::Axis::vertical, 1u
 	);
 	m_ui.viewc->get_geometry().set_sizing(
-		Beard::Axis::both,
-		Beard::Axis::both
+		UI::Axis::both,
+		UI::Axis::both
 	);
 
-	// TODO: Custom widget
-	m_ui.sline = Beard::ui::Label::make(root, "(status)");
+	// TODO: Custom widget: sline + cline
+	m_ui.sline = UI::Label::make(root, "(status)");
 	m_ui.sline->get_geometry().set_sizing(
-		Beard::Axis::horizontal,
-		Beard::Axis::horizontal
+		UI::Axis::horizontal,
+		UI::Axis::horizontal
 	);
-	m_ui.viewc->push_back(m_ui.sline);
 
-	// TODO: Custom widget or just event filtering?
-	m_ui.cline = Beard::ui::Field::make(root, "");
-	// m_ui.cline->set_focus_index(Beard::ui::focus_index_none);
+	m_ui.cline = UI::Field::make(root, "");
 	m_ui.cline->get_geometry().set_sizing(
-		Beard::Axis::horizontal,
-		Beard::Axis::horizontal
+		UI::Axis::horizontal,
+		UI::Axis::horizontal
 	);
-	// m_ui.cline->set_visible(false);
-	m_ui.viewc->push_back(m_ui.cline);
+	m_ui.cline->set_visible(false);
+	m_ui.cline->signal_control_changed.bind([this](
+		aux::shared_ptr<UI::Field>,
+		bool const has_control
+	) {
+		String command;
+		if (!has_control) {
+			m_ui.sline->set_visible(true);
+			m_ui.cline->set_visible(false);
+			m_ui_ctx.get_root()->clear_focus();
+			command = m_ui.cline->get_text();
+			m_ui.cline->set_text("");
+		}
+		if ("q" == command || "quit" == command) {
+			m_running = false;
+		}
+	});
 
 	root->push_back(m_ui.viewc);
+	root->push_back(m_ui.sline);
+	root->push_back(m_ui.cline);
 }
 
 void

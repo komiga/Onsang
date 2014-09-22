@@ -17,6 +17,7 @@ see @ref index or the accompanying LICENSE file for full text.
 #include <Onsang/Net/Defs.hpp>
 #include <Onsang/System/Session.hpp>
 #include <Onsang/System/SessionManager.hpp>
+#include <Onsang/UI/Defs.hpp>
 
 #include <Beard/ui/Defs.hpp>
 #include <Beard/ui/Widget/Defs.hpp>
@@ -36,9 +37,9 @@ namespace Client {
 class Unit final {
 public:
 	struct UIBucket {
-		Beard::aux::shared_ptr<Beard::ui::Container> viewc{};
-		Beard::aux::shared_ptr<Beard::ui::Label> sline{};
-		Beard::aux::shared_ptr<Beard::ui::Field> cline{};
+		Beard::aux::shared_ptr<UI::Container> viewc{};
+		Beard::aux::shared_ptr<UI::Label> sline{};
+		Beard::aux::shared_ptr<UI::Field> cline{};
 	};
 
 private:
@@ -53,7 +54,7 @@ private:
 	System::SessionManager m_session_manager;
 
 	bool m_running{false};
-	Beard::ui::Context m_ui_ctx{Beard::ui::PropertyMap{true}};
+	UI::Context m_ui_ctx{UI::PropertyMap{true}};
 	UIBucket m_ui{};
 
 	ConfigNode m_config;
@@ -142,7 +143,7 @@ public:
 		return m_session_manager;
 	}
 
-	Beard::ui::Context&
+	UI::Context&
 	get_ui_context() noexcept {
 		return m_ui_ctx;
 	}
@@ -186,7 +187,7 @@ private:
 
 	void
 	ui_event_filter(
-		Beard::ui::Event const&
+		UI::Event const&
 	);
 
 public:
