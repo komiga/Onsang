@@ -122,7 +122,7 @@ private:
 		UI::GridRenderData& grid_rd,
 		UI::index_type const row,
 		UI::index_type const col_begin,
-		UI::index_type const col_end,
+		UI::index_type col_end,
 		Rect const& frame
 	) noexcept override;
 
@@ -466,15 +466,15 @@ Grid::content_action(
 	// Insert
 	case ContentAction::insert_after: // fall-through
 	case ContentAction::insert_before:
-		if (row_begin <= m_cursor.row && 0 < get_row_count()) {
+		/*if (row_begin <= m_cursor.row && 0 < get_row_count()) {
 			m_rows[m_cursor.row][m_cursor.col].states.disable(
 				Column::Flags::focused
 			);
-		}
+		}*/
 		m_rows.insert(
 			m_rows.begin() + row_begin,
 			static_cast<std::size_t>(count),
-			Row{static_cast<std::size_t>(get_col_count())}
+			Row{}
 		);
 		content_action_internal(
 			ContentAction::insert_before,
@@ -486,9 +486,9 @@ Grid::content_action(
 		} else if (row_begin <= m_cursor.row) {
 			set_cursor(m_cursor.col, m_cursor.row + count);
 		}
-		m_rows[m_cursor.row][m_cursor.col].states.enable(
+		/*m_rows[m_cursor.row][m_cursor.col].states.enable(
 			Column::Flags::focused
-		);
+		);*/
 		adjust_view();
 		break;
 
@@ -549,9 +549,9 @@ Grid::content_action(
 		set_cursor(m_cursor.col, m_cursor.row);
 		if (0 < get_row_count()) {
 			// Set focused flag in case set_cursor() did nothing
-			m_rows[m_cursor.row][m_cursor.col].states.enable(
+			/*m_rows[m_cursor.row][m_cursor.col].states.enable(
 				Column::Flags::focused
-			);
+			);*/
 		}
 		adjust_view();
 		break;
@@ -612,7 +612,7 @@ Grid::render_content(
 	UI::GridRenderData& grid_rd,
 	UI::index_type const row,
 	UI::index_type const col_begin,
-	UI::index_type const col_end,
+	UI::index_type col_end,
 	Rect const& frame
 ) noexcept {
 	/*DUCT_DEBUGF(
@@ -634,21 +634,20 @@ Grid::render_content(
 
 	Rect cell_frame = frame;
 	cell_frame.pos.x += col_begin * GRID_TMP_COLUMN_WIDTH;
-	auto const end
-		= get_col_count() < col_end
-		? r.columns.cend()
-		: r.columns.cbegin() + col_end
-	;
 	auto cell = tty::make_cell(' ', attr_fg, attr_bg);
 	String value;
-	UI::index_type col = col_begin;
-	for (auto it = r.columns.cbegin() + col_begin; end > it; ++it, ++col) {
+	col_end = max_ce(get_col_count(), col_end);
+	for (UI::index_type col = col_begin; col_end > col; ++col) {
 		cell_frame.size.width = min_ce(
 			GRID_TMP_COLUMN_WIDTH,
 			frame.pos.x + frame.size.width - cell_frame.pos.x
 		);
 		cell.attr_bg
-			= (it->states.test(Column::Flags::focused) && is_focused())
+			= (
+				row == m_cursor.row &&
+				col == m_cursor.col &&
+				is_focused()
+			)
 			? attr_bg | tty::Attr::inverted
 			: attr_bg
 		;
@@ -733,18 +732,18 @@ Grid::set_cursor(
 			value_in_bounds(m_cursor.row, 0, get_row_count()) &&
 			value_in_bounds(m_cursor.col, 0, get_col_count())
 		) {
-			m_rows[m_cursor.row][m_cursor.col].states.disable(
+			/*m_rows[m_cursor.row][m_cursor.col].states.disable(
 				Column::Flags::focused
-			);
+			);*/
 			queue_cell_render(
 				m_cursor.row, m_cursor.row + 1,
 				m_cursor.col, m_cursor.col + 1
 			);
 		}
 		if (!m_rows.empty()) {
-			m_rows[row][col].states.enable(
+			/*m_rows[row][col].states.enable(
 				Column::Flags::focused
-			);
+			);*/
 			queue_cell_render(
 				row, row + 1,
 				col, col + 1
