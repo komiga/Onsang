@@ -1,6 +1,6 @@
 /**
-@file UI/Grid.hpp
-@brief Grid.
+@file UI/BasicGrid.hpp
+@brief BasicGrid.
 
 @author Timothy Howard
 @copyright 2013-2014 Timothy Howard under the MIT license;
@@ -16,14 +16,11 @@ see @ref index or the accompanying LICENSE file for full text.
 
 #include <Beard/ui/Widget/Base.hpp>
 #include <Beard/ui/ProtoGrid.hpp>
-#include <Beard/ui/Field.hpp>
 
 namespace Onsang {
 namespace UI {
 
-#define GRID_TMP_COLUMN_WIDTH 25
-
-class Grid final
+class BasicGrid
 	: public UI::ProtoGrid
 {
 private:
@@ -41,66 +38,37 @@ public:
 	using row_vector_type = aux::vector<Row>;
 
 private:
-	enum class ctor_priv {};
+	BasicGrid() noexcept = delete;
+	BasicGrid(BasicGrid const&) = delete;
+	BasicGrid& operator=(BasicGrid const&) = delete;
 
-	Grid() noexcept = delete;
-	Grid(Grid const&) = delete;
-	Grid& operator=(Grid const&) = delete;
-
+protected:
 	struct {
 		UI::index_type col{-1};
 		UI::index_type row{-1};
 	} m_cursor{};
 
-	Hord::Object::Unit& m_object;
-	struct Control {
-		using get_cell_type = void(
-			Hord::Object::Unit& /*object*/,
-			UI::index_type /*row*/,
-			UI::index_type /*col*/,
-			String& /*value*/
-		);
-
-		using set_cell_type = void(
-			Hord::Object::Unit& /*object*/,
-			UI::index_type /*row*/,
-			UI::index_type /*col*/,
-			String const& /*value*/
-		);
-
-		get_cell_type& get_cell;
-		set_cell_type& set_cell;
-
-		Control(
-			get_cell_type& get_cell,
-			set_cell_type& set_cell
-		) noexcept
-			: get_cell(get_cell)
-			, set_cell(set_cell)
-		{}
-	} m_control;
-
 	row_vector_type m_rows;
-	aux::shared_ptr<UI::Field> m_field;
 
-private:
+protected:
 // UI::Widget::Base implementation
-	void
+	virtual void
 	reflow_impl(
 		Rect const& area,
 		bool const cache
 	) noexcept override;
 
-	bool
+	virtual bool
 	handle_event_impl(
 		UI::Event const& event
 	) noexcept override;
 
-	void
+	virtual void
 	render_impl(
 		UI::Widget::RenderData& rd
 	) noexcept override;
 
+private:
 // UI::ProtoGrid implementation
 	void
 	content_action(
@@ -109,103 +77,72 @@ private:
 		UI::index_type count
 	) noexcept override;
 
-	void
+protected:
+	// Carried forward
+	virtual void
 	render_header(
 		UI::GridRenderData& grid_rd,
 		UI::index_type const col_begin,
 		UI::index_type const col_end,
 		Rect const& frame
-	) noexcept override;
+	) noexcept = 0;
 
-	void
+	// Carried forward
+	virtual void
 	render_content(
 		UI::GridRenderData& grid_rd,
 		UI::index_type const row,
 		UI::index_type const col_begin,
 		UI::index_type col_end,
 		Rect const& frame
-	) noexcept override;
+	) noexcept = 0;
 
-private:
+protected:
+// BasicGrid implementation
+	virtual bool
+	content_insert(
+		UI::index_type row_begin,
+		UI::index_type count
+	) noexcept = 0;
+
+	virtual bool
+	content_erase(
+		UI::index_type row_begin,
+		UI::index_type count
+	) noexcept = 0;
+
+protected:
 	void
 	adjust_view() noexcept;
 
-	void
-	reflow_field(
-		bool const cache
-	) noexcept;
-
 public:
-	~Grid() noexcept override = default;
+	~BasicGrid() noexcept override = default;
 
-	Grid(
-		ctor_priv const,
+	BasicGrid(
+		UI::Widget::Type const type,
+		UI::Widget::Flags const flags,
 		UI::group_hash_type const group,
+		ui::Geom&& geometry,
 		UI::RootWPtr&& root,
 		UI::Widget::WPtr&& parent,
-		Hord::Object::Unit& object,
-		Control::get_cell_type& get_cell,
-		Control::set_cell_type& set_cell,
 		UI::index_type const col_count,
 		UI::index_type const row_count
 	) noexcept
 		: base(
-			static_cast<UI::Widget::Type>(UI::OnsangWidgetType::Grid),
-			enum_combine(
-				UI::Widget::Flags::trait_focusable,
-				UI::Widget::Flags::visible
-			),
+			type,
+			flags,
 			group,
-			{{0, 0}, true, Axis::both, Axis::both},
+			std::move(geometry),
 			std::move(root),
 			std::move(parent),
 			col_count,
 			row_count
 		)
-		, m_object(object)
-		, m_control(get_cell, set_cell)
 		, m_rows(row_count)
-		, m_field()
 	{}
 
-	static aux::shared_ptr<Grid>
-	make(
-		UI::RootWPtr root,
-		Hord::Object::Unit& object,
-		Control::get_cell_type& get_cell,
-		Control::set_cell_type& set_cell,
-		UI::index_type const col_count,
-		UI::index_type const row_count,
-		UI::group_hash_type const group = UI::group_default,
-		UI::Widget::WPtr parent = UI::Widget::WPtr()
-	) {
-		auto p = aux::make_shared<Grid>(
-			ctor_priv{},
-			group,
-			std::move(root),
-			std::move(parent),
-			object,
-			get_cell,
-			set_cell,
-			col_count,
-			row_count
-		);
-		p->m_field = UI::Field::make(
-			p->get_root(),
-			{},
-			nullptr,
-			UI::group_field/*,
-			p*/
-		);
-		p->m_field->get_geometry().set_sizing(Axis::x, Axis::x);
-		p->m_field->set_focused(true);
-		p->m_field->clear_actions();
-		p->set_cursor(0, 0);
-		return p;
-	}
-
-	Grid(Grid&&) = default;
-	Grid& operator=(Grid&&) = default;
+	BasicGrid(BasicGrid&&) = default;
+	BasicGrid& operator=(BasicGrid&&) = default;
 
 public:
 	row_vector_type&
@@ -249,68 +186,31 @@ public:
 };
 
 void
-Grid::reflow_impl(
+BasicGrid::reflow_impl(
 	Rect const& area,
 	bool const cache
 ) noexcept {
 	base::reflow_impl(area, cache);
 	Rect view_frame = get_geometry().get_frame();
-	++view_frame.pos.x;
-	++view_frame.pos.y;
-	view_frame.size.width -= 2;
-	view_frame.size.height -= 2;
+	// ++view_frame.pos.x;
+	// ++view_frame.pos.y;
+	// view_frame.size.width -= 2;
+	// view_frame.size.height -= 2;
 	reflow_view(view_frame);
 	adjust_view();
 	queue_header_render();
 	queue_cell_render(0, get_row_count());
-
-	if (has_input_control()) {
-		reflow_field(cache);
-		m_field->queue_actions(
-			UI::UpdateActions::render
-		);
-	}
 }
 
 bool
-Grid::handle_event_impl(
+BasicGrid::handle_event_impl(
 	UI::Event const& event
 ) noexcept {
 	switch (event.type) {
 	case UI::EventType::key_input:
-		if (has_input_control()) {
-			bool const handled = m_field->handle_event(event);
-			if (handled && !m_field->has_input_control()) {
-				set_input_control(false);
-				m_field->clear_actions();
-				m_control.set_cell(m_object, m_cursor.row, m_cursor.col, m_field->get_text());
-				queue_cell_render(
-					m_cursor.row, m_cursor.row + 1,
-					m_cursor.col, m_cursor.col + 1
-				);
-				queue_actions(enum_combine(
-					UI::UpdateActions::render,
-					UI::UpdateActions::flag_noclear
-				));
-			}
-			return handled;
-		} else {
+		if (!has_input_control()) {
 			bool handled = true;
 			switch (event.key_input.code) {
-			case KeyCode::enter:
-				if (0 < get_row_count()) {
-					set_input_control(true);
-					reflow_field(true);
-					String value;
-					m_control.get_cell(m_object, m_cursor.row, m_cursor.col, value);
-					m_field->set_text(std::move(value));
-					m_field->handle_event(event);
-					m_field->queue_actions(enum_combine(
-						UI::UpdateActions::render
-					));
-				}
-				break;
-
 			case KeyCode::up   : row_step(-1); break;
 			case KeyCode::down : row_step(+1); break;
 			case KeyCode::left : col_step(-1); break;
@@ -321,14 +221,6 @@ Grid::handle_event_impl(
 				row_step(min_ce(0, -get_view().fit_count - 1)); break;
 			case KeyCode::pgdn:
 				row_step(max_ce(0, +get_view().fit_count - 1)); break;
-
-			case KeyCode::f1:
-				set_header_enabled(!is_header_enabled());
-				queue_actions(enum_combine(
-					UI::UpdateActions::reflow,
-					UI::UpdateActions::render
-				));
-				break;
 
 			default:
 				switch (event.key_input.cp) {
@@ -363,7 +255,7 @@ Grid::handle_event_impl(
 }
 
 void
-Grid::render_impl(
+BasicGrid::render_impl(
 	UI::Widget::RenderData& rd
 ) noexcept {
 	/*DUCT_DEBUGF(
@@ -389,11 +281,6 @@ Grid::render_impl(
 		)
 	);
 
-	if (has_input_control()) {
-		grid_rd.rd.update_group(m_field->get_group());
-		m_field->render(grid_rd.rd);
-	}
-
 	Rect const empty_frame{
 		{view.content_frame.pos.x, view.content_frame.pos.y + view.row_count},
 		{
@@ -416,7 +303,7 @@ Grid::render_impl(
 }
 
 void
-Grid::content_action(
+BasicGrid::content_action(
 	UI::ProtoGrid::ContentAction action,
 	UI::index_type row_begin,
 	UI::index_type count
@@ -424,10 +311,6 @@ Grid::content_action(
 	using ContentAction = UI::ProtoGrid::ContentAction;
 
 	assert(get_row_count() == static_cast<signed>(m_rows.size()));
-	/*Log::acquire()
-		<< "#rows: "
-		<< get_row_count() << " / " << m_rows.size() << '\n'
-	;*/
 	// Cast insert_after in terms of insert_before
 	if (ContentAction::insert_after == action) {
 		++row_begin;
@@ -466,11 +349,6 @@ Grid::content_action(
 	// Insert
 	case ContentAction::insert_after: // fall-through
 	case ContentAction::insert_before:
-		/*if (row_begin <= m_cursor.row && 0 < get_row_count()) {
-			m_rows[m_cursor.row][m_cursor.col].states.disable(
-				Column::Flags::focused
-			);
-		}*/
 		m_rows.insert(
 			m_rows.begin() + row_begin,
 			static_cast<std::size_t>(count),
@@ -486,23 +364,24 @@ Grid::content_action(
 		} else if (row_begin <= m_cursor.row) {
 			set_cursor(m_cursor.col, m_cursor.row + count);
 		}
-		/*m_rows[m_cursor.row][m_cursor.col].states.enable(
-			Column::Flags::focused
-		);*/
 		adjust_view();
 		break;
 
 	// Erase
 	case ContentAction::erase:
-		m_rows.erase(
-			m_rows.cbegin() + row_begin,
-			m_rows.cbegin() + row_end
-		);
-		content_action_internal(
-			ContentAction::erase,
-			row_begin,
-			count
-		);
+		if (content_erase(row_begin, count)) {
+			m_rows.erase(
+				m_rows.cbegin() + row_begin,
+				m_rows.cbegin() + row_end
+			);
+			content_action_internal(
+				ContentAction::erase,
+				row_begin,
+				count
+			);
+		} else {
+			return;
+		}
 		break;
 
 	case ContentAction::erase_selected:
@@ -511,26 +390,30 @@ Grid::content_action(
 			tail = head,
 			rcount = 0
 		;
-		for (; get_row_count() >= tail;) {
+		while (get_row_count() >= tail) {
 			if (
 				get_row_count() == tail ||
 				!m_rows[tail].states.test(Row::Flags::selected)
 			) {
 				if (tail > head) {
-					m_rows.erase(
-						m_rows.cbegin() + head,
-						m_rows.cbegin() + tail
-					);
 					rcount = tail - head;
-					content_action_internal(ContentAction::erase, head, rcount);
-					if (head <= m_cursor.row) {
-						set_cursor(
-							m_cursor.col,
-							max_ce(head, m_cursor.row - rcount)
+					if (content_erase(head, rcount)) {
+						m_rows.erase(
+							m_rows.cbegin() + head,
+							m_rows.cbegin() + tail
 						);
+						content_action_internal(ContentAction::erase, head, rcount);
+						/*if (head <= m_cursor.row) {
+							set_cursor(
+								m_cursor.col,
+								max_ce(head, m_cursor.row - rcount)
+							);
+						}*/
+						// tail is not selected, so no sense in checking it again
+						tail = ++head;
+					} else {
+						head = ++tail;
 					}
-					// tail is not selected, so no sense in checking it again
-					tail = ++head;
 				} else {
 					head = ++tail;
 				}
@@ -547,12 +430,6 @@ Grid::content_action(
 	case ContentAction::erase_selected:
 		// Let cursor clamp to new bounds
 		set_cursor(m_cursor.col, m_cursor.row);
-		if (0 < get_row_count()) {
-			// Set focused flag in case set_cursor() did nothing
-			/*m_rows[m_cursor.row][m_cursor.col].states.enable(
-				Column::Flags::focused
-			);*/
-		}
 		adjust_view();
 		break;
 
@@ -567,114 +444,7 @@ Grid::content_action(
 }
 
 void
-Grid::render_header(
-	UI::GridRenderData& grid_rd,
-	UI::index_type const col_begin,
-	UI::index_type const col_end,
-	Rect const& frame
-) noexcept {
-	auto& rd = grid_rd.rd;
-	rd.terminal.put_line(
-		frame.pos,
-		frame.size.width,
-		Axis::horizontal,
-		tty::make_cell(' ',
-			tty::Color::term_default,
-			tty::Color::blue
-		)
-	);
-	Rect cell_frame = frame;
-	cell_frame.pos.x += col_begin * GRID_TMP_COLUMN_WIDTH;
-	String name{};
-	for (auto col = col_begin; col_end > col; ++col) {
-		cell_frame.size.width = min_ce(
-			GRID_TMP_COLUMN_WIDTH,
-			frame.pos.x + frame.size.width - cell_frame.pos.x
-		);
-		m_control.get_cell(m_object, -1, col, name);
-		rd.terminal.put_sequence(
-			cell_frame.pos.x,
-			cell_frame.pos.y,
-			txt::Sequence{name, 0u, name.size()},
-			cell_frame.size.width,
-			grid_rd.primary_fg | tty::Attr::bold,
-			tty::Color::blue
-		);
-		if (GRID_TMP_COLUMN_WIDTH > cell_frame.size.width) {
-			break;
-		}
-		cell_frame.pos.x += GRID_TMP_COLUMN_WIDTH;
-	}
-}
-
-void
-Grid::render_content(
-	UI::GridRenderData& grid_rd,
-	UI::index_type const row,
-	UI::index_type const col_begin,
-	UI::index_type col_end,
-	Rect const& frame
-) noexcept {
-	/*DUCT_DEBUGF(
-		"render_content: row = %3d, col_range = {%3d, %3d}"
-		", view.col_range = {%3d, %3d}, pos = {%3d, %3d}",
-		row, col_begin, col_end,
-		get_view().col_range.x, get_view().col_range.y,
-		frame.pos.x, frame.pos.y
-	);*/
-
-	auto& rd = grid_rd.rd;
-	auto const& r = m_rows[row];
-	tty::attr_type attr_fg = grid_rd.content_fg;
-	tty::attr_type attr_bg = grid_rd.content_bg;
-	if (r.states.test(Row::Flags::selected)) {
-		attr_fg = grid_rd.selected_fg;
-		attr_bg = grid_rd.selected_bg;
-	}
-
-	Rect cell_frame = frame;
-	cell_frame.pos.x += col_begin * GRID_TMP_COLUMN_WIDTH;
-	auto cell = tty::make_cell(' ', attr_fg, attr_bg);
-	String value;
-	col_end = max_ce(get_col_count(), col_end);
-	for (UI::index_type col = col_begin; col_end > col; ++col) {
-		cell_frame.size.width = min_ce(
-			GRID_TMP_COLUMN_WIDTH,
-			frame.pos.x + frame.size.width - cell_frame.pos.x
-		);
-		cell.attr_bg
-			= (
-				row == m_cursor.row &&
-				col == m_cursor.col &&
-				is_focused()
-			)
-			? attr_bg | tty::Attr::inverted
-			: attr_bg
-		;
-		rd.terminal.put_line(
-			cell_frame.pos,
-			cell_frame.size.width,
-			Axis::horizontal,
-			cell
-		);
-		m_control.get_cell(m_object, row, col, value);
-		rd.terminal.put_sequence(
-			cell_frame.pos.x,
-			cell_frame.pos.y,
-			txt::Sequence{value, 0u, value.size()},
-			cell_frame.size.width,
-			attr_fg,
-			cell.attr_bg
-		);
-		if (GRID_TMP_COLUMN_WIDTH > cell_frame.size.width) {
-			break;
-		}
-		cell_frame.pos.x += GRID_TMP_COLUMN_WIDTH;
-	}
-}
-
-void
-Grid::adjust_view() noexcept {
+BasicGrid::adjust_view() noexcept {
 	auto const& view = get_view();
 	if (
 		view.row_range.x >  m_cursor.row ||
@@ -698,30 +468,7 @@ Grid::adjust_view() noexcept {
 }
 
 void
-Grid::reflow_field(
-	bool const cache
-) noexcept {
-	auto const& frame = get_view().content_frame;
-	Quad cell_quad{
-		{
-			frame.pos.x + (m_cursor.col * GRID_TMP_COLUMN_WIDTH),
-			frame.pos.y + m_cursor.row - get_view().row_range.x
-		},
-		{0, 0}
-	};
-	cell_quad.v2.x = cell_quad.v1.x + GRID_TMP_COLUMN_WIDTH;
-	cell_quad.v2.y = cell_quad.v1.y + 1;
-	Quad const fq = rect_abs_quad(frame);
-	vec2_clamp(cell_quad.v1, fq.v1, fq.v2);
-	vec2_clamp(cell_quad.v2, fq.v1, fq.v2);
-	m_field->reflow(
-		quad_rect(cell_quad),
-		cache
-	);
-}
-
-void
-Grid::set_cursor(
+BasicGrid::set_cursor(
 	UI::index_type col,
 	UI::index_type row
 ) noexcept {

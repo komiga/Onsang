@@ -28,8 +28,8 @@ using namespace Beard::ui;
 enum class OnsangWidgetType : unsigned {
 	BASE = enum_cast(UI::Widget::Type::USERSPACE_BASE) + 0xFF00,
 	TabbedContainer,
-	Grid,
 	ObjectView,
+	MetadataGrid,
 };
 
 } // namespace UI
