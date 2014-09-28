@@ -35,6 +35,12 @@ private:
 	using base = UI::BasicGrid;
 
 private:
+	enum : UI::index_type {
+		COLUMN_IDX_TYPE = 0,
+		COLUMN_IDX_NAME = 1,
+		COLUMN_IDX_VALUE = 2,
+	};
+
 	enum class ctor_priv {};
 
 	MetadataGrid() noexcept = delete;
@@ -205,12 +211,12 @@ MetadataGrid::handle_event_impl(
 		} else {
 			switch (event.key_input.code) {
 			case KeyCode::enter: {
-				if (0 == get_row_count() || 0 == m_cursor.col) {
+				if (0 == get_row_count() || COLUMN_IDX_TYPE == m_cursor.col) {
 					return true;
 				}
 				auto& field = m_object.get_metadata().fields[m_cursor.row];
 				// TODO: Type editing? (column 0)
-				if (1 == m_cursor.col) {
+				if (COLUMN_IDX_NAME == m_cursor.col) {
 					m_field->set_text(field.name);
 				} else {
 					switch (field.value.type) {
@@ -385,11 +391,11 @@ MetadataGrid::render_content(
 			Axis::horizontal,
 			cell
 		);
-		if (col == 0) {
+		if (COLUMN_IDX_TYPE == col) {
 			seq = s_type_seq[enum_cast(field.value.type)];
-		} else if (col == 1) {
+		} else if (COLUMN_IDX_NAME == col) {
 			seq = {field.name};
-		} else {
+		} else { // COLUMN_IDX_VALUE
 			switch (field.value.type) {
 			case Hord::Data::FieldType::Text:
 				seq = {field.value.str};
