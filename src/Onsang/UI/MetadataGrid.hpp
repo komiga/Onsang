@@ -23,6 +23,8 @@ see @ref index or the accompanying LICENSE file for full text.
 #include <Hord/Data/Metadata.hpp>
 #include <Hord/Cmd/Data.hpp>
 
+#include <string>
+
 #define GRID_TMP_COLUMN_WIDTH 25
 
 namespace Onsang {
@@ -195,9 +197,45 @@ MetadataGrid::handle_event_impl(
 		if (has_input_control()) {
 			bool const handled = m_field->handle_event(event);
 			if (handled && !m_field->has_input_control()) {
+				auto& field = m_object.get_metadata().fields[m_cursor.row];
+				String edit_value{m_field->get_text()};
+				if (COLUMN_IDX_NAME == m_cursor.col) {
+					Hord::Cmd::Data::RenameMetaField{m_session}(
+						m_object, m_cursor.row, std::move(edit_value)
+					);
+				} else if (COLUMN_IDX_VALUE == m_cursor.col) {
+					Hord::Data::FieldValue new_value{field.value.type};
+					switch (field.value.type) {
+					case Hord::Data::FieldType::Text:
+						new_value.str = std::move(edit_value);
+						break;
+
+					case Hord::Data::FieldType::Number:
+						if (edit_value.empty()) {
+							new_value.num = 0;
+						} else {
+							try {
+								new_value.num = std::stoll(edit_value);
+							} catch (std::exception const&) {
+								new_value.num = field.value.num;
+							}
+						}
+						break;
+
+					case Hord::Data::FieldType::Boolean:
+						// Not edited by m_field
+						// (see !has_input_control() branch)
+						assert(false);
+						break;
+					}
+					Hord::Cmd::Data::SetMetaField{m_session}(
+						m_object,
+						static_cast<unsigned>(m_cursor.row),
+						std::move(new_value)
+					);
+				}
 				set_input_control(false);
 				m_field->clear_actions();
-				// m_control.set_cell(m_object, m_cursor.row, m_cursor.col, m_field->get_text());
 				queue_cell_render(
 					m_cursor.row, m_cursor.row + 1,
 					m_cursor.col, m_cursor.col + 1
