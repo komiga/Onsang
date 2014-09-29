@@ -31,13 +31,14 @@ namespace UI {
 */
 void
 add_basic_prop_view(
-	aux::shared_ptr<UI::ObjectView> const& obj_view,
+	aux::shared_ptr<UI::ObjectView> const& obj_view_ptr,
 	unsigned const index = static_cast<unsigned>(-1)
 ) {
-	auto const root = obj_view->get_root();
-	auto& session = obj_view->get_session();
+	auto& obj_view = *obj_view_ptr;
+	auto const root = obj_view.get_root();
+	auto& session = obj_view.get_session();
 	// auto& hive = session.get_hive();
-	auto& object = obj_view->get_object();
+	auto& object = obj_view.get_object();
 
 	auto const cont = UI::Container::make(root, UI::Axis::vertical);
 	cont->get_geometry().set_sizing(
@@ -51,13 +52,11 @@ add_basic_prop_view(
 		UI::Axis::horizontal,
 		UI::Axis::horizontal
 	);
-	field_slug->signal_control_changed.bind([&object](
+	field_slug->signal_control_changed.bind([&obj_view](
 		aux::shared_ptr<UI::Field> field_slug,
 		bool const has_control
 	) {
-		/*auto const obj_view = std::shared_pointer_cast<UI::ObjectView>(
-			field_slug->get_parent()
-		);*/
+		auto& object = obj_view.get_object();
 		if (!has_control) {
 			auto const value = field_slug->get_text();
 			if (value.empty()) {
@@ -84,7 +83,7 @@ add_basic_prop_view(
 
 	cont->push_back(std::move(field_slug));
 	cont->push_back(std::move(grid_metadata));
-	obj_view->add_view("basic", std::move(cont), index);
+	obj_view.add_view("basic", std::move(cont), index);
 }
 
 } // namespace UI
