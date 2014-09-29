@@ -14,6 +14,20 @@ namespace System {
 
 #define ONSANG_SCOPE_CLASS System::Session
 
+#define ONSANG_SCOPE_FUNC notify_exception_impl
+void
+Session::notify_exception_impl(
+	Hord::Cmd::UnitBase const& /*command*/,
+	Hord::Cmd::type_info const& type_info,
+	std::exception_ptr eptr
+) noexcept {
+	Log::acquire(Log::error)
+		<< "exception caught in " << type_info.name << ": \n"
+	;
+	Log::report_error_ptr(std::move(eptr));
+}
+#undef ONSANG_SCOPE_FUNC
+
 #define ONSANG_SCOPE_FUNC notify_complete_impl
 void
 Session::notify_complete_impl(

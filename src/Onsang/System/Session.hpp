@@ -18,6 +18,7 @@ see @ref index or the accompanying LICENSE file for full text.
 #include <Hord/System/Context.hpp>
 
 #include <utility>
+#include <exception>
 
 namespace Onsang {
 namespace System {
@@ -46,6 +47,13 @@ private:
 
 // Hord::System::Context implementation
 private:
+	void
+	notify_exception_impl(
+		Hord::Cmd::UnitBase const& command,
+		Hord::Cmd::type_info const& type_info,
+		std::exception_ptr eptr
+	) noexcept override;
+
 	void
 	notify_complete_impl(
 		Hord::Cmd::UnitBase const& command,
