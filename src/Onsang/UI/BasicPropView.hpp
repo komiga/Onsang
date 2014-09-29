@@ -57,18 +57,11 @@ add_basic_prop_view(
 		aux::shared_ptr<UI::Field> field_slug,
 		bool const has_control
 	) {
-		auto& object = obj_view.get_object();
 		if (!has_control) {
-			auto const value = field_slug->get_text();
-			if (value.empty()) {
+			auto& object = obj_view.get_object();
+			Hord::Cmd::Object::SetSlug cmd{obj_view.get_session()};
+			if (!cmd(object, field_slug->get_text())) {
 				field_slug->set_text(object.get_slug());
-			} else if (value != object.get_slug()) {
-				// TODO: Use a "set slug" command
-				object.set_slug(value);
-				object.get_prop_states().assign(
-					Hord::IO::PropType::identity,
-					Hord::IO::PropState::modified
-				);
 			}
 		}
 	});
