@@ -21,7 +21,7 @@ see @ref index or the accompanying LICENSE file for full text.
 #include <Beard/ui/Field.hpp>
 
 #include <Hord/Data/Metadata.hpp>
-#include <Hord/Cmd/Data.hpp>
+#include <Hord/Cmd/Object.hpp>
 
 #include <string>
 
@@ -200,7 +200,7 @@ MetadataGrid::handle_event_impl(
 				auto& field = m_object.get_metadata().fields[m_cursor.row];
 				String edit_value{m_field->get_text()};
 				if (COLUMN_IDX_NAME == m_cursor.col) {
-					Hord::Cmd::Data::RenameMetaField{m_session}(
+					Hord::Cmd::Object::RenameMetaField{m_session}(
 						m_object, m_cursor.row, std::move(edit_value)
 					);
 				} else if (COLUMN_IDX_VALUE == m_cursor.col) {
@@ -228,7 +228,7 @@ MetadataGrid::handle_event_impl(
 						assert(false);
 						break;
 					}
-					Hord::Cmd::Data::SetMetaField{m_session}(
+					Hord::Cmd::Object::SetMetaField{m_session}(
 						m_object,
 						static_cast<unsigned>(m_cursor.row),
 						std::move(new_value)
@@ -268,7 +268,7 @@ MetadataGrid::handle_event_impl(
 
 					case Hord::Data::FieldType::Boolean:
 						// Value toggle
-						if (Hord::Cmd::Data::SetMetaField{m_session}(
+						if (Hord::Cmd::Object::SetMetaField{m_session}(
 							m_object,
 							static_cast<unsigned>(m_cursor.row),
 							{!field.value.bin}

@@ -22,6 +22,7 @@ see @ref index or the accompanying LICENSE file for full text.
 
 #include <Hord/Data/Metadata.hpp>
 #include <Hord/Object/Defs.hpp>
+#include <Hord/Cmd/Object.hpp>
 
 namespace Onsang {
 namespace UI {
@@ -74,7 +75,7 @@ add_basic_prop_view(
 
 	// Metadata property
 	if (object.get_metadata().fields.empty()) {
-		Hord::Cmd::Data::SetMetaField cmd{session};
+		Hord::Cmd::Object::SetMetaField cmd{session};
 		assert(cmd(object, "test_name1", "test_value", true));
 		assert(cmd(object, "test_name2", std::int64_t{1234567890}, true));
 		assert(cmd(object, "test_name3", true, true));
