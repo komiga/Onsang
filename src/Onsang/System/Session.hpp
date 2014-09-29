@@ -44,9 +44,17 @@ private:
 	Session(Session const&) = delete;
 	Session& operator=(Session const&) = delete;
 
+// Hord::System::Context implementation
+private:
+	void
+	notify_complete_impl(
+		Hord::Cmd::UnitBase const& command,
+		Hord::Cmd::type_info const& type_info
+	) noexcept override;
+
 public:
 // special member functions
-	~Session() = default;
+	~Session() override = default;
 	Session(Session&&) = default;
 	Session& operator=(Session&&) = default;
 
@@ -55,13 +63,14 @@ public:
 		- see Hord::System::Context::Context()
 	*/
 	Session(
-		Hord::System::Context&& context,
+		Hord::System::Driver& driver,
+		Hord::Hive::ID const hive_id,
 		String name,
 		String path,
 		bool const auto_open,
 		bool const auto_create
 	) noexcept
-		: base(std::move(context))
+		: base(driver, hive_id)
 		, m_name(std::move(name))
 		, m_path(std::move(path))
 		, m_auto_open(auto_open)

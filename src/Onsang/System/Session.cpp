@@ -1,5 +1,11 @@
 
+#include <Onsang/Log.hpp>
 #include <Onsang/System/Session.hpp>
+
+#include <Hord/Cmd/Defs.hpp>
+#include <Hord/Cmd/Unit.hpp>
+
+#include <iomanip>
 
 #include <Onsang/detail/gr_core.hpp>
 
@@ -7,6 +13,23 @@ namespace Onsang {
 namespace System {
 
 #define ONSANG_SCOPE_CLASS System::Session
+
+#define ONSANG_SCOPE_FUNC notify_complete_impl
+void
+Session::notify_complete_impl(
+	Hord::Cmd::UnitBase const& command,
+	Hord::Cmd::type_info const& type_info
+) noexcept {
+	// TODO: Dispatch to observers
+	Log::acquire(Log::debug)
+		<< "notify_complete: " << std::hex << type_info.id
+		<< " '" << type_info.name
+		<< "' ok? " << std::boolalpha << command.ok()
+		<< " message: " << command.get_message()
+		<< '\n'
+	;
+}
+#undef ONSANG_SCOPE_FUNC
 
 #define ONSANG_SCOPE_FUNC open
 void

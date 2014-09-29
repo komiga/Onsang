@@ -63,9 +63,8 @@ SessionManager::add_session(
 		<< m_driver.find_hive(id)->second.datastore->get_root_path()
 		<< "'\n"
 	;
-	Hord::System::Context context{m_driver, id};
 	m_sessions.emplace_back(System::Session{
-		std::move(context), name, path, auto_open, auto_create
+		m_driver, id, name, path, auto_open, auto_create
 	});
 	return id;
 }
