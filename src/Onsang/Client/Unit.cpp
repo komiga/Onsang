@@ -505,19 +505,23 @@ Unit::start_ui() {
 
 void
 Unit::start() try {
+	// The terminal will get all screwy if we don't disable stdout
+	toggle_stdout(false);
+
+
 	Log::acquire()
 		<< "Opening UI context\n"
 	;
 	start_ui();
 
+	Log::acquire()
+		<< "Initializing sessions\n"
+	;
 	for (auto& session : m_session_manager) {
 		if (session.get_auto_open()) {
 			init_session(session);
 		}
 	}
-
-	// The terminal will get all screwy if we don't disable stdout
-	toggle_stdout(false);
 
 	// Event loop
 	m_ui_ctx.render(true);
