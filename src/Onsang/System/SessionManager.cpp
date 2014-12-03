@@ -24,9 +24,8 @@ ONSANG_DEF_FMT_FQN(
 );
 } // anonymous namespace
 
-Hord::Hive::ID
+Hord::IO::Datastore::ID
 SessionManager::add_session(
-	Hord::Hive::Type const hive_type,
 	String const& type,
 	String const& name,
 	String const& path,
@@ -50,23 +49,19 @@ SessionManager::add_session(
 			type
 		);
 	}
-	Hord::Hive::ID const
-	id{
-		m_driver.placehold_hive(
-			hive_type,
-			*datastore_tinfo,
-			path
-		).hive->get_id_bare()
-	};
+	auto const& datastore = m_driver.placehold_datastore(
+		*datastore_tinfo,
+		path
+	);
 	Log::acquire(Log::debug)
 		<< "datastore root path: '"
-		<< m_driver.find_hive(id)->second.datastore->get_root_path()
+		<< datastore.get_root_path()
 		<< "'\n"
 	;
 	m_sessions.emplace_back(System::Session{
-		m_driver, id, name, path, auto_open, auto_create
+		m_driver, datastore.get_id(), name, path, auto_open, auto_create
 	});
-	return id;
+	return datastore.get_id();
 }
 #undef ONSANG_SCOPE_FUNC
 

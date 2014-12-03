@@ -14,7 +14,6 @@ see @ref index or the accompanying LICENSE file for full text.
 #include <Onsang/String.hpp>
 #include <Onsang/System/Session.hpp>
 
-#include <Hord/Hive/Defs.hpp>
 #include <Hord/System/Driver.hpp>
 
 namespace Onsang {
@@ -101,20 +100,20 @@ public:
 
 private:
 	struct find_pred final {
-		Hord::Hive::ID const id;
+		Hord::IO::Datastore::ID const id;
 
 		bool
 		operator()(
 			Session const& session
 		) const noexcept {
-			return session.get_hive().get_id_bare() == id;
+			return session.get_datastore().get_id() == id;
 		}
 	};
 
 public:
 	iterator
 	find(
-		Hord::Hive::ID const id
+		Hord::IO::Datastore::ID const id
 	) noexcept {
 		return std::find_if(
 			m_sessions.begin(),
@@ -125,7 +124,7 @@ public:
 
 	const_iterator
 	find(
-		Hord::Hive::ID const id
+		Hord::IO::Datastore::ID const id
 	) const noexcept {
 		return std::find_if(
 			m_sessions.cbegin(),
@@ -142,12 +141,11 @@ public:
 		- ErrorCode::session_type_unrecognized
 
 		Throws Hord::Error:
-		- see Hord::System::Driver::placehold_hive()
+		- see Hord::System::Driver::placehold_datastore()
 		- see Hord::System::Context::Context()
 	*/
-	Hord::Hive::ID
+	Hord::IO::Datastore::ID
 	add_session(
-		Hord::Hive::Type const hive_type,
 		String const& type,
 		String const& name,
 		String const& path,

@@ -38,7 +38,6 @@ add_basic_prop_view(
 	auto& obj_view = *obj_view_ptr;
 	auto const root = obj_view.get_root();
 	auto& session = obj_view.get_session();
-	// auto& hive = session.get_hive();
 	auto& object = obj_view.get_object();
 
 	auto const cont = UI::Container::make(root, UI::Axis::vertical);

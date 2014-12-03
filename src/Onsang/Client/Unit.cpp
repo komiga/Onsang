@@ -21,8 +21,7 @@
 #include <Beard/ui/Field.hpp>
 
 #include <Hord/IO/Defs.hpp>
-#include <Hord/Hive/UnitBasic.hpp>
-#include <Hord/Cmd/Hive.hpp>
+#include <Hord/Cmd/Datastore.hpp>
 
 #include <duct/debug.hpp>
 #include <duct/Args.hpp>
@@ -93,9 +92,6 @@ Unit::add_session(
 	try {
 		// TODO
 		m_session_manager.add_session(
-			Hord::Object::type_cast<Hord::Hive::UnitType>(
-				Hord::Hive::UnitBasic::info.type
-			),
 			type, name, path, auto_open, auto_create
 		);
 		return true;
@@ -344,7 +340,7 @@ Unit::init_session(
 	;
 	try {
 		session.open();
-		auto cmd = Hord::Cmd::Hive::Init{session};
+		auto cmd = Hord::Cmd::Datastore::Init{session};
 		if (!cmd(Hord::IO::PropTypeBit::base)) {
 			// TODO: set status line
 			ONSANG_THROW_FMT(
@@ -378,7 +374,7 @@ Unit::close_session(
 		<< '\n'
 	;
 	try {
-		auto cmd = Hord::Cmd::Hive::StoreAll{session};
+		auto cmd = Hord::Cmd::Datastore::StoreAll{session};
 		if (!cmd()) {
 			ONSANG_THROW_FMT(
 				ErrorCode::command_failed,
@@ -433,13 +429,17 @@ Unit::ui_event_filter(
 		case 'n': {
 			if (m_session_manager.cbegin() != m_session_manager.cend()) {
 				auto& session = *m_session_manager.begin();
-				auto hive_view = UI::ObjectView::make(
+				auto* const object = session.get_datastore().find_ptr(
+					Hord::Object::ID{1}
+				);
+				DUCT_ASSERTE(object);
+				auto view = UI::ObjectView::make(
 					m_ui_ctx.get_root(),
 					session,
-					session.get_hive()
+					*object
 				);
-				UI::add_basic_prop_view(hive_view);
-				m_ui.viewc->push_back(session.get_hive().get_slug(), std::move(hive_view));
+				UI::add_basic_prop_view(view);
+				m_ui.viewc->push_back(object->get_slug(), std::move(view));
 			}
 		} break;
 

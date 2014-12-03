@@ -16,7 +16,6 @@ see @ref index or the accompanying LICENSE file for full text.
 
 #include <Hord/LockFile.hpp>
 #include <Hord/Object/Defs.hpp>
-#include <Hord/Hive/Defs.hpp>
 #include <Hord/IO/Defs.hpp>
 #include <Hord/IO/Prop.hpp>
 #include <Hord/IO/StorageInfo.hpp>
@@ -86,7 +85,7 @@ private:
 		}
 	} m_prop;
 
-	static Hord::IO::Datastore*
+	static Hord::IO::Datastore::UPtr
 	construct(
 		Hord::String root_path
 	) noexcept;

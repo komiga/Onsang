@@ -27,7 +27,7 @@ namespace System {
 class Session;
 
 /**
-	Hive session.
+	Session.
 */
 class Session
 	: public Hord::System::Context
@@ -72,13 +72,13 @@ public:
 	*/
 	Session(
 		Hord::System::Driver& driver,
-		Hord::Hive::ID const hive_id,
+		Hord::IO::Datastore::ID const datastore_id,
 		String name,
 		String path,
 		bool const auto_open,
 		bool const auto_create
 	) noexcept
-		: base(driver, hive_id)
+		: base(driver, datastore_id)
 		, m_name(std::move(name))
 		, m_path(std::move(path))
 		, m_auto_open(auto_open)

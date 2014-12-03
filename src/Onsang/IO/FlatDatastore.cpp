@@ -69,11 +69,13 @@ prop_info_equal(
 	;
 }
 
-Hord::IO::Datastore*
+Hord::IO::Datastore::UPtr
 FlatDatastore::construct(
 	Hord::String root_path
 ) noexcept {
-	return new(std::nothrow) IO::FlatDatastore(std::move(root_path));
+	return Hord::IO::Datastore::UPtr{
+		new(std::nothrow) IO::FlatDatastore(std::move(root_path))
+	};
 }
 
 IO::FlatDatastore::base::type_info const
@@ -375,7 +377,7 @@ FlatDatastore::open_impl(
 	} catch (...) {
 		HORD_THROW_FQN(
 			Hord::ErrorCode::datastore_open_failed,
-			"failed to obtain hive lockfile"
+			"failed to obtain datastore lockfile"
 		);
 	}
 
