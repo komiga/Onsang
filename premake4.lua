@@ -42,4 +42,4 @@ configuration {}
 		"src/Onsang/Server/**"
 	}
 
-action_clean()
+precore.action_clean("out", "bin")
