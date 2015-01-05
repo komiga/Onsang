@@ -25,5 +25,6 @@ using duct::enum_bitand;
 using duct::enum_combine;
 using duct::min_ce;
 using duct::max_ce;
+using duct::array_extent;
 
 } // namespace Onsang
