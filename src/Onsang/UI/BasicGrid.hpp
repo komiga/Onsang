@@ -91,8 +91,9 @@ protected:
 	virtual void
 	render_content(
 		UI::GridRenderData& grid_rd,
-		UI::index_type const row,
-		UI::index_type const col_begin,
+		UI::index_type row_begin,
+		UI::index_type row_end,
+		UI::index_type col_begin,
 		UI::index_type col_end,
 		Rect const& frame
 	) noexcept = 0;
