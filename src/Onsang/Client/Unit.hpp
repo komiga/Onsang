@@ -12,9 +12,7 @@ see @ref index or the accompanying LICENSE file for full text.
 #include <Onsang/config.hpp>
 #include <Onsang/aux.hpp>
 #include <Onsang/String.hpp>
-#include <Onsang/asio.hpp>
 #include <Onsang/ConfigNode.hpp>
-#include <Onsang/Net/Defs.hpp>
 #include <Onsang/System/Session.hpp>
 #include <Onsang/System/SessionManager.hpp>
 #include <Onsang/UI/Defs.hpp>
