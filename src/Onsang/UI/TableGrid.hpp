@@ -1,6 +1,6 @@
 /**
-@file UI/MetadataGrid.hpp
-@brief MetadataGrid.
+@file UI/TableGrid.hpp
+@brief TableGrid.
 
 @author Timothy Howard
 @copyright 2013-2014 Timothy Howard under the MIT license;
@@ -20,7 +20,9 @@ see @ref index or the accompanying LICENSE file for full text.
 #include <Beard/txt/Defs.hpp>
 #include <Beard/ui/Field.hpp>
 
-#include <Hord/Data/Metadata.hpp>
+#include <Hord/Data/Defs.hpp>
+#include <Hord/Data/ValueStore.hpp>
+#include <Hord/Data/Table.hpp>
 #include <Hord/Cmd/Object.hpp>
 
 #include <string>
@@ -30,27 +32,24 @@ see @ref index or the accompanying LICENSE file for full text.
 namespace Onsang {
 namespace UI {
 
-class MetadataGrid final
+class TableGrid final
 	: public UI::BasicGrid
 {
 private:
 	using base = UI::BasicGrid;
 
 private:
-	enum : UI::index_type {
-		COLUMN_IDX_TYPE = 0,
-		COLUMN_IDX_NAME = 1,
-		COLUMN_IDX_VALUE = 2,
-	};
-
 	enum class ctor_priv {};
 
-	MetadataGrid() noexcept = delete;
-	MetadataGrid(MetadataGrid const&) = delete;
-	MetadataGrid& operator=(MetadataGrid const&) = delete;
+	TableGrid() noexcept = delete;
+	TableGrid(TableGrid const&) = delete;
+	TableGrid& operator=(TableGrid const&) = delete;
 
-	System::Session& m_session;
+	// System::Session& m_session;
 	Hord::Object::Unit& m_object;
+	Hord::Data::Table& m_table;
+	// Hord::Data::TableSchema const* m_table_schema;
+	Hord::IO::PropType m_prop_type;
 	aux::shared_ptr<UI::Field> m_field;
 
 private:
@@ -83,9 +82,10 @@ private:
 	void
 	render_content(
 		UI::GridRenderData& grid_rd,
-		UI::index_type const row,
+		UI::index_type const row_begin,
+		UI::index_type const row_end,
 		UI::index_type const col_begin,
-		UI::index_type col_end,
+		UI::index_type const col_end,
 		Rect const& frame
 	) noexcept override;
 
@@ -109,18 +109,21 @@ private:
 	) noexcept;
 
 public:
-	~MetadataGrid() noexcept override = default;
+	~TableGrid() noexcept override = default;
 
-	MetadataGrid(
+	TableGrid(
 		ctor_priv const,
 		UI::group_hash_type const group,
 		UI::RootWPtr&& root,
 		UI::Widget::WPtr&& parent,
-		System::Session& session,
-		Hord::Object::Unit& object
+		System::Session& /*session*/,
+		Hord::Object::Unit& object,
+		Hord::Data::Table& table,
+		Hord::Data::TableSchema const& /*table_schema*/,
+		Hord::IO::PropType const prop_type
 	) noexcept
 		: base(
-			static_cast<UI::Widget::Type>(UI::OnsangWidgetType::MetadataGrid),
+			static_cast<UI::Widget::Type>(UI::OnsangWidgetType::TableGrid),
 			enum_combine(
 				UI::Widget::Flags::trait_focusable,
 				UI::Widget::Flags::visible
@@ -129,29 +132,38 @@ public:
 			{{0, 0}, true, Axis::both, Axis::both},
 			std::move(root),
 			std::move(parent),
-			3,
-			object.get_metadata().fields.size()
+			table.num_columns(),
+			table.num_rows()
 		)
-		, m_session(session)
+		// , m_session(session)
 		, m_object(object)
+		, m_table(table)
+		// , m_table_schema(&table_schema)
+		, m_prop_type(prop_type)
 		, m_field()
 	{}
 
-	static aux::shared_ptr<MetadataGrid>
+	static aux::shared_ptr<TableGrid>
 	make(
 		UI::RootWPtr root,
 		System::Session& session,
 		Hord::Object::Unit& object,
+		Hord::Data::Table& table,
+		Hord::Data::TableSchema const& table_schema,
+		Hord::IO::PropType const prop_type,
 		UI::group_hash_type const group = UI::group_default,
 		UI::Widget::WPtr parent = UI::Widget::WPtr()
 	) {
-		auto p = aux::make_shared<MetadataGrid>(
+		auto p = aux::make_shared<TableGrid>(
 			ctor_priv{},
 			group,
 			std::move(root),
 			std::move(parent),
 			session,
-			object
+			object,
+			table,
+			table_schema,
+			prop_type
 		);
 		p->m_field = UI::Field::make(
 			p->get_root(),
@@ -167,12 +179,12 @@ public:
 		return p;
 	}
 
-	MetadataGrid(MetadataGrid&&) = default;
-	MetadataGrid& operator=(MetadataGrid&&) = default;
+	TableGrid(TableGrid&&) = default;
+	TableGrid& operator=(TableGrid&&) = default;
 };
 
 void
-MetadataGrid::reflow_impl(
+TableGrid::reflow_impl(
 	Rect const& area,
 	bool const cache
 ) noexcept {
@@ -186,7 +198,7 @@ MetadataGrid::reflow_impl(
 }
 
 bool
-MetadataGrid::handle_event_impl(
+TableGrid::handle_event_impl(
 	UI::Event const& event
 ) noexcept {
 	if (base::handle_event_impl(event)) {
@@ -197,8 +209,21 @@ MetadataGrid::handle_event_impl(
 		if (has_input_control()) {
 			bool const handled = m_field->handle_event(event);
 			if (handled && !m_field->has_input_control()) {
-				auto& field = m_object.get_metadata().fields[m_cursor.row];
-				String edit_value{m_field->get_text()};
+				String const edit_value{m_field->get_text()};
+				auto& column = m_table.column(m_cursor.col);
+				auto it = column.iterator_at(m_cursor.row);
+				if (
+					column.type() == Hord::Data::ValueType::string ||
+					column.type() == Hord::Data::ValueType::dynamic
+				) {
+					// TODO: Use callback instead
+					it.set_value(edit_value);
+					m_object.get_prop_states().assign(
+						m_prop_type,
+						Hord::IO::PropState::modified
+					);
+				}
+				/*auto& field = m_object.get_metadata().fields[m_cursor.row];
 				if (COLUMN_IDX_NAME == m_cursor.col) {
 					Hord::Cmd::Object::RenameMetaField{m_session}(
 						m_object, m_cursor.row, std::move(edit_value)
@@ -233,7 +258,7 @@ MetadataGrid::handle_event_impl(
 						static_cast<unsigned>(m_cursor.row),
 						std::move(new_value)
 					);
-				}
+				}*/
 				set_input_control(false);
 				m_field->clear_actions();
 				queue_cell_render(
@@ -249,10 +274,18 @@ MetadataGrid::handle_event_impl(
 		} else {
 			switch (event.key_input.code) {
 			case KeyCode::enter: {
-				if (0 == get_row_count() || COLUMN_IDX_TYPE == m_cursor.col) {
-					return true;
+				auto& column = m_table.column(m_cursor.col);
+				auto it = column.iterator_at(m_cursor.row);
+				auto const value = it.get_value();
+				if (
+					value.type.type() == Hord::Data::ValueType::string
+				) {
+					// TODO: Use callback instead
+					m_field->set_text({value.data.string, value.size});
+				} else {
+					m_field->set_text("");
 				}
-				auto& field = m_object.get_metadata().fields[m_cursor.row];
+				/*auto& field = m_object.get_metadata().fields[m_cursor.row];
 				// TODO: Type editing? (column 0)
 				if (COLUMN_IDX_NAME == m_cursor.col) {
 					m_field->set_text(field.name);
@@ -284,7 +317,7 @@ MetadataGrid::handle_event_impl(
 						}
 						return true;
 					}
-				}
+				}*/
 				set_input_control(true);
 				reflow_field(true);
 				// TODO: Field should have a toggle function
@@ -316,7 +349,7 @@ MetadataGrid::handle_event_impl(
 }
 
 void
-MetadataGrid::render_impl(
+TableGrid::render_impl(
 	UI::Widget::RenderData& rd
 ) noexcept {
 	base::render_impl(rd);
@@ -327,15 +360,14 @@ MetadataGrid::render_impl(
 }
 
 void
-MetadataGrid::render_header(
+TableGrid::render_header(
 	UI::GridRenderData& grid_rd,
 	UI::index_type const col_begin,
 	UI::index_type const col_end,
 	Rect const& frame
 ) noexcept {
-	static constexpr txt::Sequence const s_header_seq[]{
-		"type", "name", "value"
-	};
+	static constexpr txt::Sequence const
+	s_header_seq[]{"name", "value"};
 
 	auto& rd = grid_rd.rd;
 	rd.terminal.put_line(
@@ -349,7 +381,7 @@ MetadataGrid::render_header(
 	);
 	Rect cell_frame = frame;
 	cell_frame.pos.x += col_begin * GRID_TMP_COLUMN_WIDTH;
-	for (auto col = col_begin; col_end > col; ++col) {
+	for (auto col = col_begin; max_ce(col_end, 2) > col; ++col) {
 		cell_frame.size.width = min_ce(
 			GRID_TMP_COLUMN_WIDTH,
 			frame.pos.x + frame.size.width - cell_frame.pos.x
@@ -370,20 +402,17 @@ MetadataGrid::render_header(
 }
 
 void
-MetadataGrid::render_content(
+TableGrid::render_content(
 	UI::GridRenderData& grid_rd,
-	UI::index_type const row,
+	UI::index_type const row_begin,
+	UI::index_type const row_end,
 	UI::index_type const col_begin,
-	UI::index_type col_end,
+	UI::index_type const col_end,
 	Rect const& frame
 ) noexcept {
-	// NB: Holes due to Hord::Data::FieldType being a bitflag enum
-	static constexpr txt::Sequence const s_type_seq[]{
-		"", "Text", "Number", "", "Boolean"
-	};
-	static constexpr txt::Sequence const s_bool_seq[]{
+	/*static constexpr txt::Sequence const s_bool_seq[]{
 		"false", "true"
-	};
+	};*/
 
 	/*DUCT_DEBUGF(
 		"render_content: row = %3d, col_range = {%3d, %3d}"
@@ -394,76 +423,77 @@ MetadataGrid::render_content(
 	);*/
 
 	auto& rd = grid_rd.rd;
-	auto const& r = m_rows[row];
-	tty::attr_type attr_fg = grid_rd.content_fg;
-	tty::attr_type attr_bg = grid_rd.content_bg;
-	if (r.states.test(Row::Flags::selected)) {
-		attr_fg = grid_rd.selected_fg;
-		attr_bg = grid_rd.selected_bg;
-	}
-
 	Rect cell_frame = frame;
-	cell_frame.pos.x += col_begin * GRID_TMP_COLUMN_WIDTH;
-	auto cell = tty::make_cell(' ', attr_fg, attr_bg);
-	auto const& field = m_object.get_metadata().fields[row];
+	cell_frame.pos.x += (col_begin - get_view().col_range.x) * GRID_TMP_COLUMN_WIDTH;
+	cell_frame.size.height = 1;
+	auto cell = tty::make_cell(' ');
 	String value;
 	txt::Sequence seq;
-	col_end = max_ce(get_col_count(), col_end);
+	Hord::Data::ValueStore::Iterator it_value;
 	for (UI::index_type col = col_begin; col_end > col; ++col) {
+		cell_frame.pos.y = frame.pos.y;
+		it_value = m_table.column(col).iterator_at(row_begin);
 		cell_frame.size.width = min_ce(
 			GRID_TMP_COLUMN_WIDTH,
 			frame.pos.x + frame.size.width - cell_frame.pos.x
 		);
-		cell.attr_bg
-			= (
-				row == m_cursor.row &&
-				col == m_cursor.col &&
-				is_focused()
-			)
-			? attr_bg | tty::Attr::inverted
-			: attr_bg
-		;
+	for (UI::index_type row = row_begin; row_end > row; ++row) {
+		if (m_rows[row].states.test(Row::Flags::selected)) {
+			cell.attr_fg = grid_rd.selected_fg;
+			cell.attr_bg = grid_rd.selected_bg;
+		} else {
+			cell.attr_fg = grid_rd.content_fg;
+			cell.attr_bg = grid_rd.content_bg;
+		}
+		if (row == m_cursor.row && col == m_cursor.col && is_focused()) {
+			cell.attr_bg |= tty::Attr::inverted;
+		}
 		rd.terminal.put_line(
 			cell_frame.pos,
 			cell_frame.size.width,
 			Axis::horizontal,
 			cell
 		);
-		if (COLUMN_IDX_TYPE == col) {
-			seq = s_type_seq[enum_cast(field.value.type)];
-		} else if (COLUMN_IDX_NAME == col) {
-			seq = {field.name};
-		} else { // COLUMN_IDX_VALUE
-			switch (field.value.type) {
-			case Hord::Data::FieldType::Text:
-				seq = {field.value.str};
-				break;
-			case Hord::Data::FieldType::Number:
-				value.assign(std::to_string(field.value.num));
-				seq = {value};
-				break;
-			case Hord::Data::FieldType::Boolean:
-				seq = s_bool_seq[unsigned{field.value.bin}];
-				break;
-			}
+		/*switch (field.value.type) {
+		case Hord::Data::FieldType::Text:
+			seq = {field.value.str};
+			break;
+		case Hord::Data::FieldType::Number:
+			value.assign(std::to_string(field.value.num));
+			seq = {value};
+			break;
+		case Hord::Data::FieldType::Boolean:
+			seq = s_bool_seq[unsigned{field.value.bin}];
+			break;
+		}*/
+		Hord::Data::ValueRef const value = it_value.get_value();
+		if (value.type.type() == Hord::Data::ValueType::string) {
+			seq = {value.data.string, value.size};
+		} else {
+			seq = {"ZORK"};
 		}
 		rd.terminal.put_sequence(
 			cell_frame.pos.x,
 			cell_frame.pos.y,
 			seq,
 			cell_frame.size.width,
-			attr_fg,
-			cell.attr_bg
+			cell.attr_fg, cell.attr_bg
 		);
-		if (GRID_TMP_COLUMN_WIDTH > cell_frame.size.width) {
+		++cell_frame.pos.y;
+		++it_value;
+	}
+		cell_frame.pos.x += cell_frame.size.width;
+		if (
+			GRID_TMP_COLUMN_WIDTH > cell_frame.size.width ||
+			cell_frame.pos.x > frame.pos.x + frame.size.width
+		) {
 			break;
 		}
-		cell_frame.pos.x += GRID_TMP_COLUMN_WIDTH;
 	}
 }
 
 bool
-MetadataGrid::content_insert(
+TableGrid::content_insert(
 	UI::index_type /*row_begin*/,
 	UI::index_type /*count*/
 ) noexcept {
@@ -472,7 +502,7 @@ MetadataGrid::content_insert(
 }
 
 bool
-MetadataGrid::content_erase(
+TableGrid::content_erase(
 	UI::index_type /*row_begin*/,
 	UI::index_type /*count*/
 ) noexcept {
@@ -481,7 +511,7 @@ MetadataGrid::content_erase(
 }
 
 void
-MetadataGrid::reflow_field(
+TableGrid::reflow_field(
 	bool const cache
 ) noexcept {
 	auto const& frame = get_view().content_frame;
@@ -497,10 +527,7 @@ MetadataGrid::reflow_field(
 	Quad const fq = rect_abs_quad(frame);
 	vec2_clamp(cell_quad.v1, fq.v1, fq.v2);
 	vec2_clamp(cell_quad.v2, fq.v1, fq.v2);
-	m_field->reflow(
-		quad_rect(cell_quad),
-		cache
-	);
+	m_field->reflow(quad_rect(cell_quad), cache);
 }
 
 } // namespace UI

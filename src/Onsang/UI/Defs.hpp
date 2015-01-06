@@ -29,7 +29,7 @@ enum class OnsangWidgetType : unsigned {
 	BASE = enum_cast(UI::Widget::Type::USERSPACE_BASE) + 0xFF00,
 	TabbedContainer,
 	ObjectView,
-	MetadataGrid,
+	TableGrid,
 };
 
 } // namespace UI

@@ -15,12 +15,15 @@ see @ref index or the accompanying LICENSE file for full text.
 #include <Onsang/System/Session.hpp>
 #include <Onsang/UI/Defs.hpp>
 #include <Onsang/UI/ObjectView.hpp>
-#include <Onsang/UI/MetadataGrid.hpp>
+#include <Onsang/UI/TableGrid.hpp>
 
 #include <Beard/ui/Container.hpp>
 #include <Beard/ui/Field.hpp>
 
+#include <Hord/Data/Defs.hpp>
+#include <Hord/Data/Table.hpp>
 #include <Hord/Data/Metadata.hpp>
+#include <Hord/IO/Defs.hpp>
 #include <Hord/Object/Defs.hpp>
 #include <Hord/Cmd/Object.hpp>
 
@@ -66,13 +69,18 @@ add_basic_prop_view(
 	});
 
 	// Metadata property
-	if (object.get_metadata().fields.empty()) {
+	if (object.get_metadata().num_fields() == 0) {
 		Hord::Cmd::Object::SetMetaField cmd{session};
 		assert(cmd(object, "test_name1", "test_value", true));
-		assert(cmd(object, "test_name2", std::int64_t{1234567890}, true));
-		assert(cmd(object, "test_name3", true, true));
+		//assert(cmd(object, "test_name2", std::int64_t{1234567890}, true));
+		//assert(cmd(object, "test_name3", true, true));
 	}
-	auto grid_metadata = UI::MetadataGrid::make(root, session, object);
+	auto grid_metadata = UI::TableGrid::make(
+		root, session, object,
+		object.get_metadata().table(),
+		Hord::Data::Metadata::s_schema,
+		Hord::IO::PropType::metadata
+	);
 
 	cont->push_back(std::move(field_slug));
 	cont->push_back(std::move(grid_metadata));
