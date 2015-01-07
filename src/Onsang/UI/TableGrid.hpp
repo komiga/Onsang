@@ -359,8 +359,8 @@ TableGrid::render_header(
 	UI::index_type const col_end,
 	Rect const& frame
 ) noexcept {
-	static constexpr txt::Sequence const
-	s_header_seq[]{"name", "value"};
+	static constexpr char const
+	s_type_prefix[]{'n', '*', 'i', 'f', '#', 's'};
 
 	auto& rd = grid_rd.rd;
 	rd.terminal.put_line(
@@ -374,16 +374,26 @@ TableGrid::render_header(
 	);
 	Rect cell_frame = frame;
 	cell_frame.pos.x += col_begin * GRID_TMP_COLUMN_WIDTH;
-	for (auto col = col_begin; max_ce(col_end, 2) > col; ++col) {
+	tty::Cell type_prefix = tty::make_cell(
+		' ',
+		tty::Color::green | tty::Attr::bold,
+		tty::Color::blue
+	);
+	for (auto col = col_begin; col < col_end; ++col) {
+		auto const& table_column = m_table.get_schema().column(col);
 		cell_frame.size.width = min_ce(
 			GRID_TMP_COLUMN_WIDTH,
 			frame.pos.x + frame.size.width - cell_frame.pos.x
 		);
+		type_prefix.u8block = s_type_prefix[table_column.type.value()];
+		rd.terminal.put_cell(cell_frame.pos.x + 0, cell_frame.pos.y, type_prefix);
+		type_prefix.u8block = ':';
+		rd.terminal.put_cell(cell_frame.pos.x + 1, cell_frame.pos.y, type_prefix);
 		rd.terminal.put_sequence(
-			cell_frame.pos.x,
+			cell_frame.pos.x + 2,
 			cell_frame.pos.y,
-			s_header_seq[col],
-			cell_frame.size.width,
+			{table_column.name},
+			cell_frame.size.width - 2,
 			grid_rd.primary_fg | tty::Attr::bold,
 			tty::Color::blue
 		);
