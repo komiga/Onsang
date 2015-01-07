@@ -47,7 +47,6 @@ private:
 	// System::Session& m_session;
 	Hord::Object::Unit& m_object;
 	Hord::Data::Table& m_table;
-	// Hord::Data::TableSchema const* m_table_schema;
 	Hord::IO::PropType m_prop_type;
 	aux::shared_ptr<UI::Field> m_field;
 
@@ -118,7 +117,6 @@ public:
 		System::Session& /*session*/,
 		Hord::Object::Unit& object,
 		Hord::Data::Table& table,
-		Hord::Data::TableSchema const& /*table_schema*/,
 		Hord::IO::PropType const prop_type
 	) noexcept
 		: base(
@@ -137,7 +135,6 @@ public:
 		// , m_session(session)
 		, m_object(object)
 		, m_table(table)
-		// , m_table_schema(&table_schema)
 		, m_prop_type(prop_type)
 		, m_field()
 	{}
@@ -148,7 +145,6 @@ public:
 		System::Session& session,
 		Hord::Object::Unit& object,
 		Hord::Data::Table& table,
-		Hord::Data::TableSchema const& table_schema,
 		Hord::IO::PropType const prop_type,
 		UI::group_hash_type const group = UI::group_default,
 		UI::Widget::WPtr parent = UI::Widget::WPtr()
@@ -161,7 +157,6 @@ public:
 			session,
 			object,
 			table,
-			table_schema,
 			prop_type
 		);
 		p->m_field = UI::Field::make(
@@ -209,7 +204,7 @@ TableGrid::handle_event_impl(
 			bool const handled = m_field->handle_event(event);
 			if (handled && !m_field->has_input_control()) {
 				String const edit_value{m_field->get_text()};
-				auto const field_type = m_table.column(m_cursor.col);
+				auto const field_type = m_table.column(m_cursor.col).type;
 				if (
 					field_type == Hord::Data::ValueType::string ||
 					field_type == Hord::Data::ValueType::dynamic

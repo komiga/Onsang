@@ -78,7 +78,6 @@ add_basic_prop_view(
 	auto grid_metadata = UI::TableGrid::make(
 		root, session, object,
 		object.get_metadata().table(),
-		Hord::Data::Metadata::s_schema,
 		Hord::IO::PropType::metadata
 	);
 
