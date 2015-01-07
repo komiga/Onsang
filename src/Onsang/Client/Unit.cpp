@@ -451,8 +451,6 @@ Unit::ui_event_filter(
 
 void
 Unit::start_ui() {
-	using namespace std::placeholders;
-
 	m_ui_ctx.open(Beard::tty::this_path(), true);
 	auto& pmap = m_ui_ctx.get_property_map().find(UI::group_default)->second;
 	pmap.find(UI::property_field_content_underline)->second.set_boolean(false);
