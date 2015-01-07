@@ -71,9 +71,11 @@ add_basic_prop_view(
 	// Metadata property
 	if (object.get_metadata().num_fields() == 0) {
 		Hord::Cmd::Object::SetMetaField cmd{session};
-		assert(cmd(object, "test_name1", "test_value", true));
-		//assert(cmd(object, "test_name2", std::int64_t{1234567890}, true));
-		//assert(cmd(object, "test_name3", true, true));
+		assert(cmd(object, "null", nullptr, true));
+		assert(cmd(object, "integer", 1234567890, true));
+		assert(cmd(object, "decimal", 3.14156f, true));
+		assert(cmd(object, "object_id", object.get_id(), true));
+		assert(cmd(object, "string", "string value", true));
 	}
 	auto grid_metadata = UI::TableGrid::make(
 		root, session, object,
