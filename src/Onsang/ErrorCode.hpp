@@ -1,5 +1,5 @@
 /**
-@file ErrorCode.hpp
+@file
 @brief %ErrorCode enum.
 
 @author Timothy Howard

@@ -1,5 +1,5 @@
 /**
-@file UI/BasicPropView.hpp
+@file
 @brief Basic prop view.
 
 @author Timothy Howard

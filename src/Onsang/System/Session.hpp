@@ -1,5 +1,5 @@
 /**
-@file System/Session.hpp
+@file
 @brief %Session.
 
 @author Timothy Howard

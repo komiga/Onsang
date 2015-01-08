@@ -1,6 +1,5 @@
-
 /**
-@file iterator_proxy.hpp
+@file
 @brief Iterator proxy.
 
 @author Timothy Howard

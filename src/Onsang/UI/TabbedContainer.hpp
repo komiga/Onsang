@@ -1,5 +1,5 @@
 /**
-@file UI/TabbedContainer.hpp
+@file
 @brief Tabbed container.
 
 @author Timothy Howard

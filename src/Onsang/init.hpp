@@ -1,5 +1,5 @@
 /**
-@file init.hpp
+@file
 @brief Initialization functions.
 
 @author Timothy Howard

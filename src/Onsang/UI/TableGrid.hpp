@@ -1,5 +1,5 @@
 /**
-@file UI/TableGrid.hpp
+@file
 @brief TableGrid.
 
 @author Timothy Howard

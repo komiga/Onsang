@@ -1,5 +1,5 @@
 /**
-@file detail/Hord/gr_ceformat.hpp
+@file
 @brief GR ceformat definitions (Hord).
 
 @author Timothy Howard

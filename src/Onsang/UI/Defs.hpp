@@ -1,5 +1,5 @@
 /**
-@file UI/Defs.hpp
+@file
 @brief UI definitions.
 
 @author Timothy Howard

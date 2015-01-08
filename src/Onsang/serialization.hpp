@@ -1,5 +1,5 @@
 /**
-@file serialization.hpp
+@file
 @brief Serialization definitions.
 
 @author Timothy Howard

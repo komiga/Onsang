@@ -1,6 +1,5 @@
-
 /**
-@file ConfigNode.hpp
+@file
 @brief Configuration node.
 
 @author Timothy Howard

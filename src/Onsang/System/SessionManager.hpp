@@ -1,5 +1,5 @@
 /**
-@file System/SessionManager.hpp
+@file
 @brief %Session manager.
 
 @author Timothy Howard

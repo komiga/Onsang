@@ -1,5 +1,5 @@
 /**
-@file UI/ObjectView.hpp
+@file
 @brief Object view.
 
 @author Timothy Howard

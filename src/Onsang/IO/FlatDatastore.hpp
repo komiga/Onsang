@@ -1,5 +1,5 @@
 /**
-@file IO/FlatDatastore.hpp
+@file
 @brief FlatDatastore class.
 
 @author Timothy Howard

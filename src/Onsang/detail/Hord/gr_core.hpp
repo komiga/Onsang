@@ -1,5 +1,5 @@
 /**
-@file detail/Hord/gr_core.hpp
+@file
 @brief GR core configuration (Hord).
 
 @author Timothy Howard

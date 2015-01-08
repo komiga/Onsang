@@ -1,5 +1,5 @@
 /**
-@file Log.hpp
+@file
 @brief Logging.
 
 @author Timothy Howard

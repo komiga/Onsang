@@ -1,5 +1,5 @@
 /**
-@file UI/BasicGrid.hpp
+@file
 @brief BasicGrid.
 
 @author Timothy Howard
