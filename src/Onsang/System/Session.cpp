@@ -42,8 +42,8 @@ Session::notify_complete_impl(
 		<< "notify_complete: "
 		<< std::hex << type_info.id
 		<< ' ' << type_info.name
-		<< " ok? " << std::boolalpha << command.ok()
-		<< " message: \"" << command.get_message() << '\"'
+		<< ", ok: " << (command.ok() ? "yes" : "no")
+		<< ", message: \"" << command.get_message() << '\"'
 		<< '\n'
 	;
 }
