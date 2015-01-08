@@ -45,6 +45,15 @@ template<
 >
 using weak_ptr = std::weak_ptr<T>;
 
+/**
+	@c std::unique_ptr<T>.
+*/
+template<
+	typename T,
+	typename Deleter = std::default_delete<T>
+>
+using unique_ptr = std::unique_ptr<T>;
+
 /** Alias for @c std::make_shared(). */
 using std::make_shared;
 
