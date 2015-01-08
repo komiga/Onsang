@@ -20,7 +20,11 @@
 
 #include <Hord/Data/Defs.hpp>
 #include <Hord/Data/Table.hpp>
+#include <Hord/Data/Ops.hpp>
+#include <Hord/Object/Defs.hpp>
 #include <Hord/Cmd/Object.hpp>
+
+#include <duct/IO/memstream.hpp>
 
 #include <string>
 
@@ -351,8 +355,11 @@ TableGrid::render_content(
 
 	Rect cell_frame = frame;
 	cell_frame.size.height = 1;
+	char value_buffer[48];
+	duct::IO::omemstream format_stream{value_buffer, sizeof(value_buffer)};
 	auto cell = tty::make_cell(' ');
-	txt::Sequence seq;
+	txt::Sequence seq{};
+	Hord::Data::ValueRef value{};
 	Hord::Data::Table::Iterator it_table = m_table.iterator_at(row_begin);
 	for (UI::index_type row = row_begin; row < row_end; ++row) {
 		if (m_rows[row].states.test(Row::Flags::selected)) {
@@ -381,28 +388,20 @@ TableGrid::render_content(
 			break;
 		}
 
+		value = it_table.get_field(col);
+		if (value.type.type() == Hord::Data::ValueType::string) {
+			seq = {value.data.string, value.size};
+		} else {
+			format_stream.seekp(0);
+			format_stream << value;
+			seq = {value_buffer, static_cast<std::size_t>(format_stream.tellp())};
+		}
 		grid_rd.rd.terminal.put_line(
 			cell_frame.pos,
 			cell_frame.size.width,
 			Axis::horizontal,
 			cell
 		);
-		// TODO: Value formatting
-		auto const value = it_table.get_field(col);
-		switch (value.type.type()) {
-		case Hord::Data::ValueType::null:
-			seq = {"(null)"}; break;
-		case Hord::Data::ValueType::dynamic:
-			seq = {"(¡dynamic!)"}; break;
-		case Hord::Data::ValueType::integer:
-			seq = {"(integer)"}; break;
-		case Hord::Data::ValueType::decimal:
-			seq = {"(decimal)"}; break;
-		case Hord::Data::ValueType::object_id:
-			seq = {"(object_id)"}; break;
-		case Hord::Data::ValueType::string:
-			seq = {value.data.string, value.size}; break;
-		}
 		grid_rd.rd.terminal.put_sequence(
 			cell_frame.pos.x,
 			cell_frame.pos.y,
