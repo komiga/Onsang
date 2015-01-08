@@ -30,13 +30,16 @@ class ObjectView;
 class ObjectView
 	: public UI::Widget::Base
 {
+public:
+	using SPtr = aux::shared_ptr<UI::ObjectView>;
+
 private:
 	using base = UI::Widget::Base;
 	enum class ctor_priv {};
 
 	System::Session& m_session;
 	Hord::Object::Unit& m_object;
-	aux::shared_ptr<TabbedContainer> m_container;
+	UI::TabbedContainer::SPtr m_container;
 
 	ObjectView() noexcept = delete;
 	ObjectView(ObjectView const&) = delete;
@@ -117,7 +120,7 @@ public:
 	ObjectView(ObjectView&&) = default;
 	ObjectView& operator=(ObjectView&&) = default;
 
-	static aux::shared_ptr<UI::ObjectView>
+	static UI::ObjectView::SPtr
 	make(
 		UI::RootWPtr root,
 		System::Session& session,
@@ -151,7 +154,7 @@ public:
 		return m_object;
 	}
 
-	aux::shared_ptr<TabbedContainer>
+	UI::TabbedContainer::SPtr
 	get_container() noexcept {
 		return m_container;
 	}

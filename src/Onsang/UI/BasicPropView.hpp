@@ -8,7 +8,6 @@
 #pragma once
 
 #include <Onsang/config.hpp>
-#include <Onsang/aux.hpp>
 #include <Onsang/utility.hpp>
 #include <Onsang/System/Session.hpp>
 #include <Onsang/UI/Defs.hpp>
@@ -33,7 +32,7 @@ namespace UI {
 */
 void
 add_basic_prop_view(
-	aux::shared_ptr<UI::ObjectView> const& obj_view_ptr,
+	UI::ObjectView::SPtr const& obj_view_ptr,
 	unsigned const index = static_cast<unsigned>(-1)
 ) {
 	auto& obj_view = *obj_view_ptr;
@@ -54,7 +53,7 @@ add_basic_prop_view(
 		UI::Axis::horizontal
 	);
 	field_slug->signal_control_changed.bind([&obj_view](
-		aux::shared_ptr<UI::Field> field_slug,
+		UI::Field::SPtr field_slug,
 		bool const has_control
 	) {
 		if (!has_control) {

@@ -36,6 +36,9 @@ namespace UI {
 class TableGrid final
 	: public UI::BasicGrid
 {
+public:
+	using SPtr = aux::shared_ptr<UI::TableGrid>;
+
 private:
 	using base = UI::BasicGrid;
 
@@ -50,7 +53,7 @@ private:
 	Hord::Object::Unit& m_object;
 	Hord::Data::Table& m_table;
 	Hord::IO::PropType m_prop_type;
-	aux::shared_ptr<UI::Field> m_field;
+	UI::Field::SPtr m_field;
 
 private:
 // UI::Widget::Base implementation
@@ -141,7 +144,7 @@ public:
 		, m_field()
 	{}
 
-	static aux::shared_ptr<TableGrid>
+	static UI::TableGrid::SPtr
 	make(
 		UI::RootWPtr root,
 		System::Session& session,

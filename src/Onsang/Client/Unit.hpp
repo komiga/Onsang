@@ -8,7 +8,6 @@
 #pragma once
 
 #include <Onsang/config.hpp>
-#include <Onsang/aux.hpp>
 #include <Onsang/String.hpp>
 #include <Onsang/ConfigNode.hpp>
 #include <Onsang/System/Session.hpp>
@@ -34,9 +33,9 @@ namespace Client {
 class Unit final {
 public:
 	struct UIBucket {
-		Beard::aux::shared_ptr<UI::TabbedContainer> viewc{};
-		Beard::aux::shared_ptr<UI::Label> sline{};
-		Beard::aux::shared_ptr<UI::Field> cline{};
+		UI::TabbedContainer::SPtr viewc{};
+		UI::Label::SPtr sline{};
+		UI::Field::SPtr cline{};
 	};
 
 private:

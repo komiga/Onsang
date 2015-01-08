@@ -27,6 +27,9 @@ class TabbedContainer;
 class TabbedContainer
 	: public UI::Widget::Base
 {
+public:
+	using SPtr = aux::shared_ptr<UI::TabbedContainer>;
+
 private:
 	using base = UI::Widget::Base;
 	enum class ctor_priv {};
@@ -172,7 +175,7 @@ public:
 	TabbedContainer(TabbedContainer&&) = default;
 	TabbedContainer& operator=(TabbedContainer&&) = default;
 
-	static aux::shared_ptr<UI::TabbedContainer>
+	static UI::TabbedContainer::SPtr
 	make(
 		UI::RootWPtr root,
 		UI::Widget::WPtr parent = UI::Widget::WPtr()

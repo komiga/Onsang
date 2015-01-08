@@ -2,6 +2,7 @@
 @copyright MIT license; see @ref index or the accompanying LICENSE file.
 */
 
+#include <Onsang/aux.hpp>
 #include <Onsang/Log.hpp>
 #include <Onsang/init.hpp>
 #include <Onsang/UI/Defs.hpp>
@@ -482,7 +483,7 @@ Unit::start_ui() {
 	);
 	m_ui.cline->set_visible(false);
 	m_ui.cline->signal_control_changed.bind([this](
-		aux::shared_ptr<UI::Field>,
+		UI::Field::SPtr /*button*/,
 		bool const has_control
 	) {
 		String command;
