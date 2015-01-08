@@ -193,6 +193,11 @@ public:
 		return m_tabs.empty();
 	}
 
+	aux::vector<Tab> const&
+	get_tabs() const noexcept {
+		return m_tabs;
+	}
+
 	unsigned
 	get_tab() const noexcept {
 		return m_position;
