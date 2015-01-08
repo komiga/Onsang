@@ -161,7 +161,7 @@ public:
 
 // operations
 	void
-	add_view(
+	add_prop_view(
 		String&& name,
 		UI::Widget::SPtr&& widget,
 		unsigned const index = static_cast<unsigned>(-1)
@@ -169,6 +169,16 @@ public:
 		m_container->insert(std::move(name), std::move(widget), index);
 	}
 };
+
+/**
+	Make an object view with props by object type.
+*/
+UI::ObjectView::SPtr
+make_object_view(
+	UI::RootWPtr&& root,
+	System::Session& session,
+	Hord::Object::Unit& object
+);
 
 } // namespace UI
 } // namespace Onsang
