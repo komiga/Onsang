@@ -217,42 +217,6 @@ TableGrid::handle_event_impl(
 						Hord::IO::PropState::modified
 					);
 				}
-				/*auto& field = m_object.get_metadata().fields[m_cursor.row];
-				if (COLUMN_IDX_NAME == m_cursor.col) {
-					Hord::Cmd::Object::RenameMetaField{m_session}(
-						m_object, m_cursor.row, std::move(edit_value)
-					);
-				} else if (COLUMN_IDX_VALUE == m_cursor.col) {
-					Hord::Data::FieldValue new_value{field.value.type};
-					switch (field.value.type) {
-					case Hord::Data::FieldType::Text:
-						new_value.str = std::move(edit_value);
-						break;
-
-					case Hord::Data::FieldType::Number:
-						if (edit_value.empty()) {
-							new_value.num = 0;
-						} else {
-							try {
-								new_value.num = std::stoll(edit_value);
-							} catch (std::exception const&) {
-								new_value.num = field.value.num;
-							}
-						}
-						break;
-
-					case Hord::Data::FieldType::Boolean:
-						// Not edited by m_field
-						// (see !has_input_control() branch)
-						assert(false);
-						break;
-					}
-					Hord::Cmd::Object::SetMetaField{m_session}(
-						m_object,
-						static_cast<unsigned>(m_cursor.row),
-						std::move(new_value)
-					);
-				}*/
 				set_input_control(false);
 				m_field->clear_actions();
 				queue_cell_render(
@@ -278,39 +242,6 @@ TableGrid::handle_event_impl(
 				} else {
 					m_field->set_text("");
 				}
-				/*auto& field = m_object.get_metadata().fields[m_cursor.row];
-				// TODO: Type editing? (column 0)
-				if (COLUMN_IDX_NAME == m_cursor.col) {
-					m_field->set_text(field.name);
-				} else {
-					switch (field.value.type) {
-					case Hord::Data::FieldType::Text:
-						m_field->set_text(field.value.str);
-						break;
-
-					case Hord::Data::FieldType::Number:
-						m_field->set_text(std::to_string(field.value.num));
-						break;
-
-					case Hord::Data::FieldType::Boolean:
-						// Value toggle
-						if (Hord::Cmd::Object::SetMetaField{m_session}(
-							m_object,
-							static_cast<unsigned>(m_cursor.row),
-							{!field.value.bin}
-						)) {
-							queue_cell_render(
-								m_cursor.row, m_cursor.row + 1,
-								m_cursor.col, m_cursor.col + 1
-							);
-							queue_actions(enum_combine(
-								UI::UpdateActions::flag_noclear,
-								UI::UpdateActions::render
-							));
-						}
-						return true;
-					}
-				}*/
 				set_input_control(true);
 				reflow_field(true);
 				// TODO: Field should have a toggle function
