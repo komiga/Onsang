@@ -1,3 +1,6 @@
+/**
+@copyright MIT license; see @ref index or the accompanying LICENSE file.
+*/
 
 #include <Onsang/Log.hpp>
 #include <Onsang/init.hpp>
