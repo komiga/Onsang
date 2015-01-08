@@ -291,8 +291,7 @@ TableGrid::render_header(
 	static constexpr char const
 	s_type_prefix[]{'n', '*', 'i', 'f', '#', 's'};
 
-	auto& rd = grid_rd.rd;
-	rd.terminal.put_line(
+	grid_rd.rd.terminal.put_line(
 		frame.pos,
 		frame.size.width,
 		Axis::horizontal,
@@ -315,10 +314,10 @@ TableGrid::render_header(
 			frame.pos.x + frame.size.width - cell_frame.pos.x
 		);
 		type_prefix.u8block = s_type_prefix[table_column.type.value()];
-		rd.terminal.put_cell(cell_frame.pos.x + 0, cell_frame.pos.y, type_prefix);
+		grid_rd.rd.terminal.put_cell(cell_frame.pos.x + 0, cell_frame.pos.y, type_prefix);
 		type_prefix.u8block = ':';
-		rd.terminal.put_cell(cell_frame.pos.x + 1, cell_frame.pos.y, type_prefix);
-		rd.terminal.put_sequence(
+		grid_rd.rd.terminal.put_cell(cell_frame.pos.x + 1, cell_frame.pos.y, type_prefix);
+		grid_rd.rd.terminal.put_sequence(
 			cell_frame.pos.x + 2,
 			cell_frame.pos.y,
 			{table_column.name},
@@ -350,7 +349,6 @@ TableGrid::render_content(
 		frame.pos.x, frame.pos.y
 	);*/
 
-	auto& rd = grid_rd.rd;
 	Rect cell_frame = frame;
 	cell_frame.size.height = 1;
 	auto cell = tty::make_cell(' ');
@@ -383,7 +381,7 @@ TableGrid::render_content(
 			break;
 		}
 
-		rd.terminal.put_line(
+		grid_rd.rd.terminal.put_line(
 			cell_frame.pos,
 			cell_frame.size.width,
 			Axis::horizontal,
@@ -405,7 +403,7 @@ TableGrid::render_content(
 		case Hord::Data::ValueType::string:
 			seq = {value.data.string, value.size}; break;
 		}
-		rd.terminal.put_sequence(
+		grid_rd.rd.terminal.put_sequence(
 			cell_frame.pos.x,
 			cell_frame.pos.y,
 			seq,
