@@ -11,6 +11,7 @@
 #include <Onsang/aux.hpp>
 #include <Onsang/String.hpp>
 
+#include <Hord/Object/Defs.hpp>
 #include <Hord/IO/Datastore.hpp>
 #include <Hord/System/Driver.hpp>
 #include <Hord/System/Context.hpp>
@@ -30,6 +31,9 @@ class Session;
 class Session
 	: public Hord::System::Context
 {
+public:
+	using id_set_type = aux::unordered_set<Hord::Object::ID>;
+
 private:
 	using base = Hord::System::Context;
 
@@ -37,11 +41,18 @@ private:
 	String m_path;
 	bool m_auto_open;
 	bool m_auto_create;
+	id_set_type m_root_objects;
 	// TODO: Views
 
 	Session() = delete;
 	Session(Session const&) = delete;
 	Session& operator=(Session const&) = delete;
+
+private:
+	void
+	root_object_changed(
+		Hord::Object::ID const object_id
+	) noexcept;
 
 // Hord::System::Context implementation
 private:
