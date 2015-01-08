@@ -442,7 +442,7 @@ TableGrid::reflow_field(
 	auto const& frame = get_view().content_frame;
 	Quad cell_quad{
 		{
-			frame.pos.x + (m_cursor.col * GRID_TMP_COLUMN_WIDTH),
+			frame.pos.x + (m_cursor.col - get_view().col_range.x) * GRID_TMP_COLUMN_WIDTH,
 			frame.pos.y + m_cursor.row - get_view().row_range.x
 		},
 		{0, 0}
