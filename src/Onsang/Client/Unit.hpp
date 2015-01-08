@@ -8,6 +8,7 @@
 #pragma once
 
 #include <Onsang/config.hpp>
+#include <Onsang/aux.hpp>
 #include <Onsang/String.hpp>
 #include <Onsang/ConfigNode.hpp>
 #include <Onsang/System/Session.hpp>
@@ -23,6 +24,7 @@
 #include <Beard/ui/Label.hpp>
 #include <Beard/ui/Field.hpp>
 
+#include <Hord/IO/Datastore.hpp>
 #include <Hord/System/Driver.hpp>
 
 #include <duct/StateStore.hpp>
@@ -33,7 +35,7 @@ namespace Client {
 class Unit final {
 public:
 	struct UIBucket {
-		UI::TabbedContainer::SPtr viewc{};
+		UI::Container::SPtr viewc{};
 		UI::Label::SPtr sline{};
 		UI::Field::SPtr cline{};
 	};
@@ -52,6 +54,7 @@ private:
 	bool m_running{false};
 	UI::Context m_ui_ctx{UI::PropertyMap{true}};
 	UIBucket m_ui{};
+	System::Session* m_session{nullptr};
 
 	ConfigNode m_config;
 	ConfigNode m_args;
@@ -159,6 +162,18 @@ public:
 		bool const auto_create
 	);
 
+public:
+	bool
+	init(
+		signed const argc,
+		char* argv[]
+	);
+
+	void
+	set_session(
+		System::Session* const session
+	);
+
 private:
 	void
 	init_session(
@@ -170,14 +185,6 @@ private:
 		System::Session&
 	);
 
-public:
-	bool
-	init(
-		signed const argc,
-		char* argv[]
-	);
-
-private:
 	void
 	start_ui();
 

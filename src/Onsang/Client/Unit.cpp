@@ -7,6 +7,7 @@
 #include <Onsang/init.hpp>
 #include <Onsang/UI/Defs.hpp>
 #include <Onsang/UI/TabbedContainer.hpp>
+#include <Onsang/UI/SessionView.hpp>
 #include <Onsang/UI/ObjectView.hpp>
 #include <Onsang/UI/BasicPropView.hpp>
 #include <Onsang/Client/Unit.hpp>
@@ -24,7 +25,9 @@
 #include <Beard/ui/Field.hpp>
 
 #include <Hord/IO/Defs.hpp>
+#include <Hord/Node/Defs.hpp>
 #include <Hord/Cmd/Datastore.hpp>
+#include <Hord/Cmd/Node.hpp>
 
 #include <duct/debug.hpp>
 #include <duct/Args.hpp>
@@ -329,6 +332,20 @@ Unit::init(
 }
 
 void
+Unit::set_session(
+	System::Session* const session
+) {
+	if (m_session == session) {
+		return;
+	}
+	m_ui.viewc->clear();
+	m_session = session;
+	if (m_session && m_session->is_open()) {
+		m_ui.viewc->push_back(m_session->get_view());
+	}
+}
+
+void
 Unit::init_session(
 	System::Session& session
 ) {
@@ -342,7 +359,7 @@ Unit::init_session(
 		<< '\n'
 	;
 	try {
-		session.open();
+		session.open(m_ui_ctx.get_root());
 		auto cmd = Hord::Cmd::Datastore::Init{session};
 		if (!cmd(Hord::IO::PropTypeBit::base)) {
 			// TODO: set status line
@@ -352,6 +369,9 @@ Unit::init_session(
 				cmd.command_name(),
 				cmd.get_message()
 			);
+		}
+		if (!m_session) {
+			set_session(&session);
 		}
 	} catch (...) {
 		Log::acquire(Log::error)
@@ -391,6 +411,9 @@ Unit::close_session(
 			<< cmd.num_objects_stored() << " objects and "
 			<< cmd.num_props_stored() << " props\n"
 		;
+		if (&session == m_session) {
+			set_session(nullptr);
+		}
 		session.close();
 	} catch (...) {
 		Log::acquire(Log::error)
@@ -421,33 +444,19 @@ Unit::ui_event_filter(
 		m_ui.cline->set_visible(true);
 		m_ui.cline->set_input_control(true);
 		m_ui_ctx.get_root()->set_focus(m_ui.cline);
-	} else {
+	} else if (m_session) {
+		auto const ov_cont = m_session->get_view()->get_view_container();
 		switch (event.key_input.cp) {
-		case '1': m_ui.viewc->prev_tab(); break;
-		case '2': m_ui.viewc->next_tab(); break;
-		case '!': m_ui.viewc->move_left(m_ui.viewc->get_tab()); break;
-		case '@': m_ui.viewc->move_right(m_ui.viewc->get_tab()); break;
-		case '3': m_ui.viewc->move_tab(m_ui.viewc->get_tab(), 0, true); break;
+		case '1': ov_cont->prev_tab(); break;
+		case '2': ov_cont->next_tab(); break;
 
 		case 'n': {
-			if (m_session_manager.cbegin() != m_session_manager.cend()) {
-				auto& session = *m_session_manager.begin()->second;
-				auto* const object = session.get_datastore().find_ptr(
-					Hord::Object::ID{1}
-				);
-				DUCT_ASSERTE(object);
-				auto view = UI::ObjectView::make(
-					m_ui_ctx.get_root(),
-					session,
-					*object
-				);
-				UI::add_basic_prop_view(view);
-				m_ui.viewc->push_back(object->get_slug(), std::move(view));
-			}
+			Hord::Object::ID const id{0x2a4c479c};
+			m_session->get_view()->add_object_view(id);
 		} break;
 
 		case 'c':
-			m_ui.viewc->remove_current();
+			ov_cont->remove_current();
 			break;
 		}
 	}
@@ -463,7 +472,7 @@ Unit::start_ui() {
 	auto root = UI::Root::make(m_ui_ctx, UI::Axis::vertical);
 	m_ui_ctx.set_root(root);
 
-	m_ui.viewc = UI::TabbedContainer::make(root);
+	m_ui.viewc = UI::Container::make(root, UI::Axis::vertical);
 	m_ui.viewc->get_geometry().set_sizing(
 		UI::Axis::both,
 		UI::Axis::both
@@ -535,12 +544,15 @@ Unit::start() try {
 		// TODO: Process data from sessions, handle global hotkeys
 		m_session_manager.process();
 	}
-	m_ui_ctx.close();
 
+	set_session(nullptr);
 	for (auto& pair : m_session_manager) {
 		auto& session = pair.second;
 		close_session(*session);
 	}
+
+	m_ui.viewc->clear();
+	m_ui_ctx.close();
 
 	toggle_stdout(true);
 } catch (...) {

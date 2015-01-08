@@ -10,6 +10,7 @@
 #include <Onsang/config.hpp>
 #include <Onsang/aux.hpp>
 #include <Onsang/String.hpp>
+#include <Onsang/System/Defs.hpp>
 #include <Onsang/System/Session.hpp>
 
 #include <Hord/System/Driver.hpp>

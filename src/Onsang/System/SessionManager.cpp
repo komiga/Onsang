@@ -3,6 +3,7 @@
 */
 
 #include <Onsang/Log.hpp>
+#include <Onsang/System/Defs.hpp>
 #include <Onsang/System/Session.hpp>
 #include <Onsang/System/SessionManager.hpp>
 #include <Onsang/IO/FlatDatastore.hpp>

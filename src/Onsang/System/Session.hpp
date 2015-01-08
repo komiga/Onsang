@@ -10,6 +10,9 @@
 #include <Onsang/config.hpp>
 #include <Onsang/aux.hpp>
 #include <Onsang/String.hpp>
+#include <Onsang/System/Defs.hpp>
+#include <Onsang/UI/Defs.hpp>
+#include <Onsang/UI/SessionView.hpp>
 
 #include <Hord/Object/Defs.hpp>
 #include <Hord/IO/Datastore.hpp>
@@ -44,7 +47,7 @@ private:
 	bool m_auto_open;
 	bool m_auto_create;
 	id_set_type m_root_objects;
-	// TODO: Views
+	UI::SessionView::SPtr m_view;
 
 	Session() = delete;
 	Session(Session const&) = delete;
@@ -95,6 +98,7 @@ public:
 		, m_path(std::move(path))
 		, m_auto_open(auto_open)
 		, m_auto_create(auto_create)
+		, m_view()
 	{}
 
 	static System::Session::UPtr
@@ -138,6 +142,11 @@ public:
 		return m_auto_create;
 	}
 
+	UI::SessionView::SPtr
+	get_view() noexcept {
+		return m_view;
+	}
+
 	bool
 	is_open() const noexcept {
 		return get_datastore().is_open();
@@ -149,7 +158,9 @@ public:
 		- see Hord::IO::Datastore::open()
 	*/
 	void
-	open();
+	open(
+		UI::RootWPtr root
+	);
 
 	/**
 		Throws Hord::Error:

@@ -3,7 +3,10 @@
 */
 
 #include <Onsang/Log.hpp>
+#include <Onsang/System/Defs.hpp>
 #include <Onsang/System/Session.hpp>
+#include <Onsang/UI/Defs.hpp>
+#include <Onsang/UI/SessionView.hpp>
 
 #include <Hord/Object/Defs.hpp>
 #include <Hord/Object/Ops.hpp>
@@ -99,14 +102,21 @@ Session::notify_complete_impl(
 
 #define ONSANG_SCOPE_FUNC open
 void
-Session::open() {
+Session::open(
+	UI::RootWPtr root
+) try {
 	get_datastore().open(m_auto_create);
+	m_view.reset();
+	m_view = UI::SessionView::make(std::move(root), *this);
+} catch (...) {
+	throw;
 }
 #undef ONSANG_SCOPE_FUNC
 
 #define ONSANG_SCOPE_FUNC close
 void
 Session::close() {
+	m_view.reset();
 	get_datastore().close();
 	m_root_objects.clear();
 }
