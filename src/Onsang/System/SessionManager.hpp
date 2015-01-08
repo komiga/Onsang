@@ -25,7 +25,10 @@ class SessionManager;
 */
 class SessionManager {
 public:
-	using session_collection_type = aux::vector<System::Session>;
+	using session_collection_type = aux::unordered_map<
+		Hord::IO::Datastore::ID,
+		System::Session::UPtr
+	>;
 	using iterator = session_collection_type::iterator;
 	using const_iterator = session_collection_type::const_iterator;
 
@@ -96,39 +99,19 @@ public:
 		return m_sessions.cend();
 	}
 
-private:
-	struct find_pred final {
-		Hord::IO::Datastore::ID const id;
-
-		bool
-		operator()(
-			Session const& session
-		) const noexcept {
-			return session.get_datastore().get_id() == id;
-		}
-	};
-
 public:
 	iterator
 	find(
 		Hord::IO::Datastore::ID const id
 	) noexcept {
-		return std::find_if(
-			m_sessions.begin(),
-			m_sessions.end(),
-			find_pred{id}
-		);
+		return m_sessions.find(id);
 	}
 
 	const_iterator
 	find(
 		Hord::IO::Datastore::ID const id
 	) const noexcept {
-		return std::find_if(
-			m_sessions.cbegin(),
-			m_sessions.cend(),
-			find_pred{id}
-		);
+		return m_sessions.find(id);
 	}
 
 // operations

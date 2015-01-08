@@ -32,10 +32,12 @@ class Session
 	: public Hord::System::Context
 {
 public:
+	using UPtr = aux::unique_ptr<System::Session>;
 	using id_set_type = aux::unordered_set<Hord::Object::ID>;
 
 private:
 	using base = Hord::System::Context;
+	enum class ctor_priv {};
 
 	String m_name;
 	String m_path;
@@ -80,6 +82,7 @@ public:
 		- see Hord::System::Context::Context()
 	*/
 	Session(
+		ctor_priv const,
 		Hord::System::Driver& driver,
 		Hord::IO::Datastore::ID const datastore_id,
 		String name,
@@ -93,6 +96,26 @@ public:
 		, m_auto_open(auto_open)
 		, m_auto_create(auto_create)
 	{}
+
+	static System::Session::UPtr
+	make(
+		Hord::System::Driver& driver,
+		Hord::IO::Datastore::ID const datastore_id,
+		String name,
+		String path,
+		bool const auto_open,
+		bool const auto_create
+	) {
+		return System::Session::UPtr{new System::Session(
+			ctor_priv{},
+			driver,
+			datastore_id,
+			name,
+			path,
+			auto_open,
+			auto_create
+		)};
+	}
 
 // properties
 	String const&

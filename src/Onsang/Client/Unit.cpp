@@ -431,7 +431,7 @@ Unit::ui_event_filter(
 
 		case 'n': {
 			if (m_session_manager.cbegin() != m_session_manager.cend()) {
-				auto& session = *m_session_manager.begin();
+				auto& session = *m_session_manager.begin()->second;
 				auto* const object = session.get_datastore().find_ptr(
 					Hord::Object::ID{1}
 				);
@@ -483,7 +483,7 @@ Unit::start_ui() {
 	);
 	m_ui.cline->set_visible(false);
 	m_ui.cline->signal_control_changed.bind([this](
-		UI::Field::SPtr /*button*/,
+		UI::Field::SPtr /*field*/,
 		bool const has_control
 	) {
 		String command;
@@ -518,9 +518,10 @@ Unit::start() try {
 	Log::acquire()
 		<< "Initializing sessions\n"
 	;
-	for (auto& session : m_session_manager) {
-		if (session.get_auto_open()) {
-			init_session(session);
+	for (auto& pair : m_session_manager) {
+		auto& session = pair.second;
+		if (session->get_auto_open()) {
+			init_session(*session);
 		}
 	}
 
@@ -536,8 +537,9 @@ Unit::start() try {
 	}
 	m_ui_ctx.close();
 
-	for (auto& session : m_session_manager) {
-		close_session(session);
+	for (auto& pair : m_session_manager) {
+		auto& session = pair.second;
+		close_session(*session);
 	}
 
 	toggle_stdout(true);
