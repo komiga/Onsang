@@ -71,7 +71,10 @@ BasicGrid::handle_event_impl(
 		break;
 
 	case UI::EventType::focus_changed:
-		queue_cell_render(m_cursor.row, m_cursor.row + 1);
+		queue_cell_render(
+			m_cursor.row, m_cursor.row + 1,
+			m_cursor.col, m_cursor.col + 1
+		);
 		return false;
 
 	default:
