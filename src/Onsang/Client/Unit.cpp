@@ -342,6 +342,9 @@ Unit::set_session(
 	m_session = session;
 	if (m_session && m_session->is_open()) {
 		m_ui.viewc->push_back(m_session->get_view());
+		m_ui.sline->set_text("session: " + m_session->get_name());
+	} else {
+		m_ui.sline->set_text("session: none");
 	}
 }
 
@@ -479,7 +482,7 @@ Unit::start_ui() {
 	);
 
 	// TODO: Custom widget: sline + cline
-	m_ui.sline = UI::Label::make(root, "(status)");
+	m_ui.sline = UI::Label::make(root, "session: none");
 	m_ui.sline->get_geometry().set_sizing(
 		UI::Axis::horizontal,
 		UI::Axis::horizontal
