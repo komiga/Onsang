@@ -38,16 +38,18 @@ add_basic_prop_view(
 	// Slug property
 	auto field_slug = UI::Field::make(root, object.get_slug());
 	field_slug->get_geometry().set_sizing(UI::Axis::horizontal, UI::Axis::horizontal);
-	field_slug->signal_control_changed.bind([&obj_view](
+	field_slug->signal_user_modified.bind([&obj_view](
 		UI::Field::SPtr field_slug,
-		bool const has_control
+		bool const accept
 	) {
-		if (!has_control) {
-			auto& object = obj_view.get_object();
+		auto& object = obj_view.get_object();
+		if (accept) {
 			Hord::Cmd::Object::SetSlug cmd{obj_view.get_session()};
 			if (!cmd(object, field_slug->get_text())) {
 				field_slug->set_text(object.get_slug());
 			}
+		} else {
+			field_slug->set_text(object.get_slug());
 		}
 	});
 
