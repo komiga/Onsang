@@ -14,7 +14,11 @@
 #include <Onsang/UI/Defs.hpp>
 #include <Onsang/UI/BasicGrid.hpp>
 
-#include <Beard/ui/Field.hpp>
+#include <Beard/keys.hpp>
+#include <Beard/txt/Defs.hpp>
+#include <Beard/txt/Tree.hpp>
+#include <Beard/txt/Cursor.hpp>
+#include <Beard/ui/Geom.hpp>
 
 namespace Onsang {
 namespace UI {
@@ -39,10 +43,19 @@ private:
 	Hord::Object::Unit& m_object;
 	Hord::Data::Table& m_table;
 	Hord::IO::PropType m_prop_type;
-	UI::Field::SPtr m_field;
+	UI::Geom m_field_geom;
+	txt::Tree m_field_text_tree;
+	txt::Cursor m_field_cursor;
+	txt::Cursor m_field_view;
+	Hord::Data::Type m_field_type;
 
 private:
 // UI::Widget::Base implementation
+	void
+	set_input_control_impl(
+		bool const enabled
+	) noexcept override;
+
 	void
 	reflow_impl(
 		Rect const& area,
@@ -93,8 +106,19 @@ private:
 
 private:
 	void
-	reflow_field(
-		bool const cache
+	update_field_view() noexcept;
+
+	void
+	reflow_field() noexcept;
+
+	void
+	render_field(
+		UI::Widget::RenderData& rd
+	) noexcept;
+
+	bool
+	field_input(
+		char32 cp
 	) noexcept;
 
 public:
@@ -127,7 +151,11 @@ public:
 		, m_object(object)
 		, m_table(table)
 		, m_prop_type(prop_type)
-		, m_field()
+		, m_field_geom({2, 1}, false, Axis::horizontal, Axis::horizontal)
+		, m_field_text_tree()
+		, m_field_cursor(m_field_text_tree)
+		, m_field_view(m_field_text_tree)
+		, m_field_type()
 	{}
 
 	static UI::TableGrid::SPtr
@@ -150,16 +178,6 @@ public:
 			table,
 			prop_type
 		);
-		p->m_field = UI::Field::make(
-			p->get_root(),
-			{},
-			nullptr,
-			UI::group_field/*,
-			p*/
-		);
-		p->m_field->get_geometry().set_sizing(Axis::x, Axis::x);
-		p->m_field->set_focused(true);
-		p->m_field->clear_actions();
 		p->set_cursor(0, 0);
 		return p;
 	}

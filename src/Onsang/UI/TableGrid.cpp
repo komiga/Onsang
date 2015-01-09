@@ -10,17 +10,22 @@
 #include <Onsang/UI/TableGrid.hpp>
 #include <Onsang/UI/ObjectView.hpp>
 
+#include <Beard/keys.hpp>
 #include <Beard/txt/Defs.hpp>
-#include <Beard/ui/Field.hpp>
+#include <Beard/ui/packing.hpp>
 
 #include <Hord/Data/Defs.hpp>
+#include <Hord/Data/ValueRef.hpp>
 #include <Hord/Data/Table.hpp>
 #include <Hord/Data/Ops.hpp>
 #include <Hord/Object/Defs.hpp>
 #include <Hord/Cmd/Object.hpp>
 
+#include <duct/CharacterSet.hpp>
 #include <duct/IO/memstream.hpp>
 
+#include <cstdlib>
+#include <algorithm>
 #include <string>
 
 namespace Onsang {
@@ -29,18 +34,50 @@ namespace UI {
 #define GRID_TMP_COLUMN_WIDTH 25
 
 void
+TableGrid::set_input_control_impl(
+	bool const enabled
+) noexcept {
+	base::set_input_control_impl(enabled);
+	get_root()->get_context().get_terminal().set_caret_visible(
+		has_input_control()
+	);
+	if (has_input_control()) {
+		m_field_cursor.col_extent(txt::Extent::tail);
+	} else {
+		queue_cell_render(
+			m_cursor.row, m_cursor.row + 1,
+			m_cursor.col, m_cursor.col + 1
+		);
+	}
+	update_field_view();
+	queue_actions(enum_combine(
+		ui::UpdateActions::render,
+		ui::UpdateActions::flag_noclear
+	));
+}
+
+void
 TableGrid::reflow_impl(
 	Rect const& area,
 	bool const cache
 ) noexcept {
 	base::reflow_impl(area, cache);
 	if (has_input_control()) {
-		reflow_field(cache);
-		m_field->queue_actions(
-			UI::UpdateActions::render
-		);
+		reflow_field();
+		queue_actions(enum_combine(
+			UI::UpdateActions::render,
+			UI::UpdateActions::flag_noclear
+		));
 	}
 }
+
+namespace {
+static KeyInputMatch const
+s_kim_field_icontrol[]{
+	{KeyMod::none, KeyCode::enter, codepoint_none, false}/*,
+	{KeyMod::none, KeyCode::none, ' ', false}*/
+};
+}; // anonymous namespace
 
 bool
 TableGrid::handle_event_impl(
@@ -48,79 +85,118 @@ TableGrid::handle_event_impl(
 ) noexcept {
 	if (base::handle_event_impl(event)) {
 		return true;
+	} else if (event.type != UI::EventType::key_input) {
+		return false;
 	}
-	switch (event.type) {
-	case UI::EventType::key_input:
-		if (has_input_control()) {
-			bool const handled = m_field->handle_event(event);
-			if (handled && !m_field->has_input_control()) {
-				if (event.key_input.code != UI::KeyCode::esc) {
-					String const edit_value{m_field->get_text()};
-					auto const field_type = m_table.column(m_cursor.col).type;
-					if (
-						field_type == Hord::Data::ValueType::string ||
-						field_type == Hord::Data::ValueType::dynamic
-					) {
-						// TODO: Use callback instead
-						auto it = m_table.iterator_at(m_cursor.row);
-						it.set_field(m_cursor.col, edit_value);
-						m_object.get_prop_states().assign(
-							m_prop_type,
-							Hord::IO::PropState::modified
-						);
-					}
-				}
-				set_input_control(false);
-				m_field->clear_actions();
-				queue_cell_render(
-					m_cursor.row, m_cursor.row + 1,
-					m_cursor.col, m_cursor.col + 1
-				);
-				queue_actions(enum_combine(
-					UI::UpdateActions::render,
-					UI::UpdateActions::flag_noclear
-				));
-			}
-			return handled;
-		} else {
-			switch (event.key_input.code) {
-			case KeyCode::enter: {
-				auto it = m_table.iterator_at(m_cursor.row);
-				auto const value = it.get_field(m_cursor.col);
-				if (
-					value.type.type() == Hord::Data::ValueType::string
-				) {
-					// TODO: Use callback instead
-					m_field->set_text({value.data.string, value.size});
-				} else {
-					m_field->set_text("");
-				}
-				set_input_control(true);
-				reflow_field(true);
-				// TODO: Field should have a toggle function
-				m_field->handle_event(event);
-				m_field->queue_actions(enum_combine(
-					UI::UpdateActions::render
-				));
+	if (!has_input_control()) {
+		if (key_input_match(event.key_input, s_kim_field_icontrol)) {
+			auto const& column = m_table.get_schema().column(m_cursor.col);
+			auto const value = m_table.iterator_at(m_cursor.row).get_field(m_cursor.col);
+			// TODO: object_id handling (translate to/from path)
+			if (
+				(
+					value.type == Hord::Data::ValueType::null &&
+					column.type != Hord::Data::ValueType::dynamic
+				) ||
+				value.type == Hord::Data::ValueType::object_id
+			) {
 				return true;
 			}
-
-			case KeyCode::f1:
-				set_header_enabled(!is_header_enabled());
-				queue_actions(enum_combine(
-					UI::UpdateActions::reflow,
-					UI::UpdateActions::render
-				));
-				return true;
-
-			default:
+			switch (value.type.type()) {
+			case Hord::Data::ValueType::null:
+				m_field_cursor.clear();
 				break;
+
+			case Hord::Data::ValueType::string:
+				m_field_cursor.assign(value.data.string, value.size);
+				break;
+
+			default: {
+				char value_buffer[48];
+				duct::IO::omemstream format_stream{value_buffer, sizeof(value_buffer)};
+				format_stream.seekp(0);
+				format_stream << value;
+				m_field_cursor.assign(
+					value_buffer,
+					static_cast<unsigned>(format_stream.tellp())
+				);
+			}	break;
+			}
+			m_field_type = value.type;
+			reflow_field();
+			set_input_control(true);
+			return true;
+		}
+	} else if (
+		key_input_match(event.key_input, s_kim_field_icontrol) ||
+		KeyCode::esc == event.key_input.code
+	) {
+		if (event.key_input.code != UI::KeyCode::esc) {
+			auto const& node = m_field_cursor.get_node();
+			// auto const field_type = m_table.column(m_cursor.col).type;
+			// TODO: Use callback instead
+			Hord::Data::ValueRef new_value{};
+			if (!m_field_text_tree.empty()) {
+				m_field_cursor.col_extent(txt::Extent::tail);
+				switch (m_field_type.type()) {
+				case Hord::Data::ValueType::integer:
+					m_field_cursor.insert('\0');
+					if (enum_bitand(m_field_type.flags(), Hord::Data::ValueFlag::integer_signed)) {
+						new_value = std::int64_t{std::strtoll(&*node.cbegin(), nullptr, 10)};
+					} else {
+						new_value = std::uint64_t{std::strtoull(&*node.cbegin(), nullptr, 10)};
+					}
+					break;
+				case Hord::Data::ValueType::decimal:
+					m_field_cursor.insert('\0');
+					new_value = std::strtod(&*node.cbegin(), nullptr);
+					break;
+				case Hord::Data::ValueType::string:
+					new_value = m_field_text_tree.to_string();
+					break;
+				default: break;
+				}
+			}
+			auto it = m_table.iterator_at(m_cursor.row);
+			auto const old_value = it.get_field(m_cursor.col);
+			if (old_value != new_value) {
+				it.set_field(m_cursor.col, new_value);
+				m_object.get_prop_states().assign(
+					m_prop_type,
+					Hord::IO::PropState::modified
+				);
 			}
 		}
-		break;
-
-	default:
-		break;
+		m_field_cursor.clear();
+		set_input_control(false);
+		return true;
+	} else {
+		bool view_modified = true;
+		switch (event.key_input.code) {
+		case KeyCode::up   : m_field_cursor.row_prev(); break;
+		case KeyCode::down : m_field_cursor.row_next(); break;
+		case KeyCode::left : m_field_cursor.col_prev(); break;
+		case KeyCode::right: m_field_cursor.col_next(); break;
+		case KeyCode::home: m_field_cursor.col_extent(txt::Extent::head); break;
+		case KeyCode::end : m_field_cursor.col_extent(txt::Extent::tail); break;
+		case KeyCode::del      : m_field_cursor.erase(); break;
+		case KeyCode::backspace: m_field_cursor.erase_before(); break;
+		default:
+			if (event.key_input.cp != codepoint_none) {
+				field_input(event.key_input.cp);
+			} else {
+				view_modified = false;
+			}
+			break;
+		}
+		if (view_modified) {
+			update_field_view();
+			queue_actions(enum_combine(
+				ui::UpdateActions::render,
+				ui::UpdateActions::flag_noclear
+			));
+		}
+		return true;
 	}
 	return false;
 }
@@ -130,10 +206,7 @@ TableGrid::render_impl(
 	UI::Widget::RenderData& rd
 ) noexcept {
 	base::render_impl(rd);
-	if (has_input_control()) {
-		rd.update_group(m_field->get_group());
-		m_field->render(rd);
-	}
+	render_field(rd);
 }
 
 void
@@ -296,23 +369,152 @@ TableGrid::content_erase(
 }
 
 void
-TableGrid::reflow_field(
-	bool const cache
-) noexcept {
-	auto const& frame = get_view().content_frame;
+TableGrid::update_field_view() noexcept {
+	auto const& frame = m_field_geom.get_frame();
+	auto const inner_width = max_ce(0, frame.size.width - 2 - 1);
+	if (
+		m_field_view.col() > m_field_cursor.col() ||
+		m_field_view.col() + inner_width < m_field_cursor.col()
+	) {
+		m_field_view.col_abs(
+			m_field_cursor.col() - (inner_width / 2)
+		);
+	}
+}
+
+void
+TableGrid::reflow_field() noexcept {
+	auto const& content_frame = get_view().content_frame;
 	Quad cell_quad{
 		{
-			frame.pos.x + (m_cursor.col - get_view().col_range.x) * GRID_TMP_COLUMN_WIDTH,
-			frame.pos.y + m_cursor.row - get_view().row_range.x
+			content_frame.pos.x + (m_cursor.col - get_view().col_range.x) * GRID_TMP_COLUMN_WIDTH,
+			content_frame.pos.y + (m_cursor.row - get_view().row_range.x)
 		},
 		{0, 0}
 	};
 	cell_quad.v2.x = cell_quad.v1.x + GRID_TMP_COLUMN_WIDTH;
 	cell_quad.v2.y = cell_quad.v1.y + 1;
-	Quad const fq = rect_abs_quad(frame);
+	Quad const fq = rect_abs_quad(content_frame);
 	vec2_clamp(cell_quad.v1, fq.v1, fq.v2);
 	vec2_clamp(cell_quad.v2, fq.v1, fq.v2);
-	m_field->reflow(quad_rect(cell_quad), cache);
+	UI::reflow(quad_rect(cell_quad), m_field_geom);
+	update_field_view();
+}
+
+void
+TableGrid::render_field(
+	UI::Widget::RenderData& rd
+) noexcept {
+	if (!has_input_control()) {
+		return;
+	}
+	rd.update_group(UI::group_field);
+	auto const& frame = m_field_geom.get_frame();
+	auto const& node = m_field_cursor.get_node();
+
+	tty::attr_type const
+		primary_fg = rd.get_attr(ui::property_primary_fg_active),
+		primary_bg = rd.get_attr(ui::property_primary_bg_active),
+		content_fg = rd.get_attr(ui::property_content_fg_active),
+		content_bg = rd.get_attr(ui::property_content_bg_active)
+	;
+	tty::Cell cell_side = tty::make_cell('[', primary_fg, primary_bg);
+	rd.terminal.put_cell(frame.pos.x, frame.pos.y, cell_side);
+	auto const inner_width = max_ce(geom_value_type{0}, frame.size.width - 2);
+	auto const put_count = min_ce(
+		static_cast<txt::Cursor::difference_type>(inner_width),
+		max_ce(
+			txt::Cursor::difference_type{0},
+			signed_cast(node.points()) - m_field_view.col()
+		)
+	);
+	rd.terminal.put_sequence(
+		frame.pos.x + 1,
+		frame.pos.y,
+		txt::Sequence{
+			&*node.cbegin() + m_field_view.index(),
+			unsigned_cast(max_ce(
+				txt::Cursor::difference_type{0},
+				signed_cast(node.units()) - m_field_view.index()
+			))
+		},
+		put_count, content_fg, content_bg
+	);
+	tty::Cell const cell_clear = tty::make_cell(' ', content_fg, content_bg);
+	rd.terminal.put_line(
+		{
+			static_cast<geom_value_type>(frame.pos.x + 1 + put_count),
+			frame.pos.y
+		},
+		inner_width - put_count, Axis::horizontal, cell_clear
+	);
+	cell_side.u8block.assign(']');
+	rd.terminal.put_cell(
+		frame.pos.x + frame.size.width - 1,
+		frame.pos.y,
+		cell_side
+	);
+	rd.terminal.set_caret_pos(
+		frame.pos.x
+		+ min_ce(
+			inner_width,
+			1 + static_cast<geom_value_type>(
+				m_field_cursor.col() - m_field_view.col()
+			)
+		),
+		frame.pos.y
+	);
+}
+
+bool
+TableGrid::field_input(
+	char32 cp
+) noexcept {
+	static duct::CharacterSet const
+	s_field_input_blacklist{"\t"};
+
+	if (s_field_input_blacklist.contains(cp)) {
+		return false;
+	}
+	auto const& node = m_field_cursor.get_node();
+	char32 const first_cp = node.empty() ? codepoint_none : *node.cbegin();
+	switch (m_field_type.type()) {
+	case Hord::Data::ValueType::integer:
+		if (!(
+			('0' <= cp && cp <= '9') ||
+			(
+				cp == '-' &&
+				first_cp != '-' &&
+				m_field_cursor.col() == 0 &&
+				enum_bitand(m_field_type.flags(), Hord::Data::ValueFlag::integer_signed)
+			)
+		)) {
+			return false;
+		}
+		break;
+
+	case Hord::Data::ValueType::decimal: {
+		if (!(
+			('0' <= cp && cp <= '9') ||
+			(
+				cp == '-' &&
+				first_cp != '-' &&
+				m_field_cursor.col() == 0
+			) ||
+			(
+				cp == '.' &&
+				(first_cp != '-' || m_field_cursor.col() > 0) &&
+				std::find(node.cbegin(), node.cend(), '.') == node.cend()
+			)
+		)) {
+			return false;
+		}
+	}
+
+	default: break;
+	}
+	m_field_cursor.insert_step(cp);
+	return true;
 }
 
 #undef GRID_TMP_COLUMN_WIDTH
