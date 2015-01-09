@@ -84,21 +84,11 @@ void
 BasicGrid::render_impl(
 	UI::Widget::RenderData& rd
 ) noexcept {
-	/*DUCT_DEBUGF(
-		"clearing render: %d",
-		signed{!enum_bitand(
-			get_queued_actions(),
-			UI::UpdateActions::flag_noclear
-		)}
-	);*/
-
 	UI::GridRenderData grid_rd{
 		rd,
 		is_focused(),
 		is_focused()
 	};
-	auto const& view = get_view();
-
 	render_view(
 		grid_rd,
 		!enum_bitand(
@@ -107,6 +97,7 @@ BasicGrid::render_impl(
 		)
 	);
 
+	auto const& view = get_view();
 	Rect const empty_frame{
 		{view.content_frame.pos.x, view.content_frame.pos.y + view.row_count},
 		{
@@ -305,18 +296,12 @@ BasicGrid::set_cursor(
 			value_in_bounds(m_cursor.row, 0, get_row_count()) &&
 			value_in_bounds(m_cursor.col, 0, get_col_count())
 		) {
-			/*m_rows[m_cursor.row][m_cursor.col].states.disable(
-				Column::Flags::focused
-			);*/
 			queue_cell_render(
 				m_cursor.row, m_cursor.row + 1,
 				m_cursor.col, m_cursor.col + 1
 			);
 		}
 		if (!m_rows.empty()) {
-			/*m_rows[row][col].states.enable(
-				Column::Flags::focused
-			);*/
 			queue_cell_render(
 				row, row + 1,
 				col, col + 1
