@@ -54,19 +54,21 @@ TableGrid::handle_event_impl(
 		if (has_input_control()) {
 			bool const handled = m_field->handle_event(event);
 			if (handled && !m_field->has_input_control()) {
-				String const edit_value{m_field->get_text()};
-				auto const field_type = m_table.column(m_cursor.col).type;
-				if (
-					field_type == Hord::Data::ValueType::string ||
-					field_type == Hord::Data::ValueType::dynamic
-				) {
-					// TODO: Use callback instead
-					auto it = m_table.iterator_at(m_cursor.row);
-					it.set_field(m_cursor.col, edit_value);
-					m_object.get_prop_states().assign(
-						m_prop_type,
-						Hord::IO::PropState::modified
-					);
+				if (event.key_input.code != UI::KeyCode::esc) {
+					String const edit_value{m_field->get_text()};
+					auto const field_type = m_table.column(m_cursor.col).type;
+					if (
+						field_type == Hord::Data::ValueType::string ||
+						field_type == Hord::Data::ValueType::dynamic
+					) {
+						// TODO: Use callback instead
+						auto it = m_table.iterator_at(m_cursor.row);
+						it.set_field(m_cursor.col, edit_value);
+						m_object.get_prop_states().assign(
+							m_prop_type,
+							Hord::IO::PropState::modified
+						);
+					}
 				}
 				set_input_control(false);
 				m_field->clear_actions();
