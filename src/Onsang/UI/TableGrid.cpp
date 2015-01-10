@@ -93,6 +93,7 @@ TableGrid::handle_event_impl(
 			auto const& column = m_table.get_schema().column(m_cursor.col);
 			auto const value = m_table.iterator_at(m_cursor.row).get_field(m_cursor.col);
 			// TODO: object_id handling (translate to/from path)
+			// TODO: Size limit for string
 			if (
 				(
 					value.type == Hord::Data::ValueType::null &&
@@ -102,9 +103,11 @@ TableGrid::handle_event_impl(
 			) {
 				return true;
 			}
-			switch (value.type.type()) {
+			m_field_type = value.type;
+			switch (m_field_type.type()) {
 			case Hord::Data::ValueType::null:
 				m_field_cursor.clear();
+				m_field_type = column.type;
 				break;
 
 			case Hord::Data::ValueType::string:
@@ -122,7 +125,6 @@ TableGrid::handle_event_impl(
 				);
 			}	break;
 			}
-			m_field_type = value.type;
 			reflow_field();
 			set_input_control(true);
 			return true;
@@ -139,21 +141,17 @@ TableGrid::handle_event_impl(
 			if (!m_field_text_tree.empty()) {
 				m_field_cursor.col_extent(txt::Extent::tail);
 				switch (m_field_type.type()) {
+				case Hord::Data::ValueType::dynamic:
 				case Hord::Data::ValueType::integer:
-					m_field_cursor.insert('\0');
-					if (enum_bitand(m_field_type.flags(), Hord::Data::ValueFlag::integer_signed)) {
-						new_value = std::int64_t{std::strtoll(&*node.cbegin(), nullptr, 10)};
-					} else {
-						new_value = std::uint64_t{std::strtoull(&*node.cbegin(), nullptr, 10)};
-					}
-					break;
 				case Hord::Data::ValueType::decimal:
 					m_field_cursor.insert('\0');
-					new_value = std::strtod(&*node.cbegin(), nullptr);
+					new_value.read_from_string(node.units() - 1, &*node.cbegin());
 					break;
+
 				case Hord::Data::ValueType::string:
 					new_value = m_field_text_tree.to_string();
 					break;
+
 				default: break;
 				}
 			}
