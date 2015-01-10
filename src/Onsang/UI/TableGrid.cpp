@@ -292,15 +292,16 @@ TableGrid::render_content(
 	char value_buffer[48];
 	duct::IO::omemstream format_stream{value_buffer, sizeof(value_buffer)};
 	auto cell = tty::make_cell(' ');
+	tty::attr_type attr_fg;
 	txt::Sequence seq{};
 	Hord::Data::ValueRef value{};
 	Hord::Data::Table::Iterator it_table = m_table.iterator_at(row_begin);
 	for (UI::index_type row = row_begin; row < row_end; ++row) {
 		if (m_rows[row].states.test(Row::Flags::selected)) {
-			cell.attr_fg = grid_rd.selected_fg;
+			attr_fg = grid_rd.selected_fg;
 			cell.attr_bg = grid_rd.selected_bg;
 		} else {
-			cell.attr_fg = grid_rd.content_fg;
+			attr_fg = grid_rd.content_fg;
 			cell.attr_bg = grid_rd.content_bg;
 		}
 		cell_frame.pos.x = frame.pos.x + (col_begin - get_view().col_range.x) * GRID_TMP_COLUMN_WIDTH;
@@ -320,6 +321,11 @@ TableGrid::render_content(
 		}
 
 		value = it_table.get_field(col);
+		cell.attr_fg
+			= value.type.type() == Hord::Data::ValueType::null
+			? tty::Color::red
+			: attr_fg
+		;
 		if (value.type.type() == Hord::Data::ValueType::string) {
 			seq = {value.data.string, value.size};
 		} else {
