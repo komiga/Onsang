@@ -25,9 +25,10 @@
 #include <Beard/ui/Field.hpp>
 
 #include <Hord/IO/Defs.hpp>
-#include <Hord/Node/Defs.hpp>
+#include <Hord/Table/Defs.hpp>
+#include <Hord/Table/Unit.hpp>
 #include <Hord/Cmd/Datastore.hpp>
-#include <Hord/Cmd/Node.hpp>
+#include <Hord/Cmd/Table.hpp>
 
 #include <duct/debug.hpp>
 #include <duct/Args.hpp>
@@ -400,7 +401,7 @@ Unit::close_session(
 		<< '\n'
 	;
 	try {
-		auto cmd = Hord::Cmd::Datastore::StoreAll{session};
+		auto cmd = Hord::Cmd::Datastore::Store{session};
 		if (!cmd()) {
 			ONSANG_THROW_FMT(
 				ErrorCode::command_failed,
