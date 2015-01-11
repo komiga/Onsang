@@ -21,7 +21,6 @@
 #include <Hord/Object/Defs.hpp>
 #include <Hord/Cmd/Object.hpp>
 
-#include <duct/CharacterSet.hpp>
 #include <duct/IO/memstream.hpp>
 
 #include <cstdlib>
@@ -71,14 +70,6 @@ TableGrid::reflow_impl(
 	}
 }
 
-namespace {
-static KeyInputMatch const
-s_kim_field_icontrol[]{
-	{KeyMod::none, KeyCode::enter, codepoint_none, false}/*,
-	{KeyMod::none, KeyCode::none, ' ', false}*/
-};
-}; // anonymous namespace
-
 bool
 TableGrid::handle_event_impl(
 	UI::Event const& event
@@ -89,82 +80,88 @@ TableGrid::handle_event_impl(
 		return false;
 	}
 	if (!has_input_control()) {
-		if (key_input_match(event.key_input, s_kim_field_icontrol)) {
-			auto const& column = m_table.get_schema().column(m_cursor.col);
-			auto const value = m_table.iterator_at(m_cursor.row).get_field(m_cursor.col);
-			// TODO: object_id handling (translate to/from path)
-			// TODO: Size limit for string
-			if (
-				(
-					value.type == Hord::Data::ValueType::null &&
-					column.type != Hord::Data::ValueType::dynamic
-				) ||
-				value.type == Hord::Data::ValueType::object_id
-			) {
-				return true;
-			}
-			m_field_type = value.type;
+		if (
+			event.key_input.code != KeyCode::enter &&
+			event.key_input.cp != '*'
+		) {
+			return false;
+		}
+		auto const& column = m_table.get_schema().column(m_cursor.col);
+		auto const value = m_table.iterator_at(m_cursor.row).get_field(m_cursor.col);
+		// TODO: object_id handling (translate to/from path)
+		// TODO: Size limit for string
+		if (
+			(
+				value.type == Hord::Data::ValueType::null &&
+				column.type != Hord::Data::ValueType::dynamic
+			) ||
+			value.type == Hord::Data::ValueType::object_id
+		) {
+			return true;
+		}
+		m_field_type = value.type;
+		switch (m_field_type.type()) {
+		case Hord::Data::ValueType::null:
+			m_field_cursor.clear();
+			m_field_type = column.type;
+			break;
+
+		case Hord::Data::ValueType::string:
+			m_field_cursor.assign(value.data.string, value.size);
+			break;
+
+		default: {
+			char value_buffer[48];
+			duct::IO::omemstream format_stream{value_buffer, sizeof(value_buffer)};
+			format_stream << value;
+			m_field_cursor.assign(
+				value_buffer,
+				static_cast<unsigned>(format_stream.tellp())
+			);
+		}	break;
+		}
+		if (event.key_input.cp == '*') {
+			m_field_type = Hord::Data::ValueType::dynamic;
+		}
+		reflow_field();
+		set_input_control(true);
+		return true;
+	} else if (event.key_input.code == KeyCode::enter) {
+		// TODO: Use callback instead
+		String string_value;
+		Hord::Data::ValueRef new_value{};
+		if (!m_field_text_tree.empty()) {
+			m_field_cursor.col_extent(txt::Extent::tail);
+			auto const& node = m_field_cursor.get_node();
 			switch (m_field_type.type()) {
-			case Hord::Data::ValueType::null:
-				m_field_cursor.clear();
-				m_field_type = column.type;
+			case Hord::Data::ValueType::dynamic:
+			case Hord::Data::ValueType::integer:
+			case Hord::Data::ValueType::decimal:
+				m_field_cursor.insert('\0');
+				new_value.read_from_string(node.units() - 1, &*node.cbegin());
 				break;
 
 			case Hord::Data::ValueType::string:
-				m_field_cursor.assign(value.data.string, value.size);
+				string_value = m_field_text_tree.to_string();
+				new_value = string_value;
 				break;
 
-			default: {
-				char value_buffer[48];
-				duct::IO::omemstream format_stream{value_buffer, sizeof(value_buffer)};
-				format_stream.seekp(0);
-				format_stream << value;
-				m_field_cursor.assign(
-					value_buffer,
-					static_cast<unsigned>(format_stream.tellp())
-				);
-			}	break;
-			}
-			reflow_field();
-			set_input_control(true);
-			return true;
-		}
-	} else if (
-		key_input_match(event.key_input, s_kim_field_icontrol) ||
-		KeyCode::esc == event.key_input.code
-	) {
-		if (event.key_input.code != UI::KeyCode::esc) {
-			auto const& node = m_field_cursor.get_node();
-			// auto const field_type = m_table.column(m_cursor.col).type;
-			// TODO: Use callback instead
-			Hord::Data::ValueRef new_value{};
-			if (!m_field_text_tree.empty()) {
-				m_field_cursor.col_extent(txt::Extent::tail);
-				switch (m_field_type.type()) {
-				case Hord::Data::ValueType::dynamic:
-				case Hord::Data::ValueType::integer:
-				case Hord::Data::ValueType::decimal:
-					m_field_cursor.insert('\0');
-					new_value.read_from_string(node.units() - 1, &*node.cbegin());
-					break;
-
-				case Hord::Data::ValueType::string:
-					new_value = m_field_text_tree.to_string();
-					break;
-
-				default: break;
-				}
-			}
-			auto it = m_table.iterator_at(m_cursor.row);
-			auto const old_value = it.get_field(m_cursor.col);
-			if (old_value != new_value) {
-				it.set_field(m_cursor.col, new_value);
-				m_object.get_prop_states().assign(
-					m_prop_type,
-					Hord::IO::PropState::modified
-				);
+			default: break;
 			}
 		}
+		auto it = m_table.iterator_at(m_cursor.row);
+		auto const old_value = it.get_field(m_cursor.col);
+		if (old_value != new_value) {
+			it.set_field(m_cursor.col, new_value);
+			m_object.get_prop_states().assign(
+				m_prop_type,
+				Hord::IO::PropState::modified
+			);
+		}
+		m_field_cursor.clear();
+		set_input_control(false);
+		return true;
+	} else if (event.key_input.code == KeyCode::esc) {
 		m_field_cursor.clear();
 		set_input_control(false);
 		return true;
@@ -472,48 +469,42 @@ TableGrid::render_field(
 
 bool
 TableGrid::field_input(
-	char32 cp
+	char32 const cp
 ) noexcept {
-	static duct::CharacterSet const
-	s_field_input_blacklist{"\t"};
-
-	if (s_field_input_blacklist.contains(cp)) {
+	// Blacklist
+	if (cp == '\t') {
 		return false;
 	}
-	auto const& node = m_field_cursor.get_node();
-	char32 const first_cp = node.empty() ? codepoint_none : *node.cbegin();
 	switch (m_field_type.type()) {
 	case Hord::Data::ValueType::integer:
 		if (!(
 			('0' <= cp && cp <= '9') ||
-			(
-				cp == '-' &&
-				first_cp != '-' &&
-				m_field_cursor.col() == 0 &&
-				enum_bitand(m_field_type.flags(), Hord::Data::ValueFlag::integer_signed)
-			)
+			cp == '-' || cp == '+'
 		)) {
 			return false;
 		}
 		break;
 
-	case Hord::Data::ValueType::decimal: {
+	case Hord::Data::ValueType::decimal:
 		if (!(
 			('0' <= cp && cp <= '9') ||
-			(
-				cp == '-' &&
-				first_cp != '-' &&
-				m_field_cursor.col() == 0
-			) ||
-			(
-				cp == '.' &&
-				(first_cp != '-' || m_field_cursor.col() > 0) &&
-				std::find(node.cbegin(), node.cend(), '.') == node.cend()
-			)
+			cp == '-' || cp == '+' ||
+			cp == '.' ||
+			cp == 'e' || cp == 'E'
 		)) {
 			return false;
 		}
-	}
+		break;
+
+	case Hord::Data::ValueType::object_id:
+		if (!(
+			('0' <= cp && cp <= '9') ||
+			('a' <= cp && cp <= 'f') ||
+			('A' <= cp && cp <= 'F')
+		)) {
+			return false;
+		}
+		break;
 
 	default: break;
 	}
