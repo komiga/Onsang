@@ -44,18 +44,17 @@ private:
 	using base = UI::Widget::Base;
 	enum class ctor_priv {};
 
-	UI::CommandStatusLine::MessageType
-	m_message_type{
-		UI::CommandStatusLine::MessageType::description
-	};
+public:
+	UI::CommandStatusLine::MessageType m_message_type{};
 	String m_message{};
 	String m_location{};
 
-	UI::Widget::WPtr m_prev_focus;
+	UI::Widget::WPtr m_prev_focus{};
 	txt::Tree m_field_text_tree;
 	txt::Cursor m_field_cursor;
 	txt::Cursor m_field_view;
 
+private:
 	CommandStatusLine() noexcept = delete;
 	CommandStatusLine(CommandStatusLine const&) = delete;
 	CommandStatusLine& operator=(CommandStatusLine const&) = delete;

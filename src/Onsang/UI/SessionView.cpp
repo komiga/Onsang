@@ -27,9 +27,9 @@ SessionView::add_object_view(
 	if (!object) {
 		return;
 	}
-	for (auto const& tab : m_container->get_tabs()) {
+	for (auto const& tab : m_container->m_tabs) {
 		auto const object_view = std::static_pointer_cast<UI::ObjectView>(tab.widget);
-		if (object_view && object_view->get_object().get_id() == object->get_id()) {
+		if (object_view && object_view->m_object.get_id() == object->get_id()) {
 			return;
 		}
 	}
@@ -54,12 +54,12 @@ void
 SessionView::update_view_title(
 	Hord::Object::ID const object_id
 ) {
-	auto const& tabs = m_container->get_tabs();
+	auto const& tabs = m_container->m_tabs;
 	for (unsigned index = 0; index < tabs.size(); ++index) {
 		auto const& tab = tabs[index];
 		auto const object_view = std::static_pointer_cast<UI::ObjectView>(tab.widget);
-		if (object_view && object_view->get_object().get_id() == object_id) {
-			m_container->set_title(index, object_view->get_object().get_slug());
+		if (object_view && object_view->m_object.get_id() == object_id) {
+			m_container->set_title(index, object_view->m_object.get_slug());
 			return;
 		}
 	}

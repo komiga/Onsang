@@ -40,10 +40,12 @@ private:
 	using base = UI::Widget::Base;
 	enum class ctor_priv {};
 
+public:
 	System::Session& m_session;
 	Hord::Object::Unit& m_object;
 	UI::TabbedContainer::SPtr m_container;
 
+private:
 	ObjectView() noexcept = delete;
 	ObjectView(ObjectView const&) = delete;
 	ObjectView& operator=(ObjectView const&) = delete;
@@ -139,27 +141,6 @@ public:
 		);
 		widget->m_container->set_parent(UI::Widget::WPtr{widget}, 0);
 		return widget;
-	}
-
-// properties
-	System::Session&
-	get_session() noexcept{
-		return m_session;
-	}
-
-	Hord::Object::Unit&
-	get_object() noexcept {
-		return m_object;
-	}
-
-	Hord::Object::Unit const&
-	get_object() const noexcept {
-		return m_object;
-	}
-
-	UI::TabbedContainer::SPtr
-	get_container() noexcept {
-		return m_container;
 	}
 
 // operations

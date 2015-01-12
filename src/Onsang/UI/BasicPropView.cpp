@@ -30,8 +30,8 @@ add_basic_prop_view(
 ) {
 	auto& obj_view = *obj_view_ptr;
 	auto const root = obj_view.get_root();
-	auto& session = obj_view.get_session();
-	auto& object = obj_view.get_object();
+	auto& session = obj_view.m_session;
+	auto& object = obj_view.m_object;
 
 	auto const cont = UI::Container::make(root, UI::Axis::vertical);
 	cont->get_geometry().set_sizing(UI::Axis::both, UI::Axis::both);
@@ -43,9 +43,9 @@ add_basic_prop_view(
 		UI::Field::SPtr field_slug,
 		bool const accept
 	) {
-		auto& object = obj_view.get_object();
+		auto& object = obj_view.m_object;
 		if (accept) {
-			Hord::Cmd::Object::SetSlug cmd{obj_view.get_session()};
+			Hord::Cmd::Object::SetSlug cmd{obj_view.m_session};
 			if (!cmd(object, field_slug->get_text())) {
 				field_slug->set_text(object.get_slug());
 			}

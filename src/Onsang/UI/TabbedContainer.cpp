@@ -8,6 +8,8 @@
 #include <Onsang/UI/Defs.hpp>
 #include <Onsang/UI/TabbedContainer.hpp>
 
+#include <Beard/txt/Defs.hpp>
+#include <Beard/tty/Defs.hpp>
 #include <Beard/ui/Widget/Base.hpp>
 #include <Beard/ui/Root.hpp>
 
@@ -72,7 +74,7 @@ TabbedContainer::render_impl(
 		rd.terminal.put_sequence(
 			frame.pos.x + xpos,
 			frame.pos.y,
-			Beard::txt::Sequence{tab.title, 0u, tab.title.size()},
+			txt::Sequence{tab.title, 0u, tab.title.size()},
 			unsigned_cast(max_ce(0, frame.size.width)),
 			rd.get_attr(active
 				? ui::property_content_fg_selected
@@ -91,11 +93,11 @@ TabbedContainer::render_impl(
 			rd.terminal.put_cell(
 				frame.pos.x + xpos,
 				frame.pos.y,
-				Beard::tty::make_cell(
+				tty::make_cell(
 					U'│',
-					Beard::tty::Attr::bold |
-					Beard::tty::Color::blue,
-					Beard::tty::Color::term_default
+					tty::Attr::bold |
+					tty::Color::blue,
+					tty::Color::term_default
 				)
 			);
 			xpos += 2;

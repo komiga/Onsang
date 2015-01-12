@@ -39,9 +39,11 @@ private:
 	using base = UI::Widget::Base;
 	enum class ctor_priv {};
 
+public:
 	System::Session& m_session;
 	UI::TabbedContainer::SPtr m_container;
 
+private:
 	SessionView() noexcept = delete;
 	SessionView(SessionView const&) = delete;
 	SessionView& operator=(SessionView const&) = delete;
@@ -138,17 +140,6 @@ public:
 		);
 		widget->m_container->set_parent(UI::Widget::WPtr{widget}, 0);
 		return widget;
-	}
-
-// properties
-	System::Session&
-	get_session() noexcept{
-		return m_session;
-	}
-
-	UI::TabbedContainer::SPtr
-	get_view_container() noexcept {
-		return m_container;
 	}
 
 // operations

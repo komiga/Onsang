@@ -30,15 +30,16 @@ class TabbedContainer
 public:
 	using SPtr = aux::shared_ptr<UI::TabbedContainer>;
 
-private:
-	using base = UI::Widget::Base;
-	enum class ctor_priv {};
-
 	struct Tab {
 		String title;
 		UI::Widget::SPtr widget;
 	};
 
+private:
+	using base = UI::Widget::Base;
+	enum class ctor_priv {};
+
+public:
 	unsigned m_position;
 	aux::vector<Tab> m_tabs;
 
@@ -46,6 +47,7 @@ private:
 	TabbedContainer(TabbedContainer const&) = delete;
 	TabbedContainer& operator=(TabbedContainer const&) = delete;
 
+private:
 	void push_back(UI::Widget::SPtr /*widget*/);
 
 protected:
@@ -115,16 +117,6 @@ public:
 	bool
 	empty() const noexcept {
 		return m_tabs.empty();
-	}
-
-	aux::vector<Tab> const&
-	get_tabs() const noexcept {
-		return m_tabs;
-	}
-
-	unsigned
-	get_tab() const noexcept {
-		return m_position;
 	}
 
 	unsigned

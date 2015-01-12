@@ -447,7 +447,7 @@ App::ui_event_filter(
 	} else if (Beard::key_input_match(event.key_input, s_kim_cline)) {
 		m_ui.csline->prompt_command();
 	} else if (m_session) {
-		auto const ov_cont = m_session->get_view()->get_view_container();
+		auto const ov_cont = m_session->get_view()->m_container;
 		switch (event.key_input.cp) {
 		case '1': ov_cont->prev_tab(); break;
 		case '2': ov_cont->next_tab(); break;

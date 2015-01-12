@@ -38,18 +38,17 @@ public:
 
 	using row_vector_type = aux::vector<Row>;
 
-private:
-	BasicGrid() noexcept = delete;
-	BasicGrid(BasicGrid const&) = delete;
-	BasicGrid& operator=(BasicGrid const&) = delete;
-
-protected:
 	struct {
 		UI::index_type col{-1};
 		UI::index_type row{-1};
 	} m_cursor{};
 
 	row_vector_type m_rows;
+
+private:
+	BasicGrid() noexcept = delete;
+	BasicGrid(BasicGrid const&) = delete;
+	BasicGrid& operator=(BasicGrid const&) = delete;
 
 protected:
 // UI::Widget::Base implementation
@@ -147,11 +146,6 @@ public:
 	BasicGrid& operator=(BasicGrid&&) = default;
 
 public:
-	row_vector_type&
-	get_rows() noexcept {
-		return m_rows;
-	}
-
 	void
 	set_cursor(
 		UI::index_type col,
