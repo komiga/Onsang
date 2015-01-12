@@ -5,6 +5,7 @@
 #include <Onsang/utility.hpp>
 #include <Onsang/UI/Defs.hpp>
 #include <Onsang/UI/BasicGrid.hpp>
+#include <Onsang/App.hpp>
 
 #include <duct/debug.hpp>
 
@@ -75,6 +76,14 @@ BasicGrid::handle_event_impl(
 			m_cursor.row, m_cursor.row + 1,
 			m_cursor.col, m_cursor.col + 1
 		);
+		if (is_focused()) {
+			App::instance.m_ui.csline->set_location(
+				std::to_string(m_cursor.row) + ", " +
+				std::to_string(m_cursor.col)
+			);
+		} else {
+			App::instance.m_ui.csline->clear_location();
+		}
 		return false;
 
 	default:
@@ -317,6 +326,12 @@ BasicGrid::set_cursor(
 		m_cursor.col = col;
 		m_cursor.row = row;
 		adjust_view();
+		if (is_focused()) {
+			App::instance.m_ui.csline->set_location(
+				std::to_string(m_cursor.row) + ", " +
+				std::to_string(m_cursor.col)
+			);
+		}
 	}
 }
 
