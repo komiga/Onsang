@@ -7,6 +7,7 @@
 #include <Onsang/UI/Defs.hpp>
 #include <Onsang/UI/TableGrid.hpp>
 #include <Onsang/UI/ObjectView.hpp>
+#include <Onsang/UI/FieldDescriber.hpp>
 #include <Onsang/UI/BasicPropView.hpp>
 
 #include <Beard/ui/Container.hpp>
@@ -52,6 +53,7 @@ add_basic_prop_view(
 			field_slug->set_text(object.get_slug());
 		}
 	});
+	field_slug->signal_event_filter.bind(UI::FieldDescriber{"slug"});
 
 	// Metadata property
 	if (object.get_metadata().num_fields() == 0) {
@@ -67,6 +69,7 @@ add_basic_prop_view(
 		object.get_metadata().table(),
 		Hord::IO::PropType::metadata
 	);
+	grid_metadata->signal_event_filter.bind(UI::FieldDescriber{"metadata"});
 
 	cont->push_back(std::move(field_slug));
 	cont->push_back(std::move(grid_metadata));
