@@ -44,6 +44,8 @@ namespace Onsang {
 
 // class App implementation
 
+App App::instance{};
+
 #define ONSANG_SCOPE_CLASS App
 
 namespace {

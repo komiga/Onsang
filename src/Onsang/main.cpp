@@ -21,7 +21,7 @@ main(
 	log_controller.stdout(true);
 
 	// Initialize
-	App app{};
+	auto& app = App::instance;
 	bool initialized = false;
 	try {
 		initialized = app.init(argc, argv);

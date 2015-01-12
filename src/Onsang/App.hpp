@@ -33,6 +33,8 @@ namespace Onsang {
 
 class App final {
 public:
+	static App instance;
+
 	enum class Flags : unsigned {
 		no_auto_open = bit(0u),
 		no_stdout    = bit(1u),
