@@ -10,6 +10,7 @@
 #include <Onsang/UI/ObjectView.hpp>
 
 #include <Hord/Object/Unit.hpp>
+#include <Hord/Cmd/Datastore.hpp>
 
 #include <duct/debug.hpp>
 
@@ -30,6 +31,10 @@ SessionView::add_object_view(
 		if (object_view && object_view->get_object().get_id() == object->get_id()) {
 			return;
 		}
+	}
+	{// Ensure data props are loaded
+		Hord::Cmd::Datastore::Load cmd{m_session};
+		cmd(object_id, Hord::IO::PropTypeBit::data);
 	}
 	m_container->insert(
 		object->get_slug(),
