@@ -15,14 +15,13 @@
 #include <Onsang/System/SessionManager.hpp>
 #include <Onsang/UI/Defs.hpp>
 #include <Onsang/UI/TabbedContainer.hpp>
+#include <Onsang/UI/CommandStatusLine.hpp>
 
 #include <Beard/ui/Defs.hpp>
 #include <Beard/ui/Widget/Defs.hpp>
 #include <Beard/ui/Context.hpp>
 #include <Beard/ui/PropertyMap.hpp>
 #include <Beard/ui/Container.hpp>
-#include <Beard/ui/Label.hpp>
-#include <Beard/ui/Field.hpp>
 
 #include <Hord/IO/Datastore.hpp>
 #include <Hord/System/Driver.hpp>
@@ -49,8 +48,7 @@ public:
 	struct {
 		UI::Context ctx{UI::PropertyMap{true}};
 		UI::Container::SPtr viewc{};
-		UI::Label::SPtr sline{};
-		UI::Field::SPtr cline{};
+		UI::CommandStatusLine::SPtr csline{};
 	} m_ui{};
 	System::Session* m_session{nullptr};
 

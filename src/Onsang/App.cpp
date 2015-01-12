@@ -344,9 +344,9 @@ App::set_session(
 	m_session = session;
 	if (m_session && m_session->is_open()) {
 		m_ui.viewc->push_back(m_session->get_view());
-		m_ui.sline->set_text("session: " + m_session->get_name());
+		m_ui.csline->set_description("switched session: " + m_session->get_name());
 	} else {
-		m_ui.sline->set_text("session: none");
+		m_ui.csline->set_description("switched session: none");
 	}
 }
 
@@ -445,7 +445,7 @@ App::ui_event_filter(
 	if (Beard::key_input_match(event.key_input, s_kim_c)) {
 		m_running = false;
 	} else if (Beard::key_input_match(event.key_input, s_kim_cline)) {
-		m_ui.cline->set_input_control(true);
+		m_ui.csline->prompt_command();
 	} else if (m_session) {
 		auto const ov_cont = m_session->get_view()->get_view_container();
 		switch (event.key_input.cp) {
@@ -480,48 +480,14 @@ App::start_ui() {
 		UI::Axis::both
 	);
 
-	// TODO: Custom widget: sline + cline
-	m_ui.sline = UI::Label::make(root, "session: none");
-	m_ui.sline->get_geometry().set_sizing(
+	m_ui.csline = UI::CommandStatusLine::make(root);
+	m_ui.csline->get_geometry().set_sizing(
 		UI::Axis::horizontal,
 		UI::Axis::horizontal
 	);
-
-	m_ui.cline = UI::Field::make(root, "");
-	m_ui.cline->get_geometry().set_sizing(
-		UI::Axis::horizontal,
-		UI::Axis::horizontal
-	);
-	m_ui.cline->set_visible(false);
-	m_ui.cline->signal_user_modified.bind([this](
-		UI::Field::SPtr /*field*/,
-		bool const accept
-	) {
-		if (!accept) {
-			return;
-		}
-		String const command = m_ui.cline->get_text();
-		if ("q" == command || "quit" == command) {
-			m_running = false;
-		}
-	});
-	m_ui.cline->signal_control_changed.bind([this](
-		UI::Field::SPtr /*field*/,
-		bool const has_control
-	) {
-		m_ui.sline->set_visible(!has_control);
-		m_ui.cline->set_visible(has_control);
-		if (has_control) {
-			m_ui.cline->set_text("");
-			m_ui.ctx.get_root()->set_focus(m_ui.cline);
-		} else {
-			m_ui.ctx.get_root()->clear_focus();
-		}
-	});
 
 	root->push_back(m_ui.viewc);
-	root->push_back(m_ui.sline);
-	root->push_back(m_ui.cline);
+	root->push_back(m_ui.csline);
 }
 
 void
