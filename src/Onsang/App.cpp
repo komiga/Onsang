@@ -277,7 +277,7 @@ App::init(
 	stream.open(terminfo_path);
 	if (stream.is_open()) {
 		try {
-			m_ui_ctx.get_terminal().get_info().deserialize(stream);
+			m_ui.ctx.get_terminal().get_info().deserialize(stream);
 			stream.close();
 		} catch (Beard::Error& err) {
 			Log::acquire(Log::error)
@@ -298,7 +298,7 @@ App::init(
 	}
 
 	// Update terminal cap cache
-	m_ui_ctx.get_terminal().update_cache();
+	m_ui.ctx.get_terminal().update_cache();
 
 	// Initialize driver
 	driver_init(m_driver);
@@ -362,7 +362,7 @@ App::init_session(
 		<< '\n'
 	;
 	try {
-		session.open(m_ui_ctx.get_root());
+		session.open(m_ui.ctx.get_root());
 		auto cmd = Hord::Cmd::Datastore::Init{session};
 		if (!cmd(Hord::IO::PropTypeBit::base)) {
 			// TODO: set status line
@@ -464,13 +464,13 @@ App::ui_event_filter(
 
 void
 App::start_ui() {
-	m_ui_ctx.open(Beard::tty::this_path(), true);
-	auto& pmap = m_ui_ctx.get_property_map().find(UI::group_default)->second;
+	m_ui.ctx.open(Beard::tty::this_path(), true);
+	auto& pmap = m_ui.ctx.get_property_map().find(UI::group_default)->second;
 	pmap.find(UI::property_field_content_underline)->second.set_boolean(false);
 	pmap.find(UI::property_frame_debug_enabled)->second.set_boolean(false);
 
-	auto root = UI::Root::make(m_ui_ctx, UI::Axis::vertical);
-	m_ui_ctx.set_root(root);
+	auto const root = UI::Root::make(m_ui.ctx, UI::Axis::vertical);
+	m_ui.ctx.set_root(root);
 
 	m_ui.viewc = UI::Container::make(root, UI::Axis::vertical);
 	m_ui.viewc->get_geometry().set_sizing(
@@ -511,9 +511,9 @@ App::start_ui() {
 		m_ui.cline->set_visible(has_control);
 		if (has_control) {
 			m_ui.cline->set_text("");
-			m_ui_ctx.get_root()->set_focus(m_ui.cline);
+			m_ui.ctx.get_root()->set_focus(m_ui.cline);
 		} else {
-			m_ui_ctx.get_root()->clear_focus();
+			m_ui.ctx.get_root()->clear_focus();
 		}
 	});
 
@@ -544,11 +544,11 @@ App::start() try {
 	}
 
 	// Event loop
-	m_ui_ctx.render(true);
+	m_ui.ctx.render(true);
 	m_running = true;
 	while (m_running) {
-		if (!m_ui_ctx.update(20u)) {
-			ui_event_filter(m_ui_ctx.get_last_event());
+		if (!m_ui.ctx.update(20u)) {
+			ui_event_filter(m_ui.ctx.get_last_event());
 		}
 		// TODO: Process data from sessions, handle global hotkeys
 		m_session_manager.process();
@@ -561,7 +561,7 @@ App::start() try {
 	}
 
 	m_ui.viewc->clear();
-	m_ui_ctx.close();
+	m_ui.ctx.close();
 
 	toggle_stdout(true);
 } catch (...) {

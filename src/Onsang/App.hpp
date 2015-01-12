@@ -33,13 +33,6 @@ namespace Onsang {
 
 class App final {
 public:
-	struct UIBucket {
-		UI::Container::SPtr viewc{};
-		UI::Label::SPtr sline{};
-		UI::Field::SPtr cline{};
-	};
-
-private:
 	enum class Flags : unsigned {
 		no_auto_open = bit(0u),
 		no_stdout    = bit(1u),
@@ -51,21 +44,26 @@ private:
 	System::SessionManager m_session_manager;
 
 	bool m_running{false};
-	UI::Context m_ui_ctx{UI::PropertyMap{true}};
-	UIBucket m_ui{};
+	struct {
+		UI::Context ctx{UI::PropertyMap{true}};
+		UI::Container::SPtr viewc{};
+		UI::Label::SPtr sline{};
+		UI::Field::SPtr cline{};
+	} m_ui{};
 	System::Session* m_session{nullptr};
 
 	ConfigNode m_config;
 	ConfigNode m_args;
 
-	App(App const&) = delete;
-	App& operator=(App const&) = delete;
-	App& operator=(App&&) = delete;
-
 	void
 	toggle_stdout(
 		bool const enable
 	);
+
+private:
+	App(App const&) = delete;
+	App& operator=(App const&) = delete;
+	App& operator=(App&&) = delete;
 
 public:
 // constructors, destructor, and operators
@@ -129,27 +127,6 @@ public:
 			}}
 		})
 	{}
-
-// properties
-	Hord::System::Driver&
-	get_driver() noexcept {
-		return m_driver;
-	}
-
-	System::SessionManager&
-	get_session_manager() noexcept {
-		return m_session_manager;
-	}
-
-	UI::Context&
-	get_ui_context() noexcept {
-		return m_ui_ctx;
-	}
-
-	UIBucket&
-	get_ui() noexcept {
-		return m_ui;
-	}
 
 // operations
 	bool
