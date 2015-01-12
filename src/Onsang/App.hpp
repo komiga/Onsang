@@ -2,7 +2,7 @@
 @copyright MIT license; see @ref index or the accompanying LICENSE file.
 
 @file
-@brief Unit.
+@brief App class.
 */
 
 #pragma once
@@ -30,9 +30,8 @@
 #include <duct/StateStore.hpp>
 
 namespace Onsang {
-namespace Client {
 
-class Unit final {
+class App final {
 public:
 	struct UIBucket {
 		UI::Container::SPtr viewc{};
@@ -59,9 +58,9 @@ private:
 	ConfigNode m_config;
 	ConfigNode m_args;
 
-	Unit(Unit const&) = delete;
-	Unit& operator=(Unit const&) = delete;
-	Unit& operator=(Unit&&) = delete;
+	App(App const&) = delete;
+	App& operator=(App const&) = delete;
+	App& operator=(App&&) = delete;
 
 	void
 	toggle_stdout(
@@ -70,10 +69,10 @@ private:
 
 public:
 // constructors, destructor, and operators
-	~Unit() = default;
-	Unit(Unit&&) = default;
+	~App() = default;
+	App(App&&) = default;
 
-	Unit()
+	App()
 		: m_session_manager(m_driver)
 		, m_config(
 			{},
@@ -198,5 +197,4 @@ public:
 	start();
 };
 
-} // namespace Client
 } // namespace Onsang

@@ -10,7 +10,7 @@
 #include <Onsang/UI/SessionView.hpp>
 #include <Onsang/UI/ObjectView.hpp>
 #include <Onsang/UI/BasicPropView.hpp>
-#include <Onsang/Client/Unit.hpp>
+#include <Onsang/App.hpp>
 
 #include <Beard/keys.hpp>
 #include <Beard/tty/Defs.hpp>
@@ -41,11 +41,10 @@
 #include <Onsang/detail/gr_ceformat.hpp>
 
 namespace Onsang {
-namespace Client {
 
-// class Unit implementation
+// class App implementation
 
-#define ONSANG_SCOPE_CLASS Client::Unit
+#define ONSANG_SCOPE_CLASS App
 
 namespace {
 ONSANG_DEF_FMT_CLASS(
@@ -55,7 +54,7 @@ ONSANG_DEF_FMT_CLASS(
 } // anonymous namespace
 
 void
-Unit::toggle_stdout(
+App::toggle_stdout(
 	bool const enable
 ) {
 	if (m_flags.test(Flags::no_stdout)) {
@@ -80,7 +79,7 @@ Unit::toggle_stdout(
 }
 
 bool
-Unit::add_session(
+App::add_session(
 	String const& type,
 	String const& name,
 	String const& path,
@@ -114,7 +113,7 @@ Unit::add_session(
 }
 
 bool
-Unit::init(
+App::init(
 	signed const argc,
 	char* argv[]
 ) {
@@ -333,7 +332,7 @@ Unit::init(
 }
 
 void
-Unit::set_session(
+App::set_session(
 	System::Session* const session
 ) {
 	if (m_session == session) {
@@ -350,7 +349,7 @@ Unit::set_session(
 }
 
 void
-Unit::init_session(
+App::init_session(
 	System::Session& session
 ) {
 	if (session.is_open()) {
@@ -388,7 +387,7 @@ Unit::init_session(
 }
 
 void
-Unit::close_session(
+App::close_session(
 	System::Session& session
 ) {
 	if (!session.is_open()) {
@@ -434,7 +433,7 @@ s_kim_c{Beard::KeyMod::ctrl, Beard::KeyCode::none, 'c', false},
 s_kim_cline{Beard::KeyMod::none, Beard::KeyCode::none, ':', false};
 
 void
-Unit::ui_event_filter(
+App::ui_event_filter(
 	UI::Event const& event
 ) {
 	if (UI::EventType::key_input != event.type) {
@@ -464,7 +463,7 @@ Unit::ui_event_filter(
 }
 
 void
-Unit::start_ui() {
+App::start_ui() {
 	m_ui_ctx.open(Beard::tty::this_path(), true);
 	auto& pmap = m_ui_ctx.get_property_map().find(UI::group_default)->second;
 	pmap.find(UI::property_field_content_underline)->second.set_boolean(false);
@@ -524,7 +523,7 @@ Unit::start_ui() {
 }
 
 void
-Unit::start() try {
+App::start() try {
 	// The terminal will get all screwy if we don't disable stdout
 	toggle_stdout(false);
 
@@ -573,5 +572,4 @@ Unit::start() try {
 
 #undef ONSANG_SCOPE_CLASS
 
-} // namespace Client
 } // namespace Onsang

@@ -5,7 +5,7 @@
 #include <Onsang/config.hpp>
 #include <Onsang/Log.hpp>
 #include <Onsang/ConfigNode.hpp>
-#include <Onsang/Client/Unit.hpp>
+#include <Onsang/App.hpp>
 
 #include <exception>
 
@@ -21,10 +21,10 @@ main(
 	log_controller.stdout(true);
 
 	// Initialize
-	Client::Unit unit{};
+	App app{};
 	bool initialized = false;
 	try {
-		initialized = unit.init(argc, argv);
+		initialized = app.init(argc, argv);
 	} catch (...) {
 		Log::report_error_ptr(std::current_exception());
 	}
@@ -40,10 +40,10 @@ main(
 		Log::acquire()
 			<< "Starting\n"
 		;
-		unit.start();
+		app.start();
 	} catch (...) {
 		Log::acquire(Log::error)
-			<< "Error running unit:\n"
+			<< "Error running app:\n"
 		;
 		Log::report_error_ptr(std::current_exception());
 		return -2;
