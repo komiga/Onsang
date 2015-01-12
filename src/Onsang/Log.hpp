@@ -11,9 +11,7 @@
 #include <Onsang/Error.hpp>
 #include <Onsang/serialization.hpp>
 
-#ifdef ONSANG_CLIENT
 #include <Beard/Error.hpp>
-#endif
 
 #include <Hord/Log.hpp>
 #include <Hord/Error.hpp>
@@ -26,7 +24,6 @@ namespace Log {
 using Hord::Log::report_error;
 using namespace Hord::Log;
 
-#ifdef ONSANG_CLIENT
 inline void
 report_error(
 	Beard::Error const& err
@@ -37,7 +34,6 @@ report_error(
 		<< '\n'
 	;
 }
-#endif
 
 inline void
 report_error(

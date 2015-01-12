@@ -19,7 +19,7 @@ precore.make_solution(
 -- Client
 
 precore.make_project(
-	"onsang-client",
+	"onsang",
 	"C++", "ConsoleApp",
 	"bin/", "out/",
 	nil,
@@ -29,17 +29,11 @@ precore.make_project(
 )
 
 configuration {"debug"}
-	targetsuffix("_d")
+	targetsuffix("_debug")
 
 configuration {}
-	defines {
-		"ONSANG_CLIENT"
-	}
 	files {
 		"src/**.cpp"
-	}
-	excludes {
-		"src/Onsang/Server/**"
 	}
 
 precore.action_clean("out", "bin")
