@@ -10,6 +10,7 @@
 #include <Onsang/UI/ObjectView.hpp>
 
 #include <Hord/Object/Unit.hpp>
+#include <Hord/Object/Ops.hpp>
 #include <Hord/Cmd/Datastore.hpp>
 
 #include <duct/debug.hpp>
@@ -34,7 +35,13 @@ SessionView::add_object_view(
 	}
 	{// Ensure data props are loaded
 		Hord::Cmd::Datastore::Load cmd{m_session};
-		cmd(object_id, Hord::IO::PropTypeBit::data);
+		if (!cmd(object_id, Hord::IO::PropTypeBit::data)) {
+			Log::acquire(Log::error)
+				<< "add_object_view: failed to load data props for "
+				<< *object << '\n'
+			;
+			return;
+		}
 	}
 	m_container->insert(
 		object->get_slug(),
