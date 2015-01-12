@@ -13,6 +13,9 @@
 #include <Onsang/UI/Defs.hpp>
 #include <Onsang/UI/TabbedContainer.hpp>
 
+#include <Beard/ui/Widget/Base.hpp>
+#include <Beard/ui/Root.hpp>
+
 #include <Hord/Object/Defs.hpp>
 
 #include <duct/debug.hpp>
@@ -110,7 +113,7 @@ public:
 				UI::Widget::Flags::visible
 			),
 			UI::group_null,
-			{{0, 0}, true, UI::Axis::both, UI::Axis::both},
+			{{0, 0}, false, UI::Axis::both, UI::Axis::both},
 			std::move(root),
 			std::move(parent)
 		)

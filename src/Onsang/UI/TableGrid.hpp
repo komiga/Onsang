@@ -141,7 +141,7 @@ public:
 				UI::Widget::Flags::visible
 			),
 			group,
-			{{0, 0}, true, Axis::both, Axis::both},
+			{{0, 0}, false, Axis::both, Axis::both},
 			std::move(root),
 			std::move(parent),
 			table.num_columns(),

@@ -13,6 +13,7 @@
 #include <Onsang/UI/Defs.hpp>
 
 #include <Beard/ui/Widget/Base.hpp>
+#include <Beard/ui/Root.hpp>
 #include <Beard/ui/ProtoGrid.hpp>
 
 namespace Onsang {
