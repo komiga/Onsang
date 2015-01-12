@@ -96,6 +96,14 @@ Session::notify_complete_impl(
 			static_cast<Hord::Cmd::Object::SetParent const&>(command).get_object_id()
 		);
 		break;
+
+	case Hord::Cmd::Object::SetSlug::COMMAND_ID:
+		if (m_view) {
+			m_view->update_view_title(
+				static_cast<Hord::Cmd::Object::SetSlug const&>(command).get_object_id()
+			);
+		}
+		break;
 	}
 }
 #undef ONSANG_SCOPE_FUNC

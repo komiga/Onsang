@@ -157,6 +157,11 @@ public:
 		Hord::Object::ID const object_id,
 		unsigned const index = static_cast<unsigned>(-1)
 	);
+
+	void
+	update_view_title(
+		Hord::Object::ID const object_id
+	);
 };
 
 } // namespace UI

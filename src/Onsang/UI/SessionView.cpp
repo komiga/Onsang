@@ -50,5 +50,20 @@ SessionView::add_object_view(
 	);
 }
 
+void
+SessionView::update_view_title(
+	Hord::Object::ID const object_id
+) {
+	auto const& tabs = m_container->get_tabs();
+	for (unsigned index = 0; index < tabs.size(); ++index) {
+		auto const& tab = tabs[index];
+		auto const object_view = std::static_pointer_cast<UI::ObjectView>(tab.widget);
+		if (object_view && object_view->get_object().get_id() == object_id) {
+			m_container->set_title(index, object_view->get_object().get_slug());
+			return;
+		}
+	}
+}
+
 } // namespace UI
 } // namespace Onsang
