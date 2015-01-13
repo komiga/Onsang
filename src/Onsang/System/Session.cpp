@@ -62,7 +62,6 @@ Session::notify_complete_impl(
 	Hord::Cmd::UnitBase const& command,
 	Hord::Cmd::type_info const& type_info
 ) noexcept {
-	// TODO: Dispatch to observers
 	Log::acquire(Log::debug)
 		<< "notify_complete: "
 		<< std::hex << type_info.id
@@ -72,38 +71,34 @@ Session::notify_complete_impl(
 		<< '\n'
 	;
 
-	if (!command.ok()) {
-		return;
-	}
-	switch (type_info.id) {
-	case Hord::Cmd::Datastore::Init::COMMAND_ID:
-		// Update root objects
-		m_root_objects.clear();
-		for (auto const& pair : get_datastore().get_objects()) {
-			if (pair.second->get_parent() == Hord::Object::ID_NULL) {
-				m_root_objects.emplace(pair.second->get_id());
-				Log::acquire(Log::debug)
-					<< "root object: "
-					<< *pair.second
-					<< '\n'
-				;
+	if (command.ok_action()) {
+		switch (type_info.id) {
+		case Hord::Cmd::Datastore::Init::COMMAND_ID:
+			// Update root objects
+			m_root_objects.clear();
+			for (auto const& pair : get_datastore().get_objects()) {
+				if (pair.second->get_parent() == Hord::Object::ID_NULL) {
+					m_root_objects.emplace(pair.second->get_id());
+					Log::acquire(Log::debug)
+						<< "root object: "
+						<< *pair.second
+						<< '\n'
+					;
+				}
 			}
-		}
-		break;
+			break;
 
-	case Hord::Cmd::Object::SetParent::COMMAND_ID:
-		root_object_changed(
-			static_cast<Hord::Cmd::Object::SetParent const&>(command).get_object_id()
-		);
-		break;
-
-	case Hord::Cmd::Object::SetSlug::COMMAND_ID:
-		if (m_view) {
-			m_view->update_view_title(
-				static_cast<Hord::Cmd::Object::SetSlug const&>(command).get_object_id()
+		case Hord::Cmd::Object::SetParent::COMMAND_ID:
+			root_object_changed(
+				static_cast<Hord::Cmd::Object::SetParent const&>(command).get_object_id()
 			);
+			break;
 		}
-		break;
+	}
+
+	// Notify views of failed or mutative command execution
+	if ((command.bad() || command.ok_action()) && m_view) {
+		m_view->notify_command(nullptr, command, type_info);
 	}
 }
 #undef ONSANG_SCOPE_FUNC

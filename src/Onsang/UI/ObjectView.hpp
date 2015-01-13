@@ -58,6 +58,13 @@ public:
 	String
 	view_description() noexcept override;
 
+	void
+	notify_command(
+		UI::View* parent_view,
+		Hord::Cmd::UnitBase const& command,
+		Hord::Cmd::type_info const& type_info
+	) noexcept override;
+
 public:
 // special member functions
 	~ObjectView() noexcept override = default;

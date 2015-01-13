@@ -94,5 +94,35 @@ TabbedView::close_sub_view(
 	}
 }
 
+void
+TabbedView::sub_view_title_changed(
+	unsigned index
+) noexcept {
+	if (index < m_container->m_tabs.size()) {
+		auto const& tab = m_container->m_tabs[index];
+		auto const view = std::dynamic_pointer_cast<UI::View>(tab.widget);
+		if (view) {
+			m_container->set_title(index, view->view_title());
+		}
+	}
+}
+
+void
+TabbedView::notify_command(
+	UI::View* const /*parent_view*/,
+	Hord::Cmd::UnitBase const& command,
+	Hord::Cmd::type_info const& type_info
+) noexcept {
+	auto const& tabs = m_container->m_tabs;
+	for (unsigned index = 0; index < tabs.size(); ++index) {
+		auto& tab = tabs[index];
+		auto const view = std::dynamic_pointer_cast<UI::View>(tab.widget);
+		if (!view) {
+			continue;
+		}
+		view->notify_command(this, command, type_info);
+	}
+}
+
 } // namespace UI
 } // namespace Onsang

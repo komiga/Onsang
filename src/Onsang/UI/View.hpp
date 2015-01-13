@@ -12,6 +12,9 @@
 #include <Onsang/String.hpp>
 #include <Onsang/utility.hpp>
 
+#include <Hord/Cmd/Defs.hpp>
+#include <Hord/Cmd/Unit.hpp>
+
 namespace Onsang {
 namespace UI {
 
@@ -91,6 +94,19 @@ public:
 	close_sub_view() noexcept {
 		close_sub_view(sub_view_index());
 	}
+
+	virtual void
+	sub_view_title_changed(
+		unsigned index
+	) noexcept = 0;
+
+// notifications
+	virtual void
+	notify_command(
+		UI::View* parent_view,
+		Hord::Cmd::UnitBase const& command,
+		Hord::Cmd::type_info const& type_info
+	) noexcept = 0;
 };
 inline View::~View() noexcept = default;
 

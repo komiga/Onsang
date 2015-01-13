@@ -10,6 +10,7 @@
 #include <Hord/Object/Defs.hpp>
 #include <Hord/Object/Unit.hpp>
 #include <Hord/Object/Ops.hpp>
+#include <Hord/Cmd/Object.hpp>
 
 #include <ceformat/print.hpp>
 
@@ -30,6 +31,23 @@ ObjectView::view_title() noexcept {
 String
 ObjectView::view_description() noexcept {
 	return "object view: " + ceformat::print<s_fmt_object>(m_object);
+}
+
+void
+ObjectView::notify_command(
+	UI::View* const parent_view,
+	Hord::Cmd::UnitBase const& command,
+	Hord::Cmd::type_info const& type_info
+) noexcept {
+	base::notify_command(parent_view, command, type_info);
+	switch (type_info.id) {
+	case Hord::Cmd::Object::SetSlug::COMMAND_ID:
+		auto const& c = static_cast<Hord::Cmd::Object::SetSlug const&>(command);
+		if (c.ok_action() && c.get_object_id() == m_object.get_id() && parent_view) {
+			parent_view->sub_view_title_changed(UI::Widget::Base::get_index());
+		}
+		break;
+	}
 }
 
 void

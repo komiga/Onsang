@@ -30,6 +30,21 @@ SessionView::view_description() noexcept {
 }
 
 void
+SessionView::notify_command(
+	UI::View* const parent_view,
+	Hord::Cmd::UnitBase const& command,
+	Hord::Cmd::type_info const& type_info
+) noexcept {
+	base::notify_command(parent_view, command, type_info);
+	if (
+		command.bad() &&
+		App::instance.m_session == &m_session
+	) {
+		App::instance.m_ui.csline->set_error(command.get_message());
+	}
+}
+
+void
 SessionView::add_object_view(
 	Hord::Object::ID const object_id,
 	unsigned index
@@ -60,21 +75,6 @@ SessionView::add_object_view(
 	// Show description if the sub view wasn't changed
 	// (e.g., when the tabbed view is empty)
 	App::instance.m_ui.csline->set_description(object_view->view_description());
-}
-
-void
-SessionView::update_view_title(
-	Hord::Object::ID const object_id
-) {
-	auto const& tabs = m_container->m_tabs;
-	for (unsigned index = 0; index < tabs.size(); ++index) {
-		auto const& tab = tabs[index];
-		auto const object_view = std::static_pointer_cast<UI::ObjectView>(tab.widget);
-		if (object_view && object_view->m_object.get_id() == object_id) {
-			m_container->set_title(index, object_view->view_title());
-			return;
-		}
-	}
 }
 
 } // namespace UI

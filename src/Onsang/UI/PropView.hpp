@@ -13,6 +13,7 @@
 #include <Onsang/UI/Defs.hpp>
 #include <Onsang/UI/View.hpp>
 
+#include <Beard/ui/Signal.hpp>
 #include <Beard/ui/Root.hpp>
 #include <Beard/ui/ProtoSlotContainer.hpp>
 
@@ -38,6 +39,13 @@ private:
 
 public:
 	String m_name;
+
+	UI::Signal<void(
+		UI::View* parent_view,
+		UI::PropView& prop_view,
+		Hord::Cmd::UnitBase const& command,
+		Hord::Cmd::type_info const& type_info
+	)> signal_notify_command;
 
 private:
 	PropView() noexcept = delete;
@@ -82,6 +90,22 @@ public:
 		unsigned /*index*/
 	) noexcept override {}
 
+	void
+	sub_view_title_changed(
+		unsigned /*index*/
+	) noexcept override {}
+
+	void
+	notify_command(
+		UI::View* parent_view,
+		Hord::Cmd::UnitBase const& command,
+		Hord::Cmd::type_info const& type_info
+	) noexcept override {
+		if (signal_notify_command.is_bound()) {
+			signal_notify_command(parent_view, *this, command, type_info);
+		}
+	}
+
 public:
 // special member functions
 	~PropView() noexcept override = default;
@@ -109,6 +133,7 @@ public:
 		)
 		, UI::View()
 		, m_name(std::move(name))
+		, signal_notify_command()
 	{}
 
 	PropView(PropView&&) = default;

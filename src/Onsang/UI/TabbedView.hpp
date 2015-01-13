@@ -97,6 +97,18 @@ public:
 		unsigned index
 	) noexcept override;
 
+	void
+	sub_view_title_changed(
+		unsigned index
+	) noexcept override;
+
+	virtual void
+	notify_command(
+		UI::View* parent_view,
+		Hord::Cmd::UnitBase const& command,
+		Hord::Cmd::type_info const& type_info
+	) noexcept override;
+
 public:
 // special member functions
 	virtual
