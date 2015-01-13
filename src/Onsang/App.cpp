@@ -471,7 +471,6 @@ App::ui_event_filter(
 						break;
 					}
 				}
-				Log::acquire(Log::debug) << "key: 0x" << std::hex << static_cast<unsigned>(*it) << '\n';
 				if (*it != '\0') {
 					auto& pv_cont = *std::static_pointer_cast<UI::ObjectView>(
 						tab.widget
