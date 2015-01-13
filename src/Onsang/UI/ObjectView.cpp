@@ -20,8 +20,9 @@ make_object_view(
 	Hord::Object::Unit& object
 ) {
 	auto object_view = UI::ObjectView::make(root, session, object);
-	// TODO: Add props by object type
 	UI::add_base_prop_view(object_view);
+	UI::add_data_prop_view(object_view);
+	object_view->m_container->set_current_tab(object_view->m_container->get_last_index());
 	return object_view;
 }
 
