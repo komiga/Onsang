@@ -134,7 +134,7 @@ public:
 		UI::Widget::SPtr&& widget
 	);
 
-	void
+	unsigned
 	insert(
 		String title,
 		UI::Widget::SPtr widget,

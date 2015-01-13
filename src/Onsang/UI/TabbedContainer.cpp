@@ -128,7 +128,7 @@ TabbedContainer::push_back(
 	set_current_tab(get_last_index());
 }
 
-void
+unsigned
 TabbedContainer::insert(
 	String title,
 	UI::Widget::SPtr widget,
@@ -147,13 +147,14 @@ TabbedContainer::insert(
 		m_tabs.cbegin() + index,
 		Tab{std::move(title), std::move(widget)}
 	);
-	for (; m_tabs.size() > index; ++index) {
-		m_tabs[index].widget->set_index(static_cast<UI::index_type>(index));
+	for (unsigned update_index = index; update_index < m_tabs.size(); ++update_index) {
+		m_tabs[update_index].widget->set_index(static_cast<UI::index_type>(update_index));
 	}
 	queue_actions(enum_combine(
 		UI::UpdateActions::reflow,
 		UI::UpdateActions::render
 	));
+	return index;
 }
 
 void
