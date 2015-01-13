@@ -240,7 +240,7 @@ TableGrid::render_header(
 		if (0 >= cell_frame.size.width) {
 			break;
 		}
-		type_prefix.u8block = s_type_prefix[table_column.type.value()];
+		type_prefix.u8block = s_type_prefix[enum_cast(table_column.type.type())];
 		grid_rd.rd.terminal.put_cell(cell_frame.pos.x + 0, cell_frame.pos.y, type_prefix);
 		type_prefix.u8block = ':';
 		grid_rd.rd.terminal.put_cell(cell_frame.pos.x + 1, cell_frame.pos.y, type_prefix);
