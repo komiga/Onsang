@@ -62,11 +62,18 @@ Session::notify_complete_impl(
 	Hord::Cmd::UnitBase const& command,
 	Hord::Cmd::type_info const& type_info
 ) noexcept {
+	static const char* const
+	result_names[]{
+		"success",
+		"success_no_action",
+		"error",
+	};
+
 	Log::acquire(Log::debug)
 		<< "notify_complete: "
 		<< std::hex << type_info.id
 		<< ' ' << type_info.name
-		<< ", ok: " << (command.ok() ? "yes" : "no")
+		<< ", result: " << result_names[enum_cast(command.get_result())]
 		<< ", message: \"" << command.get_message() << '\"'
 		<< '\n'
 	;
