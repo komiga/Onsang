@@ -9,12 +9,12 @@
 
 #include <Onsang/config.hpp>
 #include <Onsang/aux.hpp>
+#include <Onsang/String.hpp>
 #include <Onsang/utility.hpp>
 #include <Onsang/System/Session.hpp>
 #include <Onsang/UI/Defs.hpp>
-#include <Onsang/UI/TabbedContainer.hpp>
+#include <Onsang/UI/TabbedView.hpp>
 
-#include <Beard/ui/Widget/Base.hpp>
 #include <Beard/ui/Root.hpp>
 
 #include <Hord/Object/Defs.hpp>
@@ -31,67 +31,28 @@ class ObjectView;
 	Object view widget.
 */
 class ObjectView
-	: public UI::Widget::Base
+	: public UI::TabbedView
 {
 public:
 	using SPtr = aux::shared_ptr<UI::ObjectView>;
 
 private:
-	using base = UI::Widget::Base;
+	using base = UI::TabbedView;
 	enum class ctor_priv {};
 
 public:
 	System::Session& m_session;
 	Hord::Object::Unit& m_object;
-	UI::TabbedContainer::SPtr m_container;
 
 private:
 	ObjectView() noexcept = delete;
 	ObjectView(ObjectView const&) = delete;
 	ObjectView& operator=(ObjectView const&) = delete;
 
-protected:
-// Beard::ui::Widget::Base implementation
-	void
-	cache_geometry_impl() noexcept override {
-		m_container->cache_geometry();
-		if (!get_geometry().is_static()) {
-			auto const& ws = m_container->get_geometry().get_request_size();
-			auto rs = get_geometry().get_request_size();
-			rs.width  = max_ce(rs.width , ws.width);
-			rs.height = max_ce(rs.height, ws.height);
-			get_geometry().set_request_size(std::move(rs));
-		}
-	}
-
-	void
-	reflow_impl(
-		Rect const& area,
-		bool const cache
-	) noexcept override {
-		base::reflow_impl(area, cache);
-		m_container->reflow(area, false);
-	}
-
-	void
-	render_impl(
-		UI::Widget::RenderData& rd
-	) noexcept override {
-		m_container->render(rd);
-	}
-
-	signed
-	num_children_impl() const noexcept override {
-		return 1;
-	}
-
-	UI::Widget::SPtr
-	get_child_impl(
-		signed const index
-	) override {
-		DUCT_ASSERTE(0 == index);
-		return m_container;
-	}
+public:
+// UI::View implementation
+	String
+	view_description() noexcept override;
 
 public:
 // special member functions
@@ -119,7 +80,6 @@ public:
 		)
 		, m_session(session)
 		, m_object(object)
-		, m_container(TabbedContainer::make(get_root_weak()))
 	{}
 
 	ObjectView(ObjectView&&) = default;
@@ -139,7 +99,7 @@ public:
 			object,
 			std::move(parent)
 		);
-		widget->m_container->set_parent(UI::Widget::WPtr{widget}, 0);
+		widget->init();
 		return widget;
 	}
 

@@ -18,6 +18,11 @@
 namespace Onsang {
 namespace UI {
 
+String
+SessionView::view_description() noexcept {
+	return "session view: " + m_session.get_name();
+}
+
 void
 SessionView::add_object_view(
 	Hord::Object::ID const object_id,

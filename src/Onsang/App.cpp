@@ -448,44 +448,28 @@ App::ui_event_filter(
 	} else if (Beard::key_input_match(event.key_input, s_kim_cline)) {
 		m_ui.csline->prompt_command();
 	} else if (m_session) {
-		auto& ov_cont = *m_session->get_view()->m_container;
+		auto& session_view = *m_session->get_view();
 		auto const cp = event.key_input.cp;
 		if (
 			event.key_input.mod == Beard::KeyMod::esc
 		) {
-			if (ov_cont.empty()) {
-				return;
-			}
-			auto const& tab = ov_cont.m_tabs[ov_cont.m_position];
+			auto const sub_view = session_view.sub_view();
 			if ('0' <= cp && cp <= '9') {
-				unsigned const index = (cp - '0') - 1;
-				if (index <= ov_cont.get_last_index()) {
-					ov_cont.set_current_tab(index);
-				}
-			} else if (
-				enum_cast(tab.widget->get_type()) == enum_cast(UI::OnsangWidgetType::ObjectView)
-			) {
+				session_view.set_sub_view((cp - '0') - 1);
+			} else if (sub_view) {
 				auto const* it = s_prop_view_switch_keys;
-				for (; *it != '\0'; ++it) {
-					if (static_cast<unsigned>(*it) == cp) {
-						break;
-					}
+				while (*it != '\0' && unsigned_cast(*it) != cp) {
+					++it;
 				}
 				if (*it != '\0') {
-					auto& pv_cont = *std::static_pointer_cast<UI::ObjectView>(
-						tab.widget
-					)->m_container;
-					unsigned const index = it - s_prop_view_switch_keys;
-					if (index <= pv_cont.get_last_index()) {
-						pv_cont.set_current_tab(index);
-					}
+					sub_view->set_sub_view(it - s_prop_view_switch_keys);
 				}
 			}
 		} else if (cp == 'n') {
 			Hord::Object::ID const id{0x2a4c479c};
 			m_session->get_view()->add_object_view(id);
 		} else if (cp == 'c') {
-			ov_cont.remove_current();
+			session_view.close_sub_view();
 		}
 	}
 }
