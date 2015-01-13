@@ -59,8 +59,8 @@ public:
 	SessionView(
 		ctor_priv const,
 		UI::RootWPtr&& root,
-		System::Session& session,
-		UI::Widget::WPtr&& parent
+		UI::Widget::WPtr&& parent,
+		System::Session& session
 	) noexcept
 		: base(
 			static_cast<UI::Widget::Type>(
@@ -90,8 +90,8 @@ public:
 		auto widget = aux::make_shared<UI::SessionView>(
 			ctor_priv{},
 			std::move(root),
-			session,
-			std::move(parent)
+			std::move(parent),
+			session
 		);
 		widget->init();
 		return widget;

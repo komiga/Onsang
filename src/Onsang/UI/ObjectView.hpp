@@ -61,9 +61,9 @@ public:
 	ObjectView(
 		ctor_priv const,
 		UI::RootWPtr&& root,
+		UI::Widget::WPtr&& parent,
 		System::Session& session,
-		Hord::Object::Unit& object,
-		UI::Widget::WPtr&& parent
+		Hord::Object::Unit& object
 	) noexcept
 		: base(
 			static_cast<UI::Widget::Type>(
@@ -95,9 +95,9 @@ public:
 		auto widget = aux::make_shared<UI::ObjectView>(
 			ctor_priv{},
 			std::move(root),
+			std::move(parent),
 			session,
-			object,
-			std::move(parent)
+			object
 		);
 		widget->init();
 		return widget;
