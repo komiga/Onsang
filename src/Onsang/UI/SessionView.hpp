@@ -50,6 +50,9 @@ private:
 public:
 // UI::View implementation
 	String
+	view_title() noexcept override;
+
+	String
 	view_description() noexcept override;
 
 public:

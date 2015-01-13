@@ -23,8 +23,21 @@ namespace {
 } // anonymous namespace
 
 String
+ObjectView::view_title() noexcept {
+	return "O:" + m_object.get_slug();
+}
+
+String
 ObjectView::view_description() noexcept {
 	return "object view: " + ceformat::print<s_fmt_object>(m_object);
+}
+
+void
+ObjectView::add_prop_view(
+	UI::PropView::SPtr prop_view,
+	unsigned const index
+) {
+	m_container->insert(prop_view->view_title(), std::move(prop_view), index);
 }
 
 UI::ObjectView::SPtr

@@ -47,6 +47,11 @@ private:
 public:
 // UI::View implementation
 	String
+	view_title() noexcept override {
+		return m_name;
+	}
+
+	String
 	view_description() noexcept override {
 		return "prop view: " + m_name;
 	}

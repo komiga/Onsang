@@ -40,6 +40,9 @@ public:
 
 // properties
 	virtual String
+	view_title() noexcept = 0;
+
+	virtual String
 	view_description() noexcept = 0;
 
 // operations

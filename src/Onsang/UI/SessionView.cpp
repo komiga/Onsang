@@ -20,6 +20,11 @@ namespace Onsang {
 namespace UI {
 
 String
+SessionView::view_title() noexcept {
+	return "S:" + m_session.get_name();
+}
+
+String
 SessionView::view_description() noexcept {
 	return "session view: " + m_session.get_name();
 }
@@ -50,7 +55,7 @@ SessionView::add_object_view(
 		}
 	}
 	auto object_view = UI::make_object_view(get_root_weak(), m_session, *object);
-	index = m_container->insert(object->get_slug(), object_view, index);
+	index = m_container->insert(object_view->view_title(), object_view, index);
 	set_sub_view(index);
 	// Show description if the sub view wasn't changed
 	// (e.g., when the tabbed view is empty)
@@ -66,7 +71,7 @@ SessionView::update_view_title(
 		auto const& tab = tabs[index];
 		auto const object_view = std::static_pointer_cast<UI::ObjectView>(tab.widget);
 		if (object_view && object_view->m_object.get_id() == object_id) {
-			m_container->set_title(index, object_view->m_object.get_slug());
+			m_container->set_title(index, object_view->view_title());
 			return;
 		}
 	}

@@ -53,6 +53,9 @@ private:
 public:
 // UI::View implementation
 	String
+	view_title() noexcept override;
+
+	String
 	view_description() noexcept override;
 
 public:
@@ -107,11 +110,9 @@ public:
 // operations
 	void
 	add_prop_view(
-		UI::PropView::SPtr&& prop_view,
-		unsigned const index = static_cast<unsigned>(-1)
-	) {
-		m_container->insert(prop_view->m_name, std::move(prop_view), index);
-	}
+		UI::PropView::SPtr prop_view,
+		unsigned index = static_cast<unsigned>(-1)
+	);
 };
 
 /**
