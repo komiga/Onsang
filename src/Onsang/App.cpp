@@ -8,6 +8,7 @@
 #include <Onsang/UI/Defs.hpp>
 #include <Onsang/UI/TabbedContainer.hpp>
 #include <Onsang/UI/SessionView.hpp>
+#include <Onsang/UI/ObjectView.hpp>
 #include <Onsang/App.hpp>
 
 #include <Beard/keys.hpp>
@@ -431,6 +432,9 @@ static Beard::KeyInputMatch const
 s_kim_c{Beard::KeyMod::ctrl, Beard::KeyCode::none, 'c', false},
 s_kim_cline{Beard::KeyMod::none, Beard::KeyCode::none, ':', false};
 
+static char const* const
+s_prop_view_switch_keys{"!@#$%%^&*()"};
+
 void
 App::ui_event_filter(
 	UI::Event const& event
@@ -444,19 +448,45 @@ App::ui_event_filter(
 	} else if (Beard::key_input_match(event.key_input, s_kim_cline)) {
 		m_ui.csline->prompt_command();
 	} else if (m_session) {
-		auto const ov_cont = m_session->get_view()->m_container;
-		switch (event.key_input.cp) {
-		case '1': ov_cont->prev_tab(); break;
-		case '2': ov_cont->next_tab(); break;
-
-		case 'n': {
+		auto& ov_cont = *m_session->get_view()->m_container;
+		auto const cp = event.key_input.cp;
+		if (
+			event.key_input.mod == Beard::KeyMod::esc
+		) {
+			if (ov_cont.empty()) {
+				return;
+			}
+			auto const& tab = ov_cont.m_tabs[ov_cont.m_position];
+			if ('0' <= cp && cp <= '9') {
+				unsigned const index = (cp - '0') - 1;
+				if (index <= ov_cont.get_last_index()) {
+					ov_cont.set_current_tab(index);
+				}
+			} else if (
+				enum_cast(tab.widget->get_type()) == enum_cast(UI::OnsangWidgetType::ObjectView)
+			) {
+				auto const* it = s_prop_view_switch_keys;
+				for (; *it != '\0'; ++it) {
+					if (static_cast<unsigned>(*it) == cp) {
+						break;
+					}
+				}
+				Log::acquire(Log::debug) << "key: 0x" << std::hex << static_cast<unsigned>(*it) << '\n';
+				if (*it != '\0') {
+					auto& pv_cont = *std::static_pointer_cast<UI::ObjectView>(
+						tab.widget
+					)->m_container;
+					unsigned const index = it - s_prop_view_switch_keys;
+					if (index <= pv_cont.get_last_index()) {
+						pv_cont.set_current_tab(index);
+					}
+				}
+			}
+		} else if (cp == 'n') {
 			Hord::Object::ID const id{0x2a4c479c};
 			m_session->get_view()->add_object_view(id);
-		} break;
-
-		case 'c':
-			ov_cont->remove_current();
-			break;
+		} else if (cp == 'c') {
+			ov_cont.remove_current();
 		}
 	}
 }
