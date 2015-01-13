@@ -14,6 +14,7 @@
 #include <Onsang/System/Session.hpp>
 #include <Onsang/UI/Defs.hpp>
 #include <Onsang/UI/TabbedView.hpp>
+#include <Onsang/UI/PropView.hpp>
 
 #include <Beard/ui/Root.hpp>
 
@@ -106,11 +107,10 @@ public:
 // operations
 	void
 	add_prop_view(
-		String&& name,
-		UI::Widget::SPtr&& widget,
+		UI::PropView::SPtr&& prop_view,
 		unsigned const index = static_cast<unsigned>(-1)
 	) {
-		m_container->insert(std::move(name), std::move(widget), index);
+		m_container->insert(prop_view->m_name, std::move(prop_view), index);
 	}
 };
 

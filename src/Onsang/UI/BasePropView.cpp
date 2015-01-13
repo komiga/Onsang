@@ -5,12 +5,11 @@
 #include <Onsang/utility.hpp>
 #include <Onsang/System/Session.hpp>
 #include <Onsang/UI/Defs.hpp>
+#include <Onsang/UI/FieldDescriber.hpp>
 #include <Onsang/UI/TableGrid.hpp>
 #include <Onsang/UI/ObjectView.hpp>
-#include <Onsang/UI/FieldDescriber.hpp>
 #include <Onsang/UI/PropView.hpp>
 
-#include <Beard/ui/Container.hpp>
 #include <Beard/ui/Field.hpp>
 
 #include <Hord/Data/Defs.hpp>
@@ -25,24 +24,23 @@ namespace UI {
 
 void
 add_base_prop_view(
-	UI::ObjectView::SPtr const& obj_view_ptr,
+	UI::ObjectView& object_view,
 	unsigned const index
 ) {
-	auto& obj_view = *obj_view_ptr;
-	auto const root = obj_view.get_root();
-	auto& session = obj_view.m_session;
-	auto& object = obj_view.m_object;
+	auto const root = object_view.get_root();
+	auto& session = object_view.m_session;
+	auto& object = object_view.m_object;
 
 	// Slug property
 	auto field_slug = UI::Field::make(root, object.get_slug());
 	field_slug->get_geometry().set_sizing(UI::Axis::horizontal, UI::Axis::horizontal);
-	field_slug->signal_user_modified.bind([&obj_view](
+	field_slug->signal_user_modified.bind([&object_view](
 		UI::Field::SPtr field_slug,
 		bool const accept
 	) {
-		auto& object = obj_view.m_object;
+		auto& object = object_view.m_object;
 		if (accept) {
-			Hord::Cmd::Object::SetSlug cmd{obj_view.m_session};
+			Hord::Cmd::Object::SetSlug cmd{object_view.m_session};
 			if (!cmd(object, field_slug->get_text())) {
 				field_slug->set_text(object.get_slug());
 			}
@@ -68,11 +66,10 @@ add_base_prop_view(
 	);
 	grid_metadata->signal_event_filter.bind(UI::FieldDescriber{"metadata"});
 
-	auto const cont = UI::Container::make(root, UI::Axis::vertical);
-	cont->get_geometry().set_sizing(UI::Axis::both, UI::Axis::both);
-	cont->push_back(std::move(field_slug));
-	cont->push_back(std::move(grid_metadata));
-	obj_view.add_prop_view("base", std::move(cont), index);
+	auto view = UI::PropView::make(root, "base", UI::Axis::vertical);
+	view->push_back(std::move(field_slug));
+	view->push_back(std::move(grid_metadata));
+	object_view.add_prop_view(std::move(view), index);
 }
 
 } // namespace UI

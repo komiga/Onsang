@@ -29,6 +29,7 @@ enum class OnsangWidgetType : unsigned {
 	CommandStatusLine,
 	SessionView,
 	ObjectView,
+	PropView,
 	TableGrid,
 };
 

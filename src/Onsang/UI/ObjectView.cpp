@@ -5,7 +5,7 @@
 #include <Onsang/System/Session.hpp>
 #include <Onsang/UI/Defs.hpp>
 #include <Onsang/UI/ObjectView.hpp>
-#include <Onsang/UI/PropView.hpp>
+#include <Onsang/UI/PropViews.hpp>
 
 #include <Hord/Object/Defs.hpp>
 #include <Hord/Object/Unit.hpp>
@@ -34,8 +34,8 @@ make_object_view(
 	Hord::Object::Unit& object
 ) {
 	auto object_view = UI::ObjectView::make(root, session, object);
-	UI::add_base_prop_view(object_view);
-	UI::add_data_prop_view(object_view);
+	UI::add_base_prop_view(*object_view);
+	UI::add_data_prop_view(*object_view);
 	object_view->set_sub_view(object_view->sub_view_index_last());
 	return object_view;
 }
