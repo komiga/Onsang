@@ -117,13 +117,14 @@ protected:
 	adjust_view() noexcept;
 
 public:
-	~BasicGrid() noexcept override = default;
+	virtual
+	~BasicGrid() noexcept override = 0;
 
 	BasicGrid(
 		UI::Widget::Type const type,
 		UI::Widget::Flags const flags,
 		UI::group_hash_type const group,
-		ui::Geom&& geometry,
+		UI::Geom&& geometry,
 		UI::RootWPtr&& root,
 		UI::Widget::WPtr&& parent,
 		UI::index_type const col_count,
@@ -180,6 +181,7 @@ public:
 		row_abs(m_cursor.row + amt);
 	}
 };
+inline BasicGrid::~BasicGrid() noexcept = default;
 
 } // namespace UI
 } // namespace Onsang
