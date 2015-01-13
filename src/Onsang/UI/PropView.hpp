@@ -2,7 +2,7 @@
 @copyright MIT license; see @ref index or the accompanying LICENSE file.
 
 @file
-@brief Basic prop view.
+@brief Prop views.
 */
 
 #pragma once
@@ -18,7 +18,7 @@ namespace UI {
 	This prop view includes the identity and metadata props.
 */
 void
-add_basic_prop_view(
+add_base_prop_view(
 	UI::ObjectView::SPtr const& obj_view_ptr,
 	unsigned const index = static_cast<unsigned>(-1)
 );

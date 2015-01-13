@@ -8,8 +8,6 @@
 #include <Onsang/UI/Defs.hpp>
 #include <Onsang/UI/TabbedContainer.hpp>
 #include <Onsang/UI/SessionView.hpp>
-#include <Onsang/UI/ObjectView.hpp>
-#include <Onsang/UI/BasicPropView.hpp>
 #include <Onsang/App.hpp>
 
 #include <Beard/keys.hpp>
@@ -22,7 +20,6 @@
 #include <Beard/ui/Root.hpp>
 #include <Beard/ui/Context.hpp>
 #include <Beard/ui/Container.hpp>
-#include <Beard/ui/Field.hpp>
 
 #include <Hord/IO/Defs.hpp>
 #include <Hord/Table/Defs.hpp>

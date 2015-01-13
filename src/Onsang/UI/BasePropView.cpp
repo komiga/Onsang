@@ -8,7 +8,7 @@
 #include <Onsang/UI/TableGrid.hpp>
 #include <Onsang/UI/ObjectView.hpp>
 #include <Onsang/UI/FieldDescriber.hpp>
-#include <Onsang/UI/BasicPropView.hpp>
+#include <Onsang/UI/PropView.hpp>
 
 #include <Beard/ui/Container.hpp>
 #include <Beard/ui/Field.hpp>
@@ -24,7 +24,7 @@ namespace Onsang {
 namespace UI {
 
 void
-add_basic_prop_view(
+add_base_prop_view(
 	UI::ObjectView::SPtr const& obj_view_ptr,
 	unsigned const index
 ) {
@@ -32,9 +32,6 @@ add_basic_prop_view(
 	auto const root = obj_view.get_root();
 	auto& session = obj_view.m_session;
 	auto& object = obj_view.m_object;
-
-	auto const cont = UI::Container::make(root, UI::Axis::vertical);
-	cont->get_geometry().set_sizing(UI::Axis::both, UI::Axis::both);
 
 	// Slug property
 	auto field_slug = UI::Field::make(root, object.get_slug());
@@ -71,9 +68,11 @@ add_basic_prop_view(
 	);
 	grid_metadata->signal_event_filter.bind(UI::FieldDescriber{"metadata"});
 
+	auto const cont = UI::Container::make(root, UI::Axis::vertical);
+	cont->get_geometry().set_sizing(UI::Axis::both, UI::Axis::both);
 	cont->push_back(std::move(field_slug));
 	cont->push_back(std::move(grid_metadata));
-	obj_view.add_prop_view("basic", std::move(cont), index);
+	obj_view.add_prop_view("base", std::move(cont), index);
 }
 
 } // namespace UI
