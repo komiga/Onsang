@@ -8,6 +8,7 @@
 #include <Onsang/UI/Defs.hpp>
 #include <Onsang/UI/TabbedContainer.hpp>
 #include <Onsang/UI/ObjectView.hpp>
+#include <Onsang/App.hpp>
 
 #include <Hord/Object/Unit.hpp>
 #include <Hord/Object/Ops.hpp>
@@ -26,7 +27,7 @@ SessionView::view_description() noexcept {
 void
 SessionView::add_object_view(
 	Hord::Object::ID const object_id,
-	unsigned const index
+	unsigned index
 ) {
 	auto* const object = m_session.get_datastore().find_ptr(object_id);
 	if (!object) {
@@ -48,11 +49,12 @@ SessionView::add_object_view(
 			return;
 		}
 	}
-	m_container->insert(
-		object->get_slug(),
-		UI::make_object_view(get_root_weak(), m_session, *object),
-		index
-	);
+	auto object_view = UI::make_object_view(get_root_weak(), m_session, *object);
+	index = m_container->insert(object->get_slug(), object_view, index);
+	set_sub_view(index);
+	// Show description if the sub view wasn't changed
+	// (e.g., when the tabbed view is empty)
+	App::instance.m_ui.csline->set_description(object_view->view_description());
 }
 
 void

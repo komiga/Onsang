@@ -101,7 +101,7 @@ public:
 	void
 	add_object_view(
 		Hord::Object::ID const object_id,
-		unsigned const index = static_cast<unsigned>(-1)
+		unsigned index = static_cast<unsigned>(-1)
 	);
 
 	void
