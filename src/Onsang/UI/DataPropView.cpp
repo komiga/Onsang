@@ -35,7 +35,7 @@ add_table_data_prop_view(
 		table.get_data(),
 		Hord::IO::PropType::primary
 	);
-	grid_data->signal_event_filter.bind(UI::FieldDescriber{"data"});
+	UI::bind_field_describer(grid_data, "data");
 
 	auto view = UI::PropView::make(root, "data", UI::Axis::vertical);
 	view->push_back(std::move(grid_data));

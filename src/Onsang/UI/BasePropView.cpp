@@ -47,7 +47,7 @@ add_base_prop_view(
 			field_slug->set_text(object.get_slug());
 		}
 	});
-	field_slug->signal_event_filter.bind(UI::FieldDescriber{"slug"});
+	UI::bind_field_describer(field_slug, "slug");
 
 	// Metadata property
 	if (object.get_metadata().num_fields() == 0) {
@@ -63,7 +63,7 @@ add_base_prop_view(
 		object.get_metadata().table(),
 		Hord::IO::PropType::metadata
 	);
-	grid_metadata->signal_event_filter.bind(UI::FieldDescriber{"metadata"});
+	UI::bind_field_describer(grid_metadata, "metadata");
 
 	auto view = UI::PropView::make(root, "base", UI::Axis::vertical);
 	auto& field_slug_ref = *field_slug;
