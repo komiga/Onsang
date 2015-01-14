@@ -57,7 +57,7 @@ BasicGrid::handle_event_impl(
 				case 'l': col_step(+1); break;
 				case 'a': select_all(); break;
 				case 'A': select_none(); break;
-				case ' ': select_toggle(m_cursor.row, 1); break;
+				case 's': select_toggle(m_cursor.row, 1); break;
 				//case 'e': erase(m_cursor.row, 1); break;
 				//case 'E': erase_selected(); break;
 				//case 'i': insert_after (m_cursor.row, 1); break;
@@ -154,10 +154,7 @@ BasicGrid::content_action(
 		bool const enable = ContentAction::select == action;
 		auto const end = m_rows.begin() + row_end;
 		for (auto it = m_rows.begin() + row_begin; end > it; ++it) {
-			it->states.set(
-				Row::Flags::selected,
-				enable
-			);
+			it->states.set(Row::Flags::selected, enable);
 		}
 		queue_cell_render(row_begin, row_end);
 		clear_flag = UI::UpdateActions::flag_noclear;
