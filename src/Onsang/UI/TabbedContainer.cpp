@@ -66,7 +66,7 @@ TabbedContainer::render_impl(
 		 return;
 	}
 	auto const& frame = get_geometry().get_frame();
-	rd.terminal.clear_back(frame);
+	rd.terminal.clear_back({frame.pos, {frame.size.width, 1}});
 	unsigned index = 0;
 	signed xpos = 0;
 	for (auto& tab : m_tabs) {
@@ -271,10 +271,7 @@ TabbedContainer::move_tab(
 		if (from == m_position) {
 			m_position = to;
 		}
-		queue_actions(enum_combine(
-			UI::UpdateActions::flag_noclear,
-			UI::UpdateActions::render
-		));
+		queue_actions(UI::UpdateActions::render);
 	}
 }
 
