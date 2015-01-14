@@ -7,6 +7,7 @@
 #include <Onsang/String.hpp>
 #include <Onsang/UI/Defs.hpp>
 #include <Onsang/UI/TabbedView.hpp>
+#include <Onsang/App.hpp>
 
 #include <duct/debug.hpp>
 
@@ -91,6 +92,10 @@ TabbedView::close_sub_view(
 ) noexcept {
 	if (index < m_container->m_tabs.size()) {
 		m_container->remove(index);
+		if (m_container->m_tabs.empty()) {
+			App::instance.m_ui.csline->clear_location();
+			App::instance.m_ui.csline->set_description(view_description());
+		}
 	}
 }
 
