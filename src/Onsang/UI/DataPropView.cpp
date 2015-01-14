@@ -35,7 +35,7 @@ add_table_data_prop_view(
 		table.get_data(),
 		Hord::IO::PropType::primary
 	);
-	UI::bind_field_describer(grid_data, "data");
+	UI::bind_field_describer(grid_data, "table data");
 
 	auto view = UI::PropView::make(root, "data", UI::Axis::vertical);
 	view->push_back(std::move(grid_data));
