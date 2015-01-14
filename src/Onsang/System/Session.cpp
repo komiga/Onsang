@@ -7,6 +7,7 @@
 #include <Onsang/System/Session.hpp>
 #include <Onsang/UI/Defs.hpp>
 #include <Onsang/UI/SessionView.hpp>
+#include <Onsang/UI/App.hpp>
 
 #include <Hord/Object/Defs.hpp>
 #include <Hord/Object/Ops.hpp>
@@ -69,7 +70,7 @@ Session::notify_complete_impl(
 		"error",
 	};
 
-	Log::acquire(Log::debug)
+	Log::acquire(command.bad() ? Log::error : Log::debug)
 		<< "notify_complete: "
 		<< std::hex << type_info.id
 		<< ' ' << type_info.name
@@ -104,7 +105,7 @@ Session::notify_complete_impl(
 	}
 
 	// Notify views of failed or mutative command execution
-	if ((command.bad() || command.ok_action()) && m_view) {
+	if (m_view && (command.bad() || command.ok_action())) {
 		m_view->notify_command(nullptr, command, type_info);
 	}
 }
