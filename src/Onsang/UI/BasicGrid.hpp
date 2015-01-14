@@ -29,7 +29,7 @@ private:
 
 public:
 	struct Row final {
-		enum class Flags : unsigned {
+		enum class Flags : std::uint8_t {
 			selected = bit(0u)
 		};
 
