@@ -50,14 +50,6 @@ add_base_prop_view(
 	UI::bind_field_describer(field_slug, "slug");
 
 	// Metadata property
-	if (object.get_metadata().num_fields() == 0) {
-		Hord::Cmd::Object::SetMetaField cmd{session};
-		cmd(object, "null", nullptr);
-		cmd(object, "integer", 1234567890);
-		cmd(object, "decimal", 3.14156f);
-		cmd(object, "object_id", object.get_id());
-		cmd(object, "string", "string-value");
-	}
 	auto grid_metadata = UI::TableGrid::make(
 		root, session, object,
 		object.get_metadata().table(),
