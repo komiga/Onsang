@@ -377,7 +377,7 @@ App::init_session(
 			set_session(&session);
 		}
 	} catch (...) {
-		App::instance.m_ui.csline.set_error(
+		m_ui.csline->set_error(
 			"Failed to initialize session: " + session.get_name()
 		);
 		Log::acquire(Log::error)
@@ -422,7 +422,7 @@ App::close_session(
 		}
 		session.close();
 	} catch (...) {
-		App::instance.m_ui.csline.set_error(
+		m_ui.csline->set_error(
 			"Failed to close session: " + session.get_name()
 		);
 		Log::acquire(Log::error)
