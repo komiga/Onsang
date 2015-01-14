@@ -82,6 +82,7 @@ TableGrid::handle_event_impl(
 	if (!has_input_control()) {
 		if (
 			event.key_input.code != KeyCode::enter &&
+			event.key_input.cp != ' ' &&
 			event.key_input.cp != '*'
 		) {
 			return false;
