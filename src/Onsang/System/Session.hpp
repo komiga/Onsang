@@ -36,7 +36,6 @@ class Session
 {
 public:
 	using UPtr = aux::unique_ptr<System::Session>;
-	using id_set_type = aux::unordered_set<Hord::Object::ID>;
 
 private:
 	using base = Hord::System::Context;
@@ -46,18 +45,11 @@ private:
 	String m_path;
 	bool m_auto_open;
 	bool m_auto_create;
-	id_set_type m_root_objects;
 	UI::SessionView::SPtr m_view;
 
 	Session() = delete;
 	Session(Session const&) = delete;
 	Session& operator=(Session const&) = delete;
-
-private:
-	void
-	root_object_changed(
-		Hord::Object::ID const object_id
-	) noexcept;
 
 // Hord::System::Context implementation
 private:

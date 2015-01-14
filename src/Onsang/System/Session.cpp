@@ -26,22 +26,6 @@ namespace System {
 
 #define ONSANG_SCOPE_CLASS System::Session
 
-void
-Session::root_object_changed(
-	Hord::Object::ID const object_id
-) noexcept {
-	auto const* const object = get_datastore().find_ptr(object_id);
-	DUCT_ASSERTE(object != nullptr);
-	auto const it = m_root_objects.find(object_id);
-	if (it != m_root_objects.cend()) {
-		if (object->get_parent() != Hord::Object::ID_NULL) {
-			m_root_objects.erase(it);
-		}
-	} else if (object->get_parent() == Hord::Object::ID_NULL) {
-		m_root_objects.emplace(object_id);
-	}
-}
-
 #define ONSANG_SCOPE_FUNC notify_exception_impl
 void
 Session::notify_exception_impl(
@@ -78,31 +62,6 @@ Session::notify_complete_impl(
 		<< '\n'
 	;
 
-	if (command.ok_action()) {
-		switch (type_info.id) {
-		case Hord::Cmd::Datastore::Init::COMMAND_ID:
-			// Update root objects
-			m_root_objects.clear();
-			for (auto const& pair : get_datastore().get_objects()) {
-				if (pair.second->get_parent() == Hord::Object::ID_NULL) {
-					m_root_objects.emplace(pair.second->get_id());
-					Log::acquire(Log::debug)
-						<< "root object: "
-						<< *pair.second
-						<< '\n'
-					;
-				}
-			}
-			break;
-
-		case Hord::Cmd::Object::SetParent::COMMAND_ID:
-			root_object_changed(
-				static_cast<Hord::Cmd::Object::SetParent const&>(command).get_object_id()
-			);
-			break;
-		}
-	}
-
 	// Notify views of failed or mutative command execution
 	if (m_view && (command.bad() || command.ok_action())) {
 		m_view->notify_command(nullptr, command, type_info);
@@ -128,7 +87,6 @@ void
 Session::close() {
 	m_view.reset();
 	get_datastore().close();
-	m_root_objects.clear();
 }
 #undef ONSANG_SCOPE_FUNC
 
