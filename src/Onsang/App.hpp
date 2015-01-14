@@ -14,7 +14,6 @@
 #include <Onsang/System/Session.hpp>
 #include <Onsang/System/SessionManager.hpp>
 #include <Onsang/UI/Defs.hpp>
-#include <Onsang/UI/TabbedContainer.hpp>
 #include <Onsang/UI/CommandStatusLine.hpp>
 
 #include <Beard/ui/Defs.hpp>

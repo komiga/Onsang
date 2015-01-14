@@ -23,6 +23,7 @@
 #include <Beard/ui/Container.hpp>
 
 #include <Hord/IO/Defs.hpp>
+#include <Hord/Object/Ops.hpp>
 #include <Hord/Table/Defs.hpp>
 #include <Hord/Table/Unit.hpp>
 #include <Hord/Cmd/Datastore.hpp>
@@ -365,7 +366,6 @@ App::init_session(
 		session.open(m_ui.ctx.get_root());
 		auto cmd = Hord::Cmd::Datastore::Init{session};
 		if (!cmd(Hord::IO::PropTypeBit::base)) {
-			// TODO: set status line
 			ONSANG_THROW_FMT(
 				ErrorCode::command_failed,
 				s_err_command_failed,
@@ -377,6 +377,9 @@ App::init_session(
 			set_session(&session);
 		}
 	} catch (...) {
+		App::instance.m_ui.csline.set_error(
+			"Failed to initialize session: " + session.get_name()
+		);
 		Log::acquire(Log::error)
 			<< "Failed to initialize session '"
 			<< session.get_name()
@@ -419,6 +422,9 @@ App::close_session(
 		}
 		session.close();
 	} catch (...) {
+		App::instance.m_ui.csline.set_error(
+			"Failed to close session: " + session.get_name()
+		);
 		Log::acquire(Log::error)
 			<< "Failed to close session '"
 			<< session.get_name()
@@ -504,7 +510,6 @@ void
 App::start() try {
 	// The terminal will get all screwy if we don't disable stdout
 	toggle_stdout(false);
-
 
 	Log::acquire()
 		<< "Opening UI context\n"
