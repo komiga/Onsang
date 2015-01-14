@@ -7,7 +7,6 @@
 #include <Onsang/System/Session.hpp>
 #include <Onsang/UI/Defs.hpp>
 #include <Onsang/UI/SessionView.hpp>
-#include <Onsang/UI/App.hpp>
 
 #include <Hord/Object/Defs.hpp>
 #include <Hord/Object/Ops.hpp>
