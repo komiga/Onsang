@@ -33,7 +33,7 @@ namespace aux {
 	@c std::shared_ptr<T>.
 */
 template<
-	typename T
+	class T
 >
 using shared_ptr = std::shared_ptr<T>;
 
@@ -41,7 +41,7 @@ using shared_ptr = std::shared_ptr<T>;
 	@c std::weak_ptr<T>.
 */
 template<
-	typename T
+	class T
 >
 using weak_ptr = std::weak_ptr<T>;
 
@@ -49,8 +49,8 @@ using weak_ptr = std::weak_ptr<T>;
 	@c std::unique_ptr<T>.
 */
 template<
-	typename T,
-	typename Deleter = std::default_delete<T>
+	class T,
+	class Deleter = std::default_delete<T>
 >
 using unique_ptr = std::unique_ptr<T>;
 
@@ -67,7 +67,7 @@ using std::enable_shared_from_this;
 	@c std::basic_string<CharT, Traits>.
 */
 template<
-	typename CharT,
+	class CharT,
 	class Traits = std::char_traits<CharT>
 >
 using basic_string
@@ -80,7 +80,7 @@ using basic_string
 	@c std::vector<T>.
 */
 template<
-	typename T
+	class T
 >
 using vector
 = std::vector<
@@ -92,7 +92,7 @@ using vector
 	@c std::deque<T>.
 */
 template<
-	typename T
+	class T
 >
 using deque
 = std::deque<
@@ -104,8 +104,8 @@ using deque
 	@c std::unordered_map<Key, T, Hash, KeyEqual>.
 */
 template<
-	typename Key,
-	typename T,
+	class Key,
+	class T,
 	class Compare = std::less<Key>
 >
 using map
@@ -118,8 +118,8 @@ using map
 	@c std::unordered_map<Key, T, Hash, KeyEqual>.
 */
 template<
-	typename Key,
-	typename T,
+	class Key,
+	class T,
 	class Hash = std::hash<Key>,
 	class KeyEqual = std::equal_to<Key>
 >
@@ -133,7 +133,7 @@ using unordered_map
 	@c std::unordered_set<Key, Hash, KeyEqual>.
 */
 template<
-	typename Key,
+	class Key,
 	class Hash = std::hash<Key>,
 	class KeyEqual = std::equal_to<Key>
 >
