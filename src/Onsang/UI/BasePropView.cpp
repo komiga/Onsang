@@ -34,14 +34,13 @@ add_base_prop_view(
 	// Slug property
 	auto field_slug = UI::Field::make(root, object.get_slug());
 	field_slug->get_geometry().set_sizing(UI::Axis::horizontal, UI::Axis::horizontal);
-	field_slug->signal_user_modified.bind([&object_view](
+	field_slug->signal_user_modified.bind([&session, &object](
 		UI::Field::SPtr field_slug,
 		bool const accept
 	) {
-		auto& object = object_view.m_object;
 		if (accept) {
 			// NB: signal_notify_command handles result
-			Hord::Cmd::Object::SetSlug{object_view.m_session}(
+			Hord::Cmd::Object::SetSlug{session}(
 				object, field_slug->get_text()
 			);
 		} else {
