@@ -40,10 +40,10 @@ add_base_prop_view(
 	) {
 		auto& object = object_view.m_object;
 		if (accept) {
-			Hord::Cmd::Object::SetSlug cmd{object_view.m_session};
-			if (!cmd(object, field_slug->get_text())) {
-				field_slug->set_text(object.get_slug());
-			}
+			// NB: signal_notify_command handles result
+			Hord::Cmd::Object::SetSlug{object_view.m_session}(
+				object, field_slug->get_text()
+			);
 		} else {
 			field_slug->set_text(object.get_slug());
 		}
@@ -67,6 +67,21 @@ add_base_prop_view(
 	grid_metadata->signal_event_filter.bind(UI::FieldDescriber{"metadata"});
 
 	auto view = UI::PropView::make(root, "base", UI::Axis::vertical);
+	auto& field_slug_ref = *field_slug;
+	view->signal_notify_command.bind([&object, &field_slug_ref](
+		UI::View* const /*parent_view*/,
+		UI::PropView& /*prop_view*/,
+		Hord::Cmd::UnitBase const& command,
+		Hord::Cmd::type_info const& type_info
+	) {
+		if (type_info.id == Hord::Cmd::Object::SetSlug::COMMAND_ID) {
+			auto const& c = static_cast<Hord::Cmd::Object::SetSlug const&>(command);
+			if (c.get_object_id() == object.get_id()) {
+				field_slug_ref.set_text(object.get_slug());
+			}
+		}
+	});
+
 	view->push_back(std::move(field_slug));
 	view->push_back(std::move(grid_metadata));
 	object_view.add_prop_view(std::move(view), index);
