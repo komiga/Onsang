@@ -113,19 +113,6 @@ void
 CommandStatusLine::render_impl(
 	UI::Widget::RenderData& rd
 ) noexcept {
-	static constexpr tty::Cell const
-	message_type_attrs[]{
-		tty::make_cell('X'),
-		tty::make_cell('X',
-			tty::Color::term_default | tty::Attr::bold,
-			tty::Color::term_default
-		),
-		tty::make_cell('X',
-			tty::Color::white | tty::Attr::bold,
-			tty::Color::red
-		),
-	};
-
 	auto const& frame = get_geometry().get_frame();
 	if (!has_input_control()) {
 		// render message & location
@@ -148,14 +135,17 @@ CommandStatusLine::render_impl(
 			content_fg,
 			content_bg
 		);
-		auto const& cell = message_type_attrs[enum_cast(m_message_type)];
 		rd.terminal.put_sequence(
 			frame.pos.x,
 			frame.pos.y,
 			{m_message},
 			frame.size.width,
-			cell.attr_fg,
-			cell.attr_bg
+			(m_message_type == MessageType::error)
+			? (tty::Color::white | tty::Attr::bold)
+			: content_fg,
+			(m_message_type == MessageType::error)
+			? tty::Color::red
+			: content_bg
 		);
 	} else {
 		// render field
