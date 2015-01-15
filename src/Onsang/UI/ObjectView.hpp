@@ -80,8 +80,8 @@ public:
 			static_cast<UI::Widget::Type>(
 				UI::OnsangWidgetType::ObjectView
 			),
-			enum_combine(
-				UI::Widget::Flags::trait_container,
+			(
+				UI::Widget::Flags::trait_container |
 				UI::Widget::Flags::visible
 			),
 			UI::group_null,

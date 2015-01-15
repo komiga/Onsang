@@ -105,7 +105,7 @@ public:
 			static_cast<UI::Widget::Type>(
 				UI::OnsangWidgetType::CommandStatusLine
 			),
-			enum_combine(
+			(
 				UI::Widget::Flags::visible
 			),
 			UI::group_csl,

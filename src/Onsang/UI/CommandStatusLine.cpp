@@ -29,10 +29,10 @@ CommandStatusLine::set_input_control_impl(
 		get_root()->set_focus(prev_focus);
 		m_prev_focus.reset();
 	}
-	queue_actions(enum_combine(
-		ui::UpdateActions::render,
+	queue_actions(
+		ui::UpdateActions::render |
 		ui::UpdateActions::flag_noclear
-	));
+	);
 }
 
 void
@@ -94,10 +94,10 @@ CommandStatusLine::handle_event_impl(
 			}
 			if (view_modified) {
 				update_field_view();
-				queue_actions(enum_combine(
-					ui::UpdateActions::render,
+				queue_actions(
+					ui::UpdateActions::render |
 					ui::UpdateActions::flag_noclear
-				));
+				);
 			}
 			return true;
 		}
@@ -223,10 +223,10 @@ CommandStatusLine::set_message(
 ) {
 	m_message_type = type;
 	m_message = std::move(text);
-	queue_actions(enum_combine(
-		ui::UpdateActions::render,
+	queue_actions(
+		ui::UpdateActions::render |
 		ui::UpdateActions::flag_noclear
-	));
+	);
 }
 
 void
@@ -234,10 +234,10 @@ CommandStatusLine::set_location(
 	String text
 ) {
 	m_location = std::move(text);
-	queue_actions(enum_combine(
-		ui::UpdateActions::render,
+	queue_actions(
+		ui::UpdateActions::render |
 		ui::UpdateActions::flag_noclear
-	));
+	);
 }
 
 void

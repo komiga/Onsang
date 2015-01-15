@@ -136,8 +136,8 @@ public:
 	) noexcept
 		: base(
 			static_cast<UI::Widget::Type>(UI::OnsangWidgetType::TableGrid),
-			enum_combine(
-				UI::Widget::Flags::trait_focusable,
+			(
+				UI::Widget::Flags::trait_focusable |
 				UI::Widget::Flags::visible
 			),
 			group,

@@ -85,8 +85,8 @@ public:
 	) noexcept
 		: base(
 			static_cast<UI::Widget::Type>(UI::OnsangWidgetType::TabbedContainer),
-			enum_combine(
-				UI::Widget::Flags::trait_container,
+			(
+				UI::Widget::Flags::trait_container |
 				UI::Widget::Flags::visible
 			),
 			UI::group_null,

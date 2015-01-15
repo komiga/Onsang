@@ -18,11 +18,9 @@ using duct::make_const;
 using duct::signed_cast;
 using duct::unsigned_cast;
 using duct::enum_cast;
-using duct::enum_bitor;
-using duct::enum_bitand;
-using duct::enum_combine;
 using duct::min_ce;
 using duct::max_ce;
 using duct::array_extent;
+using namespace duct::enum_ops;
 
 } // namespace Onsang

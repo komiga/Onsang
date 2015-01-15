@@ -124,8 +124,8 @@ public:
 	) noexcept
 		: base(
 			type,
-			enum_combine(
-				flags,
+			(
+				flags |
 				UI::Widget::Flags::trait_container
 			),
 			group,

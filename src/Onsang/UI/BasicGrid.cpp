@@ -103,10 +103,7 @@ BasicGrid::render_impl(
 	};
 	render_view(
 		grid_rd,
-		!enum_bitand(
-			get_queued_actions(),
-			UI::UpdateActions::flag_noclear
-		)
+		!enum_cast(get_queued_actions() & UI::UpdateActions::flag_noclear)
 	);
 
 	auto const& view = get_view();
@@ -262,11 +259,10 @@ BasicGrid::content_action(
 	default:
 		break;
 	}
-
-	queue_actions(enum_combine(
-		UI::UpdateActions::render,
+	queue_actions(
+		UI::UpdateActions::render |
 		clear_flag
-	));
+	);
 }
 
 void
@@ -316,10 +312,10 @@ BasicGrid::set_cursor(
 				col, col + 1
 			);
 		}
-		queue_actions(enum_combine(
-			UI::UpdateActions::render,
+		queue_actions(
+			UI::UpdateActions::render |
 			UI::UpdateActions::flag_noclear
-		));
+		);
 		m_cursor.col = col;
 		m_cursor.row = row;
 		adjust_view();

@@ -150,10 +150,10 @@ TabbedContainer::insert(
 	for (unsigned update_index = index; update_index < m_tabs.size(); ++update_index) {
 		m_tabs[update_index].widget->set_index(static_cast<UI::index_type>(update_index));
 	}
-	queue_actions(enum_combine(
-		UI::UpdateActions::reflow,
+	queue_actions(
+		UI::UpdateActions::reflow |
 		UI::UpdateActions::render
-	));
+	);
 	return index;
 }
 
@@ -169,10 +169,10 @@ TabbedContainer::remove(
 	if (!m_tabs.empty()) {
 		m_tabs[m_position].widget->set_visible(true);
 	}
-	queue_actions(enum_combine(
-		UI::UpdateActions::reflow,
+	queue_actions(
+		UI::UpdateActions::reflow |
 		UI::UpdateActions::render
-	));
+	);
 }
 
 void
@@ -187,10 +187,10 @@ void
 TabbedContainer::clear() {
 	m_tabs.clear();
 	m_position = 0;
-	queue_actions(enum_combine(
-		UI::UpdateActions::reflow,
+	queue_actions(
+		UI::UpdateActions::reflow |
 		UI::UpdateActions::render
-	));
+	);
 }
 
 void
@@ -199,10 +199,10 @@ TabbedContainer::set_title(
 	String title
 ) {
 	m_tabs.at(index).title = std::move(title);
-	queue_actions(enum_combine(
-		UI::UpdateActions::reflow,
+	queue_actions(
+		UI::UpdateActions::reflow |
 		UI::UpdateActions::render
-	));
+	);
 }
 
 void
@@ -224,10 +224,10 @@ TabbedContainer::set_current_tab(
 		m_tabs[m_position].widget->set_visible(false);
 		m_tabs[index].widget->set_visible(true);
 		m_position = index;
-		queue_actions(enum_combine(
-			UI::UpdateActions::reflow,
+		queue_actions(
+			UI::UpdateActions::reflow |
 			UI::UpdateActions::render
-		));
+		);
 	}
 }
 

@@ -66,7 +66,7 @@ public:
 			: flags(flags)
 			, tpl(std::move(tpl))
 			, value(
-				enum_bitand(flags, Flags::collect)
+				enum_cast(flags & Flags::collect)
 				? duct::VarType::node
 				: duct::VarType::null
 			)
@@ -76,7 +76,7 @@ public:
 			ConfigNode* node_tpl,
 			Flags const flags = Flags::none
 		)
-			: flags(enum_combine(flags, Flags::node_matcher))
+			: flags(flags | Flags::node_matcher)
 			, node_tpl(std::move(node_tpl))
 		{
 			DUCT_ASSERTE(nullptr != node_tpl);

@@ -49,10 +49,10 @@ TableGrid::set_input_control_impl(
 		);
 	}
 	update_field_view();
-	queue_actions(enum_combine(
-		ui::UpdateActions::render,
+	queue_actions(
+		ui::UpdateActions::render |
 		ui::UpdateActions::flag_noclear
-	));
+	);
 }
 
 void
@@ -63,10 +63,10 @@ TableGrid::reflow_impl(
 	base::reflow_impl(area, cache);
 	if (has_input_control()) {
 		reflow_field();
-		queue_actions(enum_combine(
-			UI::UpdateActions::render,
+		queue_actions(
+			UI::UpdateActions::render |
 			UI::UpdateActions::flag_noclear
-		));
+		);
 	}
 }
 
@@ -187,10 +187,10 @@ TableGrid::handle_event_impl(
 		}
 		if (view_modified) {
 			update_field_view();
-			queue_actions(enum_combine(
-				ui::UpdateActions::render,
+			queue_actions(
+				ui::UpdateActions::render |
 				ui::UpdateActions::flag_noclear
-			));
+			);
 		}
 		return true;
 	}

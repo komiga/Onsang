@@ -231,10 +231,10 @@ App::init(
 	opt.morph(duct::VarType::node, false);
 	{
 		auto log = Log::acquire(Log::debug);
-		duct::ScriptWriter writer{enum_combine(
-			duct::ScriptWriter::Flags::defaults,
+		duct::ScriptWriter writer{
+			duct::ScriptWriter::Flags::defaults |
 			duct::ScriptWriter::Flags::quote
-		)};
+		};
 		log << "Arguments:\n";
 		DUCT_ASSERTE(writer.write(log, opt, true, 1u));
 		log << "\n";
