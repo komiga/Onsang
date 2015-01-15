@@ -18,6 +18,8 @@
 #include <Beard/tty/TerminalInfo.hpp>
 #include <Beard/txt/Defs.hpp>
 #include <Beard/ui/Defs.hpp>
+#include <Beard/ui/PropertyGroup.hpp>
+#include <Beard/ui/PropertyMap.hpp>
 #include <Beard/ui/Root.hpp>
 #include <Beard/ui/Context.hpp>
 #include <Beard/ui/Container.hpp>
@@ -43,9 +45,112 @@ namespace Onsang {
 
 // class App implementation
 
+namespace {
+
+using AT = Beard::tty::attr_type;
+namespace C = Beard::tty::Color;
+namespace A = Beard::tty::Attr;
+
+static UI::PropertyGroup const
+s_ui_pgroup_default{{
+// primary
+	{UI::property_primary_fg_inactive, AT{C::term_default}},
+	{UI::property_primary_bg_inactive, AT{C::term_default}},
+	{UI::property_primary_fg_active, AT{C::term_default}},
+	{UI::property_primary_bg_active, AT{C::term_default | A::inverted}},
+
+// content
+	{UI::property_content_fg_inactive, AT{C::term_default}},
+	{UI::property_content_bg_inactive, AT{C::term_default}},
+	{UI::property_content_fg_active, AT{C::term_default}},
+	{UI::property_content_bg_active, AT{C::term_default}},
+	{UI::property_content_fg_selected, AT{C::term_default | A::bold}},
+	{UI::property_content_bg_selected, AT{C::magenta}},
+
+// frame
+	{UI::property_frame_enabled, false},
+	{UI::property_frame_debug_enabled, false},
+	{UI::property_frame_fg_inactive, AT{C::blue}},
+	{UI::property_frame_bg_inactive, AT{C::term_default}},
+	{UI::property_frame_fg_active, AT{C::blue}},
+	{UI::property_frame_bg_active, AT{C::term_default | A::inverted}},
+
+// field
+	{UI::property_field_content_underline, false},
+}},
+s_ui_pgroup_csl{{
+// primary
+	{UI::property_primary_fg_inactive, AT{C::white}},
+	{UI::property_primary_bg_inactive, AT{C::blue}},
+
+// content
+	{UI::property_content_fg_inactive, AT{C::white}},
+	{UI::property_content_bg_inactive, AT{C::blue}},
+}};
+
+} // anonymous namespace
+
 App App::instance{};
 
 #define ONSANG_SCOPE_CLASS App
+
+App::App()
+	: m_session_manager(m_driver)
+	, m_config(
+		{},
+		{
+			{"log", {ConfigNode::Flags::optional, {
+				{"path", {
+					{duct::VarType::string},
+					ConfigNode::Flags::optional
+				}}
+			}}},
+			{"term", {
+				{"info", {
+					{duct::VarType::string}
+				}}
+			}},
+			{"sessions", {
+				{"builder", {
+					new ConfigNode({
+						{"type", {
+							{duct::VarType::string}
+						}},
+						{"path", {
+							{duct::VarType::string}
+						}},
+						{"auto-open", {
+							{duct::VarType::boolean},
+							ConfigNode::Flags::optional
+						}},
+						{"auto-create", {
+							{duct::VarType::boolean},
+							ConfigNode::Flags::optional
+						}}
+					}),
+					ConfigNode::Flags::node_matcher_named
+				}}
+			}}
+		}
+	)
+	, m_args({
+		{"--config", {
+			{duct::VarMask::value}
+		}},
+		{"--log", {
+			{duct::VarMask::value},
+			ConfigNode::Flags::optional
+		}},
+		{"--no-auto", {
+			{duct::VarType::null},
+			ConfigNode::Flags::optional
+		}},
+		{"--no-stdout", {
+			{duct::VarType::null},
+			ConfigNode::Flags::optional
+		}}
+	})
+{}
 
 namespace {
 ONSANG_DEF_FMT_CLASS(
@@ -483,9 +588,13 @@ App::ui_event_filter(
 void
 App::start_ui() {
 	m_ui.ctx.open(Beard::tty::this_path(), true);
-	auto& pmap = m_ui.ctx.get_property_map().find(UI::group_default)->second;
-	pmap.find(UI::property_field_content_underline)->second.set_boolean(false);
-	pmap.find(UI::property_frame_debug_enabled)->second.set_boolean(false);
+	m_ui.ctx.set_property_map({
+		{
+			{UI::group_default, s_ui_pgroup_default},
+			{UI::group_csl, s_ui_pgroup_csl},
+		},
+		false
+	});
 
 	auto const root = UI::Root::make(m_ui.ctx, UI::Axis::vertical);
 	m_ui.ctx.set_root(root);

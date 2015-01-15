@@ -19,7 +19,6 @@
 #include <Beard/ui/Defs.hpp>
 #include <Beard/ui/Widget/Defs.hpp>
 #include <Beard/ui/Context.hpp>
-#include <Beard/ui/PropertyMap.hpp>
 #include <Beard/ui/Container.hpp>
 
 #include <Hord/IO/Datastore.hpp>
@@ -45,10 +44,10 @@ public:
 
 	bool m_running{false};
 	struct {
-		UI::Context ctx{UI::PropertyMap{true}};
+		UI::Context ctx{{false}};
 		UI::Container::SPtr viewc{};
 		UI::CommandStatusLine::SPtr csline{};
-	} m_ui{};
+	} m_ui;
 	System::Session* m_session{nullptr};
 
 	ConfigNode m_config;
@@ -69,63 +68,7 @@ public:
 	~App() = default;
 	App(App&&) = default;
 
-	App()
-		: m_session_manager(m_driver)
-		, m_config(
-			{},
-			{
-				{"log", {ConfigNode::Flags::optional, {
-					{"path", {
-						{duct::VarType::string},
-						ConfigNode::Flags::optional
-					}}
-				}}},
-				{"term", {
-					{"info", {
-						{duct::VarType::string}
-					}}
-				}},
-				{"sessions", {
-					{"builder", {
-						new ConfigNode({
-							{"type", {
-								{duct::VarType::string}
-							}},
-							{"path", {
-								{duct::VarType::string}
-							}},
-							{"auto-open", {
-								{duct::VarType::boolean},
-								ConfigNode::Flags::optional
-							}},
-							{"auto-create", {
-								{duct::VarType::boolean},
-								ConfigNode::Flags::optional
-							}}
-						}),
-						ConfigNode::Flags::node_matcher_named
-					}}
-				}}
-			}
-		)
-		, m_args({
-			{"--config", {
-				{duct::VarMask::value}
-			}},
-			{"--log", {
-				{duct::VarMask::value},
-				ConfigNode::Flags::optional
-			}},
-			{"--no-auto", {
-				{duct::VarType::null},
-				ConfigNode::Flags::optional
-			}},
-			{"--no-stdout", {
-				{duct::VarType::null},
-				ConfigNode::Flags::optional
-			}}
-		})
-	{}
+	App();
 
 // operations
 	bool
