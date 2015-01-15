@@ -33,5 +33,23 @@ enum class OnsangWidgetType : unsigned {
 	TableGrid,
 };
 
+/*#define DPROP_(name) \
+	property_ ## name = UI::hash(DUCT_STRINGIFY(name))
+
+enum : UI::property_hash_type {
+};
+
+#undef DPROP_*/
+
+#define DGROUP_(name) \
+	group_ ## name = UI::hash(DUCT_STRINGIFY(name))
+
+enum : UI::group_hash_type {
+	// CommandStatusLine
+	DGROUP_(csl),
+};
+
+#undef DGROUP_
+
 } // namespace UI
 } // namespace Onsang

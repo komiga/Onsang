@@ -108,7 +108,7 @@ public:
 			enum_combine(
 				UI::Widget::Flags::visible
 			),
-			UI::group_null,
+			UI::group_csl,
 			{{0, 1}, false, UI::Axis::horizontal, UI::Axis::horizontal},
 			std::move(root),
 			std::move(parent)
