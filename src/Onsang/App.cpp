@@ -598,12 +598,7 @@ App::start_ui() {
 
 	auto const root = UI::Root::make(m_ui.ctx, UI::Axis::vertical);
 	m_ui.ctx.set_root(root);
-
 	m_ui.viewc = UI::Container::make(root, UI::Axis::vertical);
-	m_ui.viewc->get_geometry().set_sizing(
-		UI::Axis::both,
-		UI::Axis::both
-	);
 
 	m_ui.csline = UI::CommandStatusLine::make(root);
 	m_ui.csline->get_geometry().set_sizing(
