@@ -109,7 +109,7 @@ public:
 				UI::Widget::Flags::visible
 			),
 			UI::group_csl,
-			{{0, 1}, false, UI::Axis::horizontal, UI::Axis::horizontal},
+			{{0, 1}, true, UI::Axis::horizontal, UI::Axis::horizontal},
 			std::move(root),
 			std::move(parent)
 		)

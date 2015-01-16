@@ -85,7 +85,7 @@ public:
 				UI::Widget::Flags::visible
 			),
 			UI::group_null,
-			{{0, 0}, false, UI::Axis::both, UI::Axis::both},
+			{{0, 0}, true, UI::Axis::both, UI::Axis::both},
 			std::move(root),
 			std::move(parent)
 		)

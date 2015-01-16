@@ -141,7 +141,7 @@ public:
 				UI::Widget::Flags::visible
 			),
 			group,
-			{{0, 0}, false, Axis::both, Axis::both},
+			{{0, 0}, true, Axis::both, Axis::both},
 			std::move(root),
 			std::move(parent),
 			table.num_columns(),
@@ -151,7 +151,7 @@ public:
 		, m_object(object)
 		, m_table(table)
 		, m_prop_type(prop_type)
-		, m_field_geom({2, 1}, false, Axis::horizontal, Axis::horizontal)
+		, m_field_geom({2, 1}, true, Axis::horizontal, Axis::horizontal)
 		, m_field_text_tree()
 		, m_field_cursor(m_field_text_tree)
 		, m_field_view(m_field_text_tree)
