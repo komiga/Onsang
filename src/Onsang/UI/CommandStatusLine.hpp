@@ -11,6 +11,7 @@
 #include <Onsang/aux.hpp>
 #include <Onsang/String.hpp>
 #include <Onsang/UI/Defs.hpp>
+#include <Onsang/UI/BareField.hpp>
 
 #include <Beard/txt/Tree.hpp>
 #include <Beard/txt/Cursor.hpp>
@@ -44,9 +45,7 @@ public:
 	String m_location{};
 
 	UI::Widget::WPtr m_prev_focus{};
-	txt::Tree m_field_text_tree;
-	txt::Cursor m_field_cursor;
-	txt::Cursor m_field_view;
+	UI::BareField m_field{};
 
 private:
 	CommandStatusLine() noexcept = delete;
@@ -78,9 +77,6 @@ protected:
 
 // -
 	void
-	update_field_view() noexcept;
-
-	void
 	set_message(
 		UI::CommandStatusLine::MessageType type,
 		String&& text
@@ -107,9 +103,6 @@ public:
 			std::move(root),
 			std::move(parent)
 		)
-		, m_field_text_tree()
-		, m_field_cursor(m_field_text_tree)
-		, m_field_view(m_field_text_tree)
 	{}
 
 	CommandStatusLine(CommandStatusLine&&) = default;
@@ -120,12 +113,11 @@ public:
 		UI::RootWPtr root,
 		UI::Widget::WPtr parent = UI::Widget::WPtr()
 	) {
-		auto widget = aux::make_shared<UI::CommandStatusLine>(
+		return aux::make_shared<UI::CommandStatusLine>(
 			ctor_priv{},
 			std::move(root),
 			std::move(parent)
 		);
-		return widget;
 	}
 
 // properties

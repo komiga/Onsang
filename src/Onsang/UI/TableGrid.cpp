@@ -12,7 +12,6 @@
 
 #include <Beard/keys.hpp>
 #include <Beard/txt/Defs.hpp>
-#include <Beard/ui/packing.hpp>
 
 #include <Hord/Data/Defs.hpp>
 #include <Hord/Data/ValueRef.hpp>
@@ -37,18 +36,13 @@ TableGrid::set_input_control_impl(
 	bool const enabled
 ) noexcept {
 	base::set_input_control_impl(enabled);
-	get_root()->get_context().get_terminal().set_caret_visible(
-		has_input_control()
-	);
-	if (has_input_control()) {
-		m_field_cursor.col_extent(txt::Extent::tail);
-	} else {
+	if (!has_input_control()) {
 		queue_cell_render(
 			m_cursor.row, m_cursor.row + 1,
 			m_cursor.col, m_cursor.col + 1
 		);
 	}
-	update_field_view();
+	m_field.input_control_changed(*this);
 	queue_actions(
 		ui::UpdateActions::render |
 		ui::UpdateActions::flag_noclear
@@ -63,11 +57,11 @@ TableGrid::reflow_impl(
 	base::reflow_impl(area, cache);
 	if (has_input_control()) {
 		reflow_field();
-		queue_actions(
-			UI::UpdateActions::render |
-			UI::UpdateActions::flag_noclear
-		);
 	}
+	queue_actions(
+		UI::UpdateActions::render |
+		UI::UpdateActions::flag_noclear
+	);
 }
 
 bool
@@ -103,19 +97,19 @@ TableGrid::handle_event_impl(
 		m_field_type = value.type;
 		switch (m_field_type.type()) {
 		case Hord::Data::ValueType::null:
-			m_field_cursor.clear();
+			m_field.m_cursor.clear();
 			m_field_type = column.type;
 			break;
 
 		case Hord::Data::ValueType::string:
-			m_field_cursor.assign(value.data.string, value.size);
+			m_field.m_cursor.assign(value.data.string, value.size);
 			break;
 
 		default: {
 			char value_buffer[48];
 			duct::IO::omemstream format_stream{value_buffer, sizeof(value_buffer)};
 			format_stream << value;
-			m_field_cursor.assign(
+			m_field.m_cursor.assign(
 				value_buffer,
 				static_cast<unsigned>(format_stream.tellp())
 			);
@@ -131,19 +125,19 @@ TableGrid::handle_event_impl(
 		// TODO: Use callback instead
 		String string_value;
 		Hord::Data::ValueRef new_value{};
-		if (!m_field_text_tree.empty()) {
-			m_field_cursor.col_extent(txt::Extent::tail);
-			auto const& node = m_field_cursor.get_node();
+		if (!m_field.m_text_tree.empty()) {
+			m_field.m_cursor.col_extent(txt::Extent::tail);
+			auto const& node = m_field.m_cursor.get_node();
 			switch (m_field_type.type()) {
 			case Hord::Data::ValueType::dynamic:
 			case Hord::Data::ValueType::integer:
 			case Hord::Data::ValueType::decimal:
-				m_field_cursor.insert('\0');
+				m_field.m_cursor.insert('\0');
 				new_value.read_from_string(node.units() - 1, &*node.cbegin());
 				break;
 
 			case Hord::Data::ValueType::string:
-				string_value = m_field_text_tree.to_string();
+				string_value = m_field.m_text_tree.to_string();
 				new_value = string_value;
 				break;
 
@@ -159,24 +153,24 @@ TableGrid::handle_event_impl(
 				Hord::IO::PropState::modified
 			);
 		}
-		m_field_cursor.clear();
+		m_field.m_cursor.clear();
 		set_input_control(false);
 		return true;
 	} else if (event.key_input.code == KeyCode::esc) {
-		m_field_cursor.clear();
+		m_field.m_cursor.clear();
 		set_input_control(false);
 		return true;
 	} else {
 		bool view_modified = true;
 		switch (event.key_input.code) {
-		case KeyCode::up   : m_field_cursor.row_prev(); break;
-		case KeyCode::down : m_field_cursor.row_next(); break;
-		case KeyCode::left : m_field_cursor.col_prev(); break;
-		case KeyCode::right: m_field_cursor.col_next(); break;
-		case KeyCode::home: m_field_cursor.col_extent(txt::Extent::head); break;
-		case KeyCode::end : m_field_cursor.col_extent(txt::Extent::tail); break;
-		case KeyCode::del      : m_field_cursor.erase(); break;
-		case KeyCode::backspace: m_field_cursor.erase_before(); break;
+		case KeyCode::up   : m_field.m_cursor.row_prev(); break;
+		case KeyCode::down : m_field.m_cursor.row_next(); break;
+		case KeyCode::left : m_field.m_cursor.col_prev(); break;
+		case KeyCode::right: m_field.m_cursor.col_next(); break;
+		case KeyCode::home: m_field.m_cursor.col_extent(txt::Extent::head); break;
+		case KeyCode::end : m_field.m_cursor.col_extent(txt::Extent::tail); break;
+		case KeyCode::del      : m_field.m_cursor.erase(); break;
+		case KeyCode::backspace: m_field.m_cursor.erase_before(); break;
 		default:
 			if (event.key_input.cp != codepoint_none) {
 				field_input(event.key_input.cp);
@@ -186,7 +180,7 @@ TableGrid::handle_event_impl(
 			break;
 		}
 		if (view_modified) {
-			update_field_view();
+			m_field.update_view();
 			queue_actions(
 				ui::UpdateActions::render |
 				ui::UpdateActions::flag_noclear
@@ -202,7 +196,11 @@ TableGrid::render_impl(
 	UI::Widget::RenderData& rd
 ) noexcept {
 	base::render_impl(rd);
-	render_field(rd);
+	if (!has_input_control()) {
+		return;
+	}
+	rd.update_group(UI::group_field);
+	m_field.render(rd, true);
 }
 
 void
@@ -371,20 +369,6 @@ TableGrid::content_erase(
 }
 
 void
-TableGrid::update_field_view() noexcept {
-	auto const& frame = m_field_geom.get_frame();
-	auto const inner_width = max_ce(0, frame.size.width - 2 - 1);
-	if (
-		m_field_view.col() > m_field_cursor.col() ||
-		m_field_view.col() + inner_width < m_field_cursor.col()
-	) {
-		m_field_view.col_abs(
-			m_field_cursor.col() - (inner_width / 2)
-		);
-	}
-}
-
-void
 TableGrid::reflow_field() noexcept {
 	auto const& content_frame = get_view().content_frame;
 	Quad cell_quad{
@@ -399,73 +383,7 @@ TableGrid::reflow_field() noexcept {
 	Quad const fq = rect_abs_quad(content_frame);
 	vec2_clamp(cell_quad.v1, fq.v1, fq.v2);
 	vec2_clamp(cell_quad.v2, fq.v1, fq.v2);
-	UI::reflow(quad_rect(cell_quad), m_field_geom);
-	update_field_view();
-}
-
-void
-TableGrid::render_field(
-	UI::Widget::RenderData& rd
-) noexcept {
-	if (!has_input_control()) {
-		return;
-	}
-	rd.update_group(UI::group_field);
-	auto const& frame = m_field_geom.get_frame();
-	auto const& node = m_field_cursor.get_node();
-
-	tty::attr_type const
-		primary_fg = rd.get_attr(ui::property_primary_fg_active),
-		primary_bg = rd.get_attr(ui::property_primary_bg_active),
-		content_fg = rd.get_attr(ui::property_content_fg_active),
-		content_bg = rd.get_attr(ui::property_content_bg_active)
-	;
-	tty::Cell cell_side = tty::make_cell('[', primary_fg, primary_bg);
-	rd.terminal.put_cell(frame.pos.x, frame.pos.y, cell_side);
-	auto const inner_width = max_ce(geom_value_type{0}, frame.size.width - 2);
-	auto const put_count = min_ce(
-		static_cast<txt::Cursor::difference_type>(inner_width),
-		max_ce(
-			txt::Cursor::difference_type{0},
-			signed_cast(node.points()) - m_field_view.col()
-		)
-	);
-	rd.terminal.put_sequence(
-		frame.pos.x + 1,
-		frame.pos.y,
-		txt::Sequence{
-			&*node.cbegin() + m_field_view.index(),
-			unsigned_cast(max_ce(
-				txt::Cursor::difference_type{0},
-				signed_cast(node.units()) - m_field_view.index()
-			))
-		},
-		put_count, content_fg, content_bg
-	);
-	tty::Cell const cell_clear = tty::make_cell(' ', content_fg, content_bg);
-	rd.terminal.put_line(
-		{
-			static_cast<geom_value_type>(frame.pos.x + 1 + put_count),
-			frame.pos.y
-		},
-		inner_width - put_count, Axis::horizontal, cell_clear
-	);
-	cell_side.u8block.assign(']');
-	rd.terminal.put_cell(
-		frame.pos.x + frame.size.width - 1,
-		frame.pos.y,
-		cell_side
-	);
-	rd.terminal.set_caret_pos(
-		frame.pos.x
-		+ min_ce(
-			inner_width,
-			1 + static_cast<geom_value_type>(
-				m_field_cursor.col() - m_field_view.col()
-			)
-		),
-		frame.pos.y
-	);
+	m_field.reflow(quad_rect(cell_quad));
 }
 
 bool
@@ -509,7 +427,7 @@ TableGrid::field_input(
 
 	default: break;
 	}
-	m_field_cursor.insert_step(cp);
+	m_field.m_cursor.insert_step(cp);
 	return true;
 }
 

@@ -12,6 +12,7 @@
 #include <Onsang/utility.hpp>
 #include <Onsang/System/Session.hpp>
 #include <Onsang/UI/Defs.hpp>
+#include <Onsang/UI/BareField.hpp>
 #include <Onsang/UI/BasicGrid.hpp>
 
 #include <Beard/keys.hpp>
@@ -43,11 +44,8 @@ private:
 	Hord::Object::Unit& m_object;
 	Hord::Data::Table& m_table;
 	Hord::IO::PropType m_prop_type;
-	UI::Geom m_field_geom;
-	txt::Tree m_field_text_tree;
-	txt::Cursor m_field_cursor;
-	txt::Cursor m_field_view;
-	Hord::Data::Type m_field_type;
+	UI::BareField m_field{};
+	Hord::Data::Type m_field_type{};
 
 private:
 // UI::Widget::Base implementation
@@ -106,15 +104,7 @@ private:
 
 private:
 	void
-	update_field_view() noexcept;
-
-	void
 	reflow_field() noexcept;
-
-	void
-	render_field(
-		UI::Widget::RenderData& rd
-	) noexcept;
 
 	bool
 	field_input(
@@ -151,11 +141,6 @@ public:
 		, m_object(object)
 		, m_table(table)
 		, m_prop_type(prop_type)
-		, m_field_geom({2, 1}, true, Axis::horizontal, Axis::horizontal)
-		, m_field_text_tree()
-		, m_field_cursor(m_field_text_tree)
-		, m_field_view(m_field_text_tree)
-		, m_field_type()
 	{}
 
 	static UI::TableGrid::SPtr
