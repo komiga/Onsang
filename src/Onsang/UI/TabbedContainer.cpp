@@ -139,8 +139,10 @@ TabbedContainer::insert(
 	if (m_tabs.empty()) {
 		m_position = 0;
 		widget->set_visible(true);
-	} else if (index <= m_position) {
-		++m_position;
+	} else {
+		if (index <= m_position) {
+			++m_position;
+		}
 		widget->set_visible(false);
 	}
 	m_tabs.insert(
