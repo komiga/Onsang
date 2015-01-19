@@ -22,12 +22,6 @@
 namespace Onsang {
 namespace UI {
 
-// Forward declarations
-class CommandStatusLine;
-
-/**
-	Object view widget.
-*/
 class CommandStatusLine
 	: public UI::Widget::Base
 {

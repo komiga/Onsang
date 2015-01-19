@@ -2,7 +2,7 @@
 @copyright MIT license; see @ref index or the accompanying LICENSE file.
 
 @file
-@brief %Session.
+@brief %Session class.
 */
 
 #pragma once
@@ -25,12 +25,6 @@
 namespace Onsang {
 namespace System {
 
-// Forward declarations
-class Session;
-
-/**
-	Session.
-*/
 class Session
 	: public Hord::System::Context
 {

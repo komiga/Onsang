@@ -2,7 +2,7 @@
 @copyright MIT license; see @ref index or the accompanying LICENSE file.
 
 @file
-@brief Object view.
+@brief Object view widget.
 */
 
 #pragma once
@@ -25,12 +25,6 @@
 namespace Onsang {
 namespace UI {
 
-// Forward declarations
-class ObjectView;
-
-/**
-	Object view widget.
-*/
 class ObjectView
 	: public UI::TabbedView
 {

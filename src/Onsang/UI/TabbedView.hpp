@@ -22,12 +22,6 @@
 namespace Onsang {
 namespace UI {
 
-// Forward declarations
-class TabbedView;
-
-/**
-	Tabbed view base widget.
-*/
 class TabbedView
 	: public UI::Widget::Base
 	, public UI::View

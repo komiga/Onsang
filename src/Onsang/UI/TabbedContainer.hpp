@@ -2,7 +2,7 @@
 @copyright MIT license; see @ref index or the accompanying LICENSE file.
 
 @file
-@brief Tabbed container.
+@brief Tabbed container widget.
 */
 
 #pragma once
@@ -18,12 +18,6 @@
 namespace Onsang {
 namespace UI {
 
-// Forward declarations
-class TabbedContainer;
-
-/**
-	Prototype slot-based container widget.
-*/
 class TabbedContainer
 	: public UI::Widget::Base
 {

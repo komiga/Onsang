@@ -20,12 +20,6 @@
 namespace Onsang {
 namespace UI {
 
-// Forward declarations
-class PropView;
-
-/**
-	Prop view widget.
-*/
 class PropView
 	: public UI::ProtoSlotContainer
 	, public UI::View

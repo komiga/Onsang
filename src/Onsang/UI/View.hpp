@@ -18,12 +18,6 @@
 namespace Onsang {
 namespace UI {
 
-// Forward declarations
-class View;
-
-/**
-	View base class.
-*/
 class View {
 public:
 	using SPtr = aux::shared_ptr<UI::View>;

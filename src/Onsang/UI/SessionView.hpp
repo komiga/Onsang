@@ -2,7 +2,7 @@
 @copyright MIT license; see @ref index or the accompanying LICENSE file.
 
 @file
-@brief Session view.
+@brief Session view widget.
 */
 
 #pragma once
@@ -23,12 +23,6 @@
 namespace Onsang {
 namespace UI {
 
-// Forward declarations
-class SessionView;
-
-/**
-	Object view widget.
-*/
 class SessionView
 	: public UI::TabbedView
 {

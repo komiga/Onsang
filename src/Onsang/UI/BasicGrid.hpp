@@ -2,7 +2,7 @@
 @copyright MIT license; see @ref index or the accompanying LICENSE file.
 
 @file
-@brief BasicGrid.
+@brief BasicGrid base widget.
 */
 
 #pragma once

@@ -2,7 +2,7 @@
 @copyright MIT license; see @ref index or the accompanying LICENSE file.
 
 @file
-@brief FlatDatastore class.
+@brief Flat-file datastore.
 */
 
 #pragma once
@@ -45,12 +45,6 @@ Structure:
 namespace Onsang {
 namespace IO {
 
-// Forward declarations
-class FlatDatastore;
-
-/**
-	Flat-file datastore.
-*/
 class FlatDatastore final
 	: public Hord::IO::Datastore
 {

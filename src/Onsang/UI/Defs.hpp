@@ -17,9 +17,6 @@
 namespace Onsang {
 namespace UI {
 
-// Forward declarations
-enum class OnsangWidgetType : unsigned;
-
 using namespace Beard;
 using namespace Beard::ui;
 

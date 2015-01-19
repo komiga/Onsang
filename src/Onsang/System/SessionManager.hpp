@@ -2,7 +2,7 @@
 @copyright MIT license; see @ref index or the accompanying LICENSE file.
 
 @file
-@brief %Session manager.
+@brief %Session manager class.
 */
 
 #pragma once
@@ -18,12 +18,6 @@
 namespace Onsang {
 namespace System {
 
-// Forward declarations
-class SessionManager;
-
-/**
-	Session manager.
-*/
 class SessionManager {
 public:
 	using session_collection_type = aux::unordered_map<
