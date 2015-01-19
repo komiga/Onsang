@@ -64,8 +64,16 @@ BareField::render(
 	auto const& node = m_cursor.get_node();
 
 	tty::attr_type const
-		primary_fg = rd.get_attr(ui::property_primary_fg_active),
-		primary_bg = rd.get_attr(ui::property_primary_bg_active),
+		primary_fg = rd.get_attr(
+			active
+			? ui::property_primary_fg_active
+			: ui::property_primary_fg_inactive
+		),
+		primary_bg = rd.get_attr(
+			active
+			? ui::property_primary_bg_active
+			: ui::property_primary_bg_inactive
+		),
 		content_fg = rd.get_attr(
 			active
 			? ui::property_content_fg_active
