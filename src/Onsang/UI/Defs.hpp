@@ -27,10 +27,10 @@ enum class OnsangWidgetType : unsigned {
 	BASE = enum_cast(UI::Widget::Type::USERSPACE_BASE) + 0xFF00,
 	TabbedContainer,
 	CommandStatusLine,
+	TableGrid,
 	SessionView,
 	ObjectView,
 	PropView,
-	TableGrid,
 };
 
 /*#define DPROP_(name) \
