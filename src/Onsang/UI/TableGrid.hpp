@@ -32,14 +32,9 @@ public:
 
 private:
 	using base = UI::BasicGrid;
-
-private:
 	enum class ctor_priv {};
 
-	TableGrid() noexcept = delete;
-	TableGrid(TableGrid const&) = delete;
-	TableGrid& operator=(TableGrid const&) = delete;
-
+public:
 	// System::Session& m_session;
 	Hord::Object::Unit& m_object;
 	Hord::Data::Table& m_table;
@@ -92,17 +87,15 @@ private:
 // BasicGrid implementation
 	bool
 	content_insert(
-		UI::index_type row_begin,
-		UI::index_type count
+		UI::index_type row
 	) noexcept override;
 
 	bool
 	content_erase(
-		UI::index_type row_begin,
-		UI::index_type count
+		UI::index_type row
 	) noexcept override;
 
-private:
+// -
 	void
 	reflow_field() noexcept;
 
@@ -110,6 +103,11 @@ private:
 	field_input(
 		char32 cp
 	) noexcept;
+
+private:
+	TableGrid() noexcept = delete;
+	TableGrid(TableGrid const&) = delete;
+	TableGrid& operator=(TableGrid const&) = delete;
 
 public:
 	~TableGrid() noexcept override = default;

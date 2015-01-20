@@ -36,7 +36,9 @@ TableGrid::set_input_control_impl(
 	bool const enabled
 ) noexcept {
 	base::set_input_control_impl(enabled);
-	if (!has_input_control()) {
+	if (has_input_control()) {
+		reflow_field();
+	} else {
 		queue_cell_render(
 			m_cursor.row, m_cursor.row + 1,
 			m_cursor.col, m_cursor.col + 1
@@ -58,10 +60,6 @@ TableGrid::reflow_impl(
 	if (has_input_control()) {
 		reflow_field();
 	}
-	queue_actions(
-		UI::UpdateActions::render |
-		UI::UpdateActions::flag_noclear
-	);
 }
 
 bool
@@ -118,7 +116,6 @@ TableGrid::handle_event_impl(
 		if (event.key_input.cp == '*') {
 			m_field_type = Hord::Data::ValueType::dynamic;
 		}
-		reflow_field();
 		set_input_control(true);
 		return true;
 	} else if (event.key_input.code == KeyCode::enter) {
@@ -291,7 +288,7 @@ TableGrid::render_content(
 	Hord::Data::ValueRef value{};
 	Hord::Data::Table::Iterator it_table = m_table.iterator_at(row_begin);
 	for (UI::index_type row = row_begin; row < row_end; ++row) {
-		if (m_rows[row].states.test(Row::Flags::selected)) {
+		if (m_sel[row]) {
 			attr_fg = grid_rd.selected_fg;
 			cell.attr_bg = grid_rd.selected_bg;
 		} else {
@@ -352,8 +349,7 @@ TableGrid::render_content(
 
 bool
 TableGrid::content_insert(
-	UI::index_type /*row_begin*/,
-	UI::index_type /*count*/
+	UI::index_type /*row*/
 ) noexcept {
 	// TODO
 	return false;
@@ -361,8 +357,7 @@ TableGrid::content_insert(
 
 bool
 TableGrid::content_erase(
-	UI::index_type /*row_begin*/,
-	UI::index_type /*count*/
+	UI::index_type /*row*/
 ) noexcept {
 	// TODO
 	return false;

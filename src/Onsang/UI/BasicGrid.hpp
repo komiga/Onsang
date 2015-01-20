@@ -28,22 +28,11 @@ private:
 	using base = UI::ProtoGrid;
 
 public:
-	struct Row final {
-		enum class Flags : std::uint8_t {
-			selected = bit(0u)
-		};
-
-		duct::StateStore<Flags> states{};
-	};
-
-	using row_vector_type = aux::vector<Row>;
-
 	struct {
 		UI::index_type col{-1};
 		UI::index_type row{-1};
 	} m_cursor{};
-
-	row_vector_type m_rows;
+	aux::vector<bool> m_sel;
 
 private:
 	BasicGrid() noexcept = delete;
@@ -102,14 +91,12 @@ protected:
 // BasicGrid implementation
 	virtual bool
 	content_insert(
-		UI::index_type row_begin,
-		UI::index_type count
+		UI::index_type row
 	) noexcept = 0;
 
 	virtual bool
 	content_erase(
-		UI::index_type row_begin,
-		UI::index_type count
+		UI::index_type row
 	) noexcept = 0;
 
 protected:
@@ -140,7 +127,7 @@ public:
 			col_count,
 			row_count
 		)
-		, m_rows(row_count)
+		, m_sel(row_count)
 	{}
 
 	BasicGrid(BasicGrid&&) = default;
@@ -180,6 +167,12 @@ public:
 	) noexcept {
 		row_abs(m_cursor.row + amt);
 	}
+
+	void
+	resize_grid(
+		UI::index_type col_count,
+		UI::index_type row_count
+	);
 };
 inline BasicGrid::~BasicGrid() noexcept = default;
 

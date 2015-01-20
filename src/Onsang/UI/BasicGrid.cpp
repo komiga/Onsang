@@ -18,15 +18,14 @@ BasicGrid::reflow_impl(
 	bool const cache
 ) noexcept {
 	base::reflow_impl(area, cache);
-	Rect view_frame = get_geometry().get_frame();
-	// ++view_frame.pos.x;
-	// ++view_frame.pos.y;
-	// view_frame.size.width -= 2;
-	// view_frame.size.height -= 2;
-	reflow_view(view_frame);
+	reflow_view(get_geometry().get_frame());
 	adjust_view();
 	queue_header_render();
 	queue_cell_render(0, get_row_count());
+	queue_actions(
+		UI::UpdateActions::render |
+		UI::UpdateActions::flag_noclear
+	);
 }
 
 bool
@@ -134,11 +133,11 @@ BasicGrid::content_action(
 	UI::index_type row_begin,
 	UI::index_type count
 ) noexcept {
-	using ContentAction = UI::ProtoGrid::ContentAction;
+	using CA = UI::ProtoGrid::ContentAction;
 
-	DUCT_ASSERTE(get_row_count() == static_cast<signed>(m_rows.size()));
+	DUCT_ASSERTE(get_row_count() == signed_cast(m_sel.size()));
 	// Cast insert_after in terms of insert_before
-	if (ContentAction::insert_after == action) {
+	if (CA::insert_after == action) {
 		++row_begin;
 	}
 	row_begin = value_clamp(row_begin, 0, get_row_count());
@@ -146,43 +145,36 @@ BasicGrid::content_action(
 	auto clear_flag = UI::UpdateActions::none;
 	switch (action) {
 	// Select
-	case ContentAction::select:
-	case ContentAction::unselect: {
-		bool const enable = ContentAction::select == action;
-		auto const end = m_rows.begin() + row_end;
-		for (auto it = m_rows.begin() + row_begin; end > it; ++it) {
-			it->states.set(Row::Flags::selected, enable);
+	case CA::select: // fall-through
+	case CA::unselect: {
+		bool const enable = CA::select == action;
+		auto const end = m_sel.begin() + row_end;
+		for (auto it = m_sel.begin() + row_begin; end > it; ++it) {
+			*it = enable;
 		}
 		queue_cell_render(row_begin, row_end);
 		clear_flag = UI::UpdateActions::flag_noclear;
 	}	break;
 
-	case ContentAction::select_toggle: {
-		auto const end = m_rows.begin() + row_end;
-		for (auto it = m_rows.begin() + row_begin; end > it; ++it) {
-			it->states.set(
-				Row::Flags::selected,
-				!it->states.test(Row::Flags::selected)
-			);
+	case CA::select_toggle: {
+		auto const end = m_sel.begin() + row_end;
+		for (auto it = m_sel.begin() + row_begin; end > it; ++it) {
+			*it = !*it;
 		}
 		queue_cell_render(row_begin, row_end);
 		clear_flag = UI::UpdateActions::flag_noclear;
 	}	break;
 
 	// Insert
-	case ContentAction::insert_after: // fall-through
-	case ContentAction::insert_before:
-		m_rows.insert(
-			m_rows.begin() + row_begin,
-			static_cast<std::size_t>(count),
-			Row{}
-		);
-		content_action_internal(
-			ContentAction::insert_before,
-			row_begin,
-			count
-		);
-		if (1 == get_row_count()) {
+	case CA::insert_after: // fall-through
+	case CA::insert_before:
+		for (UI::index_type i = 0; i < count; ++i) {
+			if (content_insert(row_begin + i)) {
+				m_sel.insert(m_sel.begin() + row_begin + i, false);
+				content_action_internal(CA::insert_before, row_begin + i, 1);
+			}
+		}
+		if (get_row_count() == 1) {
 			set_cursor(m_cursor.col, 0);
 		} else if (row_begin <= m_cursor.row) {
 			set_cursor(m_cursor.col, m_cursor.row + count);
@@ -191,57 +183,24 @@ BasicGrid::content_action(
 		break;
 
 	// Erase
-	case ContentAction::erase:
-		if (content_erase(row_begin, count)) {
-			m_rows.erase(
-				m_rows.cbegin() + row_begin,
-				m_rows.cbegin() + row_end
-			);
-			content_action_internal(
-				ContentAction::erase,
-				row_begin,
-				count
-			);
-		} else {
-			return;
+	case CA::erase:
+		for (UI::index_type i = 0; i < count; ++i) {
+			if (content_erase(row_begin)) {
+				m_sel.erase(m_sel.cbegin() + row_begin);
+				content_action_internal(CA::erase, row_begin, 1);
+			}
 		}
 		break;
 
-	case ContentAction::erase_selected:
-		UI::index_type
-			head = 0,
-			tail = head,
-			rcount = 0
-		;
-		while (get_row_count() >= tail) {
-			if (
-				get_row_count() == tail ||
-				!m_rows[tail].states.test(Row::Flags::selected)
-			) {
-				if (tail > head) {
-					rcount = tail - head;
-					if (content_erase(head, rcount)) {
-						m_rows.erase(
-							m_rows.cbegin() + head,
-							m_rows.cbegin() + tail
-						);
-						content_action_internal(ContentAction::erase, head, rcount);
-						/*if (head <= m_cursor.row) {
-							set_cursor(
-								m_cursor.col,
-								max_ce(head, m_cursor.row - rcount)
-							);
-						}*/
-						// tail is not selected, so no sense in checking it again
-						tail = ++head;
-					} else {
-						head = ++tail;
-					}
-				} else {
-					head = ++tail;
-				}
-			} else {
-				++tail;
+	case CA::erase_selected:
+		for (
+			UI::index_type index = get_row_count();
+			index >= 0 && get_row_count() != 0;
+			--index
+		) {
+			if (m_sel[index] && content_erase(index)) {
+				m_sel.erase(m_sel.cbegin() + index);
+				content_action_internal(CA::erase, index, 1);
 			}
 		}
 		break;
@@ -249,8 +208,8 @@ BasicGrid::content_action(
 
 	// Post action
 	switch (action) {
-	case ContentAction::erase:
-	case ContentAction::erase_selected:
+	case CA::erase:
+	case CA::erase_selected:
 		// Let cursor clamp to new bounds
 		set_cursor(m_cursor.col, m_cursor.row);
 		adjust_view();
@@ -306,7 +265,7 @@ BasicGrid::set_cursor(
 				m_cursor.col, m_cursor.col + 1
 			);
 		}
-		if (!m_rows.empty()) {
+		if (get_row_count() > 0) {
 			queue_cell_render(
 				row, row + 1,
 				col, col + 1
@@ -326,6 +285,21 @@ BasicGrid::set_cursor(
 			);
 		}
 	}
+}
+
+void
+BasicGrid::resize_grid(
+	UI::index_type col_count,
+	UI::index_type row_count
+) {
+	m_sel.resize(row_count);
+	set_row_count(row_count);
+	set_col_count(col_count);
+	set_cursor(m_cursor.col, m_cursor.row);
+	adjust_view();
+	queue_actions(
+		UI::UpdateActions::render
+	);
 }
 
 } // namespace UI
