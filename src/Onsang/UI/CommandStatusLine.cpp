@@ -66,29 +66,8 @@ CommandStatusLine::handle_event_impl(
 			set_input_control(false);
 			return true;
 		} else {
-			bool view_modified = true;
-			switch (event.key_input.code) {
-			//case KeyCode::up   : /* TODO */ break;
-			//case KeyCode::down : /* TODO */ break;
-			case KeyCode::left : m_field.m_cursor.col_prev(); break;
-			case KeyCode::right: m_field.m_cursor.col_next(); break;
-			case KeyCode::home: m_field.m_cursor.col_extent(txt::Extent::head); break;
-			case KeyCode::end : m_field.m_cursor.col_extent(txt::Extent::tail); break;
-			case KeyCode::del      : m_field.m_cursor.erase(); break;
-			case KeyCode::backspace: m_field.m_cursor.erase_before(); break;
-			default:
-				if (
-					event.key_input.cp != codepoint_none &&
-					event.key_input.cp != '\t'
-				) {
-					m_field.m_cursor.insert_step(event.key_input.cp);
-				} else {
-					view_modified = false;
-				}
-				break;
-			}
-			if (view_modified) {
-				m_field.update_view();
+			// TODO: Command history
+			if (m_field.input(event.key_input)) {
 				queue_actions(
 					ui::UpdateActions::render |
 					ui::UpdateActions::flag_noclear
