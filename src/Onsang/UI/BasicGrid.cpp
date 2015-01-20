@@ -293,8 +293,14 @@ BasicGrid::resize_grid(
 	m_sel.resize(row_count);
 	set_row_count(row_count);
 	set_col_count(col_count);
-	set_cursor(m_cursor.col, m_cursor.row);
-	adjust_view();
+	set_cursor(0, 0);
+	update_view(
+		0, get_view().fit_count,
+		0, get_col_count(),
+		false
+	);
+	queue_header_render();
+	queue_cell_render(0, get_row_count());
 	queue_actions(
 		UI::UpdateActions::render
 	);
