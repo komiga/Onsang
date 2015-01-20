@@ -49,12 +49,8 @@ TabbedContainer::reflow_impl(
 	++child_frame.pos.y;
 	--child_frame.size.height;
 	vec2_clamp_min(child_frame.size, Vec2{0, 0});
-	unsigned index = 0;
-	for (auto& tab : m_tabs) {
-		if (index == m_position) {
-			tab.widget->reflow(child_frame, false);
-		}
-		++index;
+	if (!m_tabs.empty()) {
+		m_tabs[m_position].widget->reflow(child_frame, false);
 	}
 }
 
