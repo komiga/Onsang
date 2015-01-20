@@ -193,14 +193,12 @@ BasicGrid::content_action(
 		break;
 
 	case CA::erase_selected:
-		for (
-			UI::index_type index = get_row_count();
-			index >= 0 && get_row_count() != 0;
-			--index
-		) {
+		for (UI::index_type index = 0; index < get_row_count();) {
 			if (m_sel[index] && content_erase(index)) {
 				m_sel.erase(m_sel.cbegin() + index);
 				content_action_internal(CA::erase, index, 1);
+			} else {
+				++index;
 			}
 		}
 		break;
