@@ -65,6 +65,11 @@ public:
 		UI::Widget::RenderData& rd,
 		bool active
 	) noexcept;
+
+	bool
+	input(
+		UI::KeyInputData const& key_input
+	);
 };
 
 } // namespace UI

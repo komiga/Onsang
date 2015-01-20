@@ -133,5 +133,30 @@ BareField::render(
 	);
 }
 
+bool
+BareField::input(
+	UI::KeyInputData const& key_input
+) {
+	switch (key_input.code) {
+	case KeyCode::up   : m_cursor.row_prev(); break;
+	case KeyCode::down : m_cursor.row_next(); break;
+	case KeyCode::left : m_cursor.col_prev(); break;
+	case KeyCode::right: m_cursor.col_next(); break;
+	case KeyCode::home : m_cursor.col_extent(txt::Extent::head); break;
+	case KeyCode::end  : m_cursor.col_extent(txt::Extent::tail); break;
+	case KeyCode::del      : m_cursor.erase(); break;
+	case KeyCode::backspace: m_cursor.erase_before(); break;
+	default:
+		if (key_input.cp == codepoint_none || key_input.cp == '\t') {
+			return false;
+		} else {
+			m_cursor.insert_step(key_input.cp);
+		}
+		break;
+	}
+	update_view();
+	return true;
+}
+
 } // namespace UI
 } // namespace Onsang
