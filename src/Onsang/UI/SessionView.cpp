@@ -53,7 +53,7 @@ SessionView::add_object_view(
 	if (!object) {
 		return;
 	}
-	for (auto const& tab : m_container->m_tabs) {
+	for (auto const& tab : m_tabs) {
 		auto const object_view = std::static_pointer_cast<UI::ObjectView>(tab.widget);
 		if (object_view && object_view->m_object.get_id() == object->get_id()) {
 			return;
@@ -70,7 +70,7 @@ SessionView::add_object_view(
 		}
 	}
 	auto object_view = UI::make_object_view(get_root_weak(), m_session, *object);
-	index = m_container->insert(object_view->view_title(), object_view, index);
+	index = insert(object_view->view_title(), object_view, index);
 	set_sub_view(index);
 	// Show description if the sub view wasn't changed
 	// (e.g., when the tabbed view is empty)

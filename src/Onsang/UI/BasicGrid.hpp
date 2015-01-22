@@ -42,10 +42,7 @@ private:
 protected:
 // UI::Widget::Base implementation
 	virtual void
-	reflow_impl(
-		Rect const& area,
-		bool const cache
-	) noexcept override;
+	reflow_impl() noexcept override;
 
 	virtual bool
 	handle_event_impl(

@@ -26,7 +26,7 @@ namespace UI {
 void
 add_base_prop_view(
 	UI::ObjectView& object_view,
-	unsigned const index = static_cast<unsigned>(-1)
+	unsigned index = static_cast<unsigned>(-1)
 );
 
 /**
@@ -35,7 +35,7 @@ add_base_prop_view(
 void
 add_data_prop_view(
 	UI::ObjectView& object_view,
-	unsigned const index = static_cast<unsigned>(-1)
+	unsigned index = static_cast<unsigned>(-1)
 );
 
 } // namespace UI

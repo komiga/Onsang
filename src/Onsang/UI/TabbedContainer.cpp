@@ -10,6 +10,7 @@
 
 #include <Beard/txt/Defs.hpp>
 #include <Beard/tty/Defs.hpp>
+#include <Beard/ui/packing.hpp>
 #include <Beard/ui/Widget/Base.hpp>
 #include <Beard/ui/Root.hpp>
 
@@ -19,50 +20,74 @@ namespace UI {
 void TabbedContainer::push_back(UI::Widget::SPtr /*widget*/) {}
 
 // Beard::ui::Widget::Base implementation
+
 void
-TabbedContainer::cache_geometry_impl() noexcept {
-	auto rs = get_geometry().get_request_size();
+TabbedContainer::push_action_graph_impl(
+	ui::Widget::set_type& set
+) noexcept {
 	if (!m_tabs.empty()) {
-		Tab const& tab = m_tabs.at(m_position);
-		if (tab.widget) {
-			tab.widget->cache_geometry();
-			auto const& ws = tab.widget->get_geometry().get_request_size();
-			rs.width  = max_ce(rs.width , ws.width);
-			rs.height = max_ce(rs.height, ws.height);
+		// If we're clearing, there's no reason for children to clear
+		auto actions = get_queued_actions();
+		if (
+			ui::UpdateActions::render
+			== (actions & (ui::UpdateActions::render | ui::UpdateActions::flag_noclear))
+		) {
+			actions |= ui::UpdateActions::flag_noclear;
 		}
-	}
-	if (!get_geometry().is_static()) {
-		get_geometry().set_request_size(std::move(rs));
+		auto& widget = m_tabs[m_position].widget;
+		actions |= widget->get_queued_actions();
+		widget->push_action_graph(set, actions);
 	}
 }
 
 void
-TabbedContainer::reflow_impl(
-	Rect const& area,
-	bool const cache
-) noexcept {
-	base::reflow_impl(area, cache);
+TabbedContainer::cache_geometry_impl() noexcept {
 	if (m_tabs.empty()) {
 		return;
 	}
-	Rect child_frame = area;
+	if (!get_geometry().is_static()) {
+		Tab const& tab = m_tabs.at(m_position);
+		auto rs = get_geometry().get_request_size();
+		auto const& ws = tab.widget->get_geometry().get_request_size();
+		rs.width  = max_ce(rs.width , ws.width);
+		rs.height = max_ce(rs.height, ws.height);
+		get_geometry().set_request_size(rs);
+	}
+}
+
+void
+TabbedContainer::reflow_impl() noexcept {
+	base::reflow_impl();
+	if (m_tabs.empty()) {
+		return;
+	}
+	Rect child_frame = get_geometry().get_area();
 	++child_frame.pos.y;
 	--child_frame.size.height;
 	vec2_clamp_min(child_frame.size, Vec2{0, 0});
-	if (!m_tabs.empty()) {
-		m_tabs[m_position].widget->reflow(child_frame, false);
-	}
+	m_tabs[m_position].widget->get_geometry().set_area(child_frame);
 }
 
 void
 TabbedContainer::render_impl(
 	UI::Widget::RenderData& rd
 ) noexcept {
+	auto const& frame = get_geometry().get_frame();
+	rd.terminal.clear_back({frame.pos, {frame.size.width, 1}});
 	if (m_tabs.empty()) {
 		 return;
 	}
-	auto const& frame = get_geometry().get_frame();
-	rd.terminal.clear_back({frame.pos, {frame.size.width, 1}});
+	tty::attr_type const
+	content_fg[]{
+		rd.get_attr(ui::property_content_fg_inactive),
+		rd.get_attr(ui::property_content_fg_selected),
+	},
+	content_bg[]{
+		rd.get_attr(ui::property_content_bg_inactive),
+		rd.get_attr(ui::property_content_bg_selected),
+	};
+
+	auto const width = unsigned_cast(max_ce(0, frame.size.width));
 	unsigned index = 0;
 	signed xpos = 0;
 	for (auto& tab : m_tabs) {
@@ -71,19 +96,9 @@ TabbedContainer::render_impl(
 			frame.pos.x + xpos,
 			frame.pos.y,
 			txt::Sequence{tab.title, 0u, tab.title.size()},
-			unsigned_cast(max_ce(0, frame.size.width)),
-			rd.get_attr(active
-				? ui::property_content_fg_selected
-				: ui::property_content_fg_inactive
-			),
-			rd.get_attr(active
-				? ui::property_content_bg_selected
-				: ui::property_content_bg_inactive
-			)
+			width,
+			content_fg[active], content_bg[active]
 		);
-		if (active) {
-			tab.widget->render(rd);
-		}
 		if (index + 1 != m_tabs.size()) {
 			xpos += tab.title.size() + 1;
 			rd.terminal.put_cell(
@@ -134,13 +149,14 @@ TabbedContainer::insert(
 	widget->set_parent(shared_from_this(), index);
 	if (m_tabs.empty()) {
 		m_position = 0;
-		widget->set_visible(true);
+		widget->set_visible(true, false);
 	} else {
 		if (index <= m_position) {
 			++m_position;
 		}
-		widget->set_visible(false);
+		widget->set_visible(false, false);
 	}
+	widget->clear_actions();
 	m_tabs.insert(
 		m_tabs.cbegin() + index,
 		Tab{std::move(title), std::move(widget)}
@@ -159,13 +175,18 @@ void
 TabbedContainer::remove(
 	unsigned index
 ) {
+	if (m_tabs.empty()) {
+		return;
+	}
+	m_tabs[index].widget->clear_parent();
 	m_tabs.erase(m_tabs.cbegin() + index);
 	m_position = min_ce(m_position, get_last_index());
 	for (; m_tabs.size() > index; ++index) {
 		m_tabs[index].widget->set_index(static_cast<UI::index_type>(index));
 	}
 	if (!m_tabs.empty()) {
-		m_tabs[m_position].widget->set_visible(true);
+		m_tabs[m_position].widget->set_visible(true, false);
+		m_tabs[m_position].widget->clear_actions();
 	}
 	queue_actions(
 		UI::UpdateActions::reflow |
@@ -183,6 +204,9 @@ TabbedContainer::remove_current() {
 
 void
 TabbedContainer::clear() {
+	for (auto& tab : m_tabs) {
+		tab.widget->clear_parent();
+	}
 	m_tabs.clear();
 	m_position = 0;
 	queue_actions(
@@ -198,8 +222,8 @@ TabbedContainer::set_title(
 ) {
 	m_tabs.at(index).title = std::move(title);
 	queue_actions(
-		UI::UpdateActions::reflow |
-		UI::UpdateActions::render
+		UI::UpdateActions::render |
+		UI::UpdateActions::flag_noclear
 	);
 }
 
@@ -209,6 +233,10 @@ TabbedContainer::set_tab(
 	UI::Widget::SPtr widget
 ) {
 	m_tabs.at(index).widget = std::move(widget);
+	queue_actions(
+		UI::UpdateActions::reflow |
+		UI::UpdateActions::render
+	);
 }
 
 void
@@ -219,8 +247,8 @@ TabbedContainer::set_current_tab(
 	if (!m_tabs.empty() && index != m_position) {
 		// TODO: Track focused widget per-tab
 		get_root()->clear_focus();
-		m_tabs[m_position].widget->set_visible(false);
-		m_tabs[index].widget->set_visible(true);
+		m_tabs[m_position].widget->set_visible(false, false);
+		m_tabs[index].widget->set_visible(true, false);
 		m_position = index;
 		queue_actions(
 			UI::UpdateActions::reflow |

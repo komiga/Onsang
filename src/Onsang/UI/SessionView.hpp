@@ -97,7 +97,6 @@ public:
 			std::move(parent),
 			session
 		);
-		widget->init();
 		return widget;
 	}
 

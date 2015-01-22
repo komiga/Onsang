@@ -48,10 +48,16 @@ BareField::input_control_changed(
 }
 
 void
-BareField::reflow(
+BareField::reflow() noexcept {
+	UI::reflow(m_geom);
+	update_view();
+}
+
+void
+BareField::reflow_into(
 	Rect const& area
 ) noexcept {
-	UI::reflow(area, m_geom);
+	UI::reflow_into(m_geom, area);
 	update_view();
 }
 

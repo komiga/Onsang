@@ -55,7 +55,7 @@ ObjectView::add_prop_view(
 	UI::PropView::SPtr prop_view,
 	unsigned const index
 ) {
-	m_container->insert(prop_view->view_title(), std::move(prop_view), index);
+	insert(prop_view->view_title(), std::move(prop_view), index);
 }
 
 UI::ObjectView::SPtr

@@ -46,16 +46,18 @@ private:
 
 protected:
 // Beard::ui::Widget::Base implementation
-	void
-	cache_geometry_impl() noexcept override;
-
-	void
-	reflow_impl(
-		Rect const& area,
-		bool const cache
+	virtual void
+	push_action_graph_impl(
+		ui::Widget::set_type& set
 	) noexcept override;
 
-	void
+	virtual void
+	cache_geometry_impl() noexcept override;
+
+	virtual void
+	reflow_impl() noexcept override;
+
+	virtual void
 	render_impl(
 		UI::Widget::RenderData& rd
 	) noexcept override;
@@ -72,12 +74,37 @@ public:
 // special member functions
 	~TabbedContainer() noexcept override = default;
 
+protected:
+	TabbedContainer(
+		UI::Widget::Type const type,
+		UI::Widget::Flags const flags,
+		UI::group_hash_type const group,
+		UI::Geom&& geometry,
+		UI::RootWPtr&& root,
+		UI::Widget::WPtr&& parent
+	) noexcept
+		: base(
+			type,
+			(
+				flags |
+				UI::Widget::Flags::trait_container
+			),
+			group,
+			std::move(geometry),
+			std::move(root),
+			std::move(parent)
+		)
+		, m_position(0)
+		, m_tabs()
+	{}
+
+public:
 	TabbedContainer(
 		ctor_priv const,
 		UI::RootWPtr&& root,
 		UI::Widget::WPtr&& parent
 	) noexcept
-		: base(
+		: TabbedContainer(
 			static_cast<UI::Widget::Type>(UI::OnsangWidgetType::TabbedContainer),
 			(
 				UI::Widget::Flags::trait_container |
@@ -88,8 +115,6 @@ public:
 			std::move(root),
 			std::move(parent)
 		)
-		, m_position(0)
-		, m_tabs()
 	{}
 
 	TabbedContainer(TabbedContainer&&) = default;

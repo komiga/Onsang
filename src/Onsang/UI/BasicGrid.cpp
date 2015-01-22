@@ -13,11 +13,8 @@ namespace Onsang {
 namespace UI {
 
 void
-BasicGrid::reflow_impl(
-	Rect const& area,
-	bool const cache
-) noexcept {
-	base::reflow_impl(area, cache);
+BasicGrid::reflow_impl() noexcept {
+	base::reflow_impl();
 	reflow_view(get_geometry().get_frame());
 	adjust_view();
 	queue_header_render();

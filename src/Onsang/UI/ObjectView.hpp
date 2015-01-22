@@ -104,7 +104,6 @@ public:
 			session,
 			object
 		);
-		widget->init();
 		return widget;
 	}
 

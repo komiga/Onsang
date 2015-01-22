@@ -31,13 +31,10 @@ CommandStatusLine::set_input_control_impl(
 }
 
 void
-CommandStatusLine::reflow_impl(
-	Rect const& area,
-	bool const cache
-) noexcept {
-	base::reflow_impl(area, cache);
+CommandStatusLine::reflow_impl() noexcept {
+	base::reflow_impl();
 	if (has_input_control()) {
-		m_field.reflow(area);
+		m_field.reflow_into(get_geometry().get_area());
 	}
 }
 
@@ -154,7 +151,7 @@ CommandStatusLine::set_location(
 
 void
 CommandStatusLine::prompt_command() {
-	m_field.reflow(get_geometry().get_area());
+	m_field.reflow_into(get_geometry().get_area());
 	set_input_control(true);
 	m_prev_focus = get_root()->get_focus();
 	get_root()->set_focus(shared_from_this());

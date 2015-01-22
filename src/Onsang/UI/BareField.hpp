@@ -56,7 +56,10 @@ public:
 	) noexcept;
 
 	void
-	reflow(
+	reflow() noexcept;
+
+	void
+	reflow_into(
 		Rect const& area
 	) noexcept;
 

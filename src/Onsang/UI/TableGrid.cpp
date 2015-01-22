@@ -52,11 +52,8 @@ TableGrid::set_input_control_impl(
 }
 
 void
-TableGrid::reflow_impl(
-	Rect const& area,
-	bool const cache
-) noexcept {
-	base::reflow_impl(area, cache);
+TableGrid::reflow_impl() noexcept {
+	base::reflow_impl();
 	if (has_input_control()) {
 		reflow_field();
 	}
@@ -378,7 +375,7 @@ TableGrid::reflow_field() noexcept {
 	Quad const fq = rect_abs_quad(content_frame);
 	vec2_clamp(cell_quad.v1, fq.v1, fq.v2);
 	vec2_clamp(cell_quad.v2, fq.v1, fq.v2);
-	m_field.reflow(quad_rect(cell_quad));
+	m_field.reflow_into(quad_rect(cell_quad));
 }
 
 bool
