@@ -25,6 +25,7 @@ enum class OnsangWidgetType : unsigned {
 	TabbedContainer,
 	CommandStatusLine,
 	TableGrid,
+	TableSchemaEditor,
 	SessionView,
 	ObjectView,
 	PropView,
