@@ -241,6 +241,9 @@ TableSchemaEditor::render_content(
 	Vec2 size = frame.size;
 	size.height = 1;
 	auto cell = tty::make_cell(' ');
+	tty::attr_type attr_fg, attr_bg;
+	bool modified;
+	bool current;
 	String scratch;
 	for (UI::index_type row = row_begin; row < row_end; ++row) {
 		pos.x = frame.pos.x + begin_offset;
@@ -259,25 +262,34 @@ TableSchemaEditor::render_content(
 			cell.attr_bg = grid_rd.content_bg;
 		}
 		grid_rd.rd.terminal.put_line(pos, range_width, Axis::horizontal, cell);
+		attr_fg = cell.attr_fg;
+		attr_bg = cell.attr_bg;
 
 	for (UI::index_type col = col_begin; col < col_end; ++col) {
 		size.width = min_ce(s_column_width[col], x_end - pos.x);
 		if (size.width <= 0) {
 			break;
 		}
-		if (row == m_cursor.row && col == m_cursor.col && is_focused()) {
-			cell.attr_bg |= tty::Attr::inverted;
-			grid_rd.rd.terminal.put_line(pos, size.width, Axis::horizontal, cell);
+		modified = data.edit.index != ~0u && data.modified.test(1 << unsigned_cast(col));
+		current = row == m_cursor.row && col == m_cursor.col && is_focused();
+		if (modified && !m_sel[row]) {
+			cell.attr_fg = (current ? tty::Color::white : tty::Color::black) | tty::Attr::bold;
+			cell.attr_bg = tty::Color::yellow | (attr_bg & tty::Attr::mask);
 		} else {
-			cell.attr_bg &= ~tty::Attr::inverted;
+			cell.attr_fg = attr_fg;
+			cell.attr_bg = attr_bg;
+		}
+		if (current) {
+			cell.attr_bg |= tty::Attr::inverted;
+		}
+		if (modified || current) {
+			grid_rd.rd.terminal.put_line(pos, size.width, Axis::horizontal, cell);
 		}
 		grid_rd.rd.terminal.put_sequence(
 			pos.x, pos.y,
 			get_cell_seq(row, col, scratch),
 			size.width,
-			data.edit.index != ~0u && data.modified.test(1 << unsigned_cast(col))
-			? tty::Color::yellow
-			: cell.attr_fg,
+			cell.attr_fg,
 			cell.attr_bg
 		);
 		pos.x += size.width;
