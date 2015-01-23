@@ -65,11 +65,13 @@ add_base_prop_view(
 		Hord::Cmd::UnitBase const& command,
 		Hord::Cmd::type_info const& type_info
 	) {
-		if (type_info.id == Hord::Cmd::Object::SetSlug::COMMAND_ID) {
-			auto const& c = static_cast<Hord::Cmd::Object::SetSlug const&>(command);
-			if (c.get_object_id() == object.get_id()) {
-				field_slug_ref.set_text(object.get_slug());
-			}
+		if (command.get_object_id() != object.get_id()) {
+			return;
+		}
+		switch (type_info.id) {
+		case Hord::Cmd::Object::SetSlug::COMMAND_ID:
+			field_slug_ref.set_text(object.get_slug());
+			break;
 		}
 	});
 

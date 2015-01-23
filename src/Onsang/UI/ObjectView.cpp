@@ -40,10 +40,12 @@ ObjectView::notify_command(
 	Hord::Cmd::type_info const& type_info
 ) noexcept {
 	base::notify_command(parent_view, command, type_info);
+	if (command.get_object_id() != m_object.get_id()) {
+		return;
+	}
 	switch (type_info.id) {
 	case Hord::Cmd::Object::SetSlug::COMMAND_ID:
-		auto const& c = static_cast<Hord::Cmd::Object::SetSlug const&>(command);
-		if (c.ok_action() && c.get_object_id() == m_object.get_id() && parent_view) {
+		if (command.ok_action() && parent_view) {
 			parent_view->sub_view_title_changed(UI::Widget::Base::get_index());
 		}
 		break;
