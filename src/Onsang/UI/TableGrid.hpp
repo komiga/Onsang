@@ -19,7 +19,10 @@
 #include <Beard/txt/Defs.hpp>
 #include <Beard/txt/Tree.hpp>
 #include <Beard/txt/Cursor.hpp>
-#include <Beard/ui/Geom.hpp>
+#include <Beard/ui/Signal.hpp>
+
+#include <Hord/Data/Defs.hpp>
+#include <Hord/Data/Table.hpp>
 
 namespace Onsang {
 namespace UI {
@@ -38,9 +41,15 @@ public:
 	// System::Session& m_session;
 	Hord::Object::Unit& m_object;
 	Hord::Data::Table& m_table;
-	Hord::IO::PropType m_prop_type;
 	UI::BareField m_field{};
 	Hord::Data::Type m_field_type{};
+
+	UI::Signal<void(
+		Hord::Data::Table::Iterator& it,
+		UI::index_type col,
+		String const& string_value,
+		Hord::Data::ValueRef& new_value
+	)> signal_cell_edited;
 
 private:
 // UI::Widget::Base implementation
@@ -116,8 +125,7 @@ public:
 		UI::Widget::WPtr&& parent,
 		System::Session& /*session*/,
 		Hord::Object::Unit& object,
-		Hord::Data::Table& table,
-		Hord::IO::PropType const prop_type
+		Hord::Data::Table& table
 	) noexcept
 		: base(
 			static_cast<UI::Widget::Type>(UI::OnsangWidgetType::TableGrid),
@@ -135,7 +143,6 @@ public:
 		// , m_session(session)
 		, m_object(object)
 		, m_table(table)
-		, m_prop_type(prop_type)
 	{}
 
 	static UI::TableGrid::SPtr
@@ -144,7 +151,6 @@ public:
 		System::Session& session,
 		Hord::Object::Unit& object,
 		Hord::Data::Table& table,
-		Hord::IO::PropType const prop_type,
 		UI::group_hash_type const group = UI::group_default,
 		UI::Widget::WPtr parent = UI::Widget::WPtr()
 	) {
@@ -155,8 +161,7 @@ public:
 			std::move(parent),
 			session,
 			object,
-			table,
-			prop_type
+			table
 		);
 		p->set_cursor(0, 0);
 		return p;
@@ -164,6 +169,13 @@ public:
 
 	TableGrid(TableGrid&&) = default;
 	TableGrid& operator=(TableGrid&&) = default;
+
+public:
+	void
+	notify_cell_changed(
+		UI::index_type row,
+		UI::index_type col
+	);
 };
 
 } // namespace UI

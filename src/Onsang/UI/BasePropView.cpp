@@ -52,8 +52,7 @@ add_base_prop_view(
 	// Metadata property
 	auto grid_metadata = UI::TableGrid::make(
 		root, session, object,
-		object.get_metadata().table(),
-		Hord::IO::PropType::metadata
+		object.get_metadata().table()
 	);
 	UI::bind_field_describer(grid_metadata, "metadata");
 

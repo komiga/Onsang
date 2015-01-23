@@ -50,8 +50,7 @@ add_table_data_prop_view(
 	// Data property
 	auto grid_data = UI::TableGrid::make(
 		root, session, table,
-		table.get_data(),
-		Hord::IO::PropType::primary
+		table.get_data()
 	);
 	UI::bind_field_describer(grid_data, "table data");
 

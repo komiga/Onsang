@@ -126,6 +126,7 @@ TableGrid::handle_event_impl(
 			case Hord::Data::ValueType::dynamic:
 			case Hord::Data::ValueType::integer:
 			case Hord::Data::ValueType::decimal:
+				string_value = m_field.m_cursor.get_node().to_string();
 				m_field.m_cursor.insert('\0');
 				new_value.read_from_string(node.units() - 1, &*node.cbegin());
 				break;
@@ -141,11 +142,7 @@ TableGrid::handle_event_impl(
 		auto it = m_table.iterator_at(m_cursor.row);
 		auto const old_value = it.get_field(m_cursor.col);
 		if (old_value != new_value) {
-			it.set_field(m_cursor.col, new_value);
-			m_object.get_prop_states().assign(
-				m_prop_type,
-				Hord::IO::PropState::modified
-			);
+			signal_cell_edited(it, m_cursor.col, string_value, new_value);
 		}
 		m_field.m_cursor.clear();
 		set_input_control(false);
@@ -262,7 +259,7 @@ TableGrid::render_content(
 	Rect const& frame
 ) noexcept {
 	/*DUCT_DEBUGF(
-		"render_content:"
+		"TableGrid::render_content:"
 		" row_range = {%3d, %3d}"
 		", col_range = {%3d, %3d}"
 		", view.col_range = {%3d, %3d}"
@@ -348,16 +345,18 @@ bool
 TableGrid::content_insert(
 	UI::index_type /*row*/
 ) noexcept {
-	// TODO
-	return false;
+	return true;
 }
 
 bool
 TableGrid::content_erase(
-	UI::index_type /*row*/
+	UI::index_type row
 ) noexcept {
-	// TODO
-	return false;
+	if (has_input_control() && m_cursor.row == row) {
+		m_field.m_cursor.clear();
+		set_input_control(false);
+	}
+	return true;
 }
 
 void
@@ -421,6 +420,22 @@ TableGrid::field_input(
 	}
 	m_field.m_cursor.insert_step(cp);
 	return true;
+}
+
+void
+TableGrid::notify_cell_changed(
+	UI::index_type const row,
+	UI::index_type const col
+) {
+	if (row == m_cursor.row && col == m_cursor.col) {
+		m_field.m_cursor.clear();
+		set_input_control(false);
+	}
+	queue_cell_render(row, row + 1, col, col + 1);
+	queue_actions(
+		ui::UpdateActions::render |
+		ui::UpdateActions::flag_noclear
+	);
 }
 
 #undef GRID_TMP_COLUMN_WIDTH
