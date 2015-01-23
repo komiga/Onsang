@@ -54,10 +54,6 @@ BasicGrid::handle_event_impl(
 				case 'a': select_all(); break;
 				case 'A': select_none(); break;
 				case 's': select_toggle(m_cursor.row, 1); break;
-				//case 'e': erase(m_cursor.row, 1); break;
-				//case 'E': erase_selected(); break;
-				//case 'i': insert_after (m_cursor.row, 1); break;
-				//case 'I': insert_before(m_cursor.row, 1); break;
 				default:
 					handled = false;
 					break;
