@@ -320,6 +320,7 @@ TableSchemaEditor::content_erase(
 		m_data.erase(m_data.cbegin() + row);
 		return true;
 	} else {
+		data.edit = data.orig;
 		data.edit.index = ~0u;
 		m_sel[row] = false;
 	}
