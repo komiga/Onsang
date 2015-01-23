@@ -29,7 +29,7 @@ struct FieldDescriber {
 
 	bool
 	operator()(
-		UI::Widget::SPtr widget,
+		UI::Widget::SPtr const& widget,
 		UI::Event const& event
 	) const noexcept;
 };

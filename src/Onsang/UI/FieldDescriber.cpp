@@ -15,7 +15,7 @@ namespace UI {
 
 bool
 FieldDescriber::operator()(
-	UI::Widget::SPtr widget,
+	UI::Widget::SPtr const& widget,
 	UI::Event const& event
 ) const noexcept {
 	if (event.type == UI::EventType::focus_changed && widget->is_focused()) {
