@@ -8,6 +8,7 @@
 #include <Onsang/UI/Defs.hpp>
 #include <Onsang/UI/TableSchemaEditor.hpp>
 
+#include <Beard/keys.hpp>
 #include <Beard/ui/Container.hpp>
 #include <Beard/ui/Spacer.hpp>
 #include <Beard/ui/Button.hpp>
