@@ -305,7 +305,7 @@ TableSchemaEditor::content_insert(
 ) noexcept {
 	Data data{
 		{~0u, {}, {}},
-		{~0u, {}, {}},
+		{~0u, "new" + std::to_string(m_data.size()), {}},
 		{}
 	};
 	m_data.insert(m_data.cbegin() + row, data);
