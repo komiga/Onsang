@@ -31,7 +31,7 @@ BasicGrid::handle_event_impl(
 ) noexcept {
 	switch (event.type) {
 	case UI::EventType::key_input:
-		if (!has_input_control()) {
+		if (!has_input_control() && event.key_input.mod == KeyMod::none) {
 			bool handled = true;
 			switch (event.key_input.code) {
 			case KeyCode::up   : row_step(-1); break;
