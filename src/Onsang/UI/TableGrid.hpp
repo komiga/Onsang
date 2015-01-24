@@ -38,7 +38,7 @@ private:
 	enum class ctor_priv {};
 
 public:
-	// System::Session& m_session;
+	System::Session& m_session;
 	Hord::Object::Unit& m_object;
 	Hord::Data::Table& m_table;
 	UI::BareField m_field{};
@@ -123,7 +123,7 @@ public:
 		UI::group_hash_type const group,
 		UI::RootWPtr&& root,
 		UI::Widget::WPtr&& parent,
-		System::Session& /*session*/,
+		System::Session& session,
 		Hord::Object::Unit& object,
 		Hord::Data::Table& table
 	) noexcept
@@ -140,7 +140,7 @@ public:
 			table.num_columns(),
 			table.num_records()
 		)
-		// , m_session(session)
+		, m_session(session)
 		, m_object(object)
 		, m_table(table)
 	{}

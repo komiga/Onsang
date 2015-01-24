@@ -18,6 +18,7 @@
 #include <Hord/Data/Table.hpp>
 #include <Hord/Data/Ops.hpp>
 #include <Hord/Object/Defs.hpp>
+#include <Hord/Object/Ops.hpp>
 #include <Hord/Cmd/Object.hpp>
 
 #include <duct/IO/memstream.hpp>
@@ -81,11 +82,8 @@ TableGrid::handle_event_impl(
 		// TODO: object_id handling (translate to/from path)
 		// TODO: Size limit for string
 		if (
-			(
-				value.type == Hord::Data::ValueType::null &&
-				column.type != Hord::Data::ValueType::dynamic
-			) ||
-			value.type == Hord::Data::ValueType::object_id
+			value.type == Hord::Data::ValueType::null &&
+			column.type != Hord::Data::ValueType::dynamic
 		) {
 			return true;
 		}
@@ -94,6 +92,12 @@ TableGrid::handle_event_impl(
 		case Hord::Data::ValueType::null:
 			m_field.m_cursor.clear();
 			m_field_type = column.type;
+			break;
+
+		case Hord::Data::ValueType::object_id:
+			m_field.m_cursor.assign(
+				Hord::Object::path_to(value.data.object_id, m_session.get_datastore())
+			);
 			break;
 
 		case Hord::Data::ValueType::string:
@@ -122,17 +126,37 @@ TableGrid::handle_event_impl(
 		if (!m_field.m_text_tree.empty()) {
 			m_field.m_cursor.col_extent(txt::Extent::tail);
 			auto const& node = m_field.m_cursor.get_node();
+			if (
+				m_field_type.type() == Hord::Data::ValueType::string ||
+				m_field.m_text_tree.lines() > 1
+			) {
+				string_value = m_field.m_text_tree.to_string();
+			} else {
+				string_value = node.to_string();
+			}
+			if (
+				m_field_type.type() == Hord::Data::ValueType::dynamic &&
+				!string_value.empty() && string_value[0] == '/'
+			) {
+				m_field_type = {Hord::Data::ValueType::object_id};
+			}
 			switch (m_field_type.type()) {
 			case Hord::Data::ValueType::dynamic:
 			case Hord::Data::ValueType::integer:
 			case Hord::Data::ValueType::decimal:
-				string_value = m_field.m_cursor.get_node().to_string();
-				m_field.m_cursor.insert('\0');
-				new_value.read_from_string(node.units() - 1, &*node.cbegin());
+				new_value.read_from_string(
+					string_value.size(), string_value.c_str()
+				);
 				break;
 
+			case Hord::Data::ValueType::object_id: {
+				auto* object = m_session.get_datastore().find_ptr_path(
+					string_value
+				);
+				new_value = object ? object->get_id() : Hord::Object::ID_NULL;
+			}	break;
+
 			case Hord::Data::ValueType::string:
-				string_value = m_field.m_text_tree.to_string();
 				new_value = string_value;
 				break;
 
@@ -274,6 +298,7 @@ TableGrid::render_content(
 
 	Rect cell_frame = frame;
 	cell_frame.size.height = 1;
+	String scratch;
 	char value_buffer[48];
 	duct::IO::omemstream format_stream{value_buffer, sizeof(value_buffer)};
 	auto cell = tty::make_cell(' ');
@@ -311,7 +336,10 @@ TableGrid::render_content(
 			? tty::Color::red
 			: attr_fg
 		;
-		if (value.type.type() == Hord::Data::ValueType::string) {
+		if (value.type.type() == Hord::Data::ValueType::object_id) {
+			scratch = Hord::Object::path_to(value.data.object_id, m_session.get_datastore());
+			seq = {scratch};
+		} else if (value.type.type() == Hord::Data::ValueType::string) {
 			seq = {value.data.string, value.size};
 		} else {
 			format_stream.seekp(0);
@@ -406,7 +434,7 @@ TableGrid::field_input(
 		}
 		break;
 
-	case Hord::Data::ValueType::object_id:
+	/*case Hord::Data::ValueType::object_id:
 		if (!(
 			('0' <= cp && cp <= '9') ||
 			('a' <= cp && cp <= 'f') ||
@@ -414,7 +442,7 @@ TableGrid::field_input(
 		)) {
 			return false;
 		}
-		break;
+		break;*/
 
 	default: break;
 	}
