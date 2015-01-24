@@ -124,8 +124,7 @@ add_base_prop_view(
 		Hord::Cmd::type_info const& type_info
 	) {
 		if (
-			command.get_object_id() != object.get_id() ||
-			!command.ok_action()
+			command.get_object_id() != object.get_id()
 		) {
 			return;
 		}
