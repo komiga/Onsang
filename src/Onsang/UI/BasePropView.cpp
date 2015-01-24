@@ -48,7 +48,7 @@ add_base_prop_view(
 	field_slug->get_geometry().set_sizing(UI::Axis::horizontal, UI::Axis::horizontal);
 	UI::bind_field_describer(field_slug, "slug");
 	field_slug->signal_user_modified.bind([&session, &object](
-		UI::Field::SPtr field_slug,
+		UI::Field::SPtr const& field_slug,
 		bool const accept
 	) {
 		if (accept) {
