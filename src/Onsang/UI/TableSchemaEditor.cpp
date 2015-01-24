@@ -457,6 +457,10 @@ TableSchemaEditor::cursor_step_value(
 	) {
 		flags &= ~Hord::Data::ValueFlag::integer_signed;
 		data.modified.set(1 << 4, data.orig.type.flags() != flags);
+		queue_cell_render(
+			m_cursor.row, m_cursor.row + 1,
+			4, 4 + 1
+		);
 	}
 	data.edit.type = {value_type, flags, size};
 	queue_cell_render(
