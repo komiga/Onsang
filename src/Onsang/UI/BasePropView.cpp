@@ -123,16 +123,19 @@ add_base_prop_view(
 		Hord::Cmd::UnitBase const& command,
 		Hord::Cmd::type_info const& type_info
 	) {
-		if (
-			command.get_object_id() != object.get_id()
-		) {
+		if (command.get_object_id() != object.get_id()) {
 			return;
 		}
 		switch (type_info.id) {
 		case Hord::Cmd::Object::SetSlug::COMMAND_ID:
 			field_slug_ref.set_text(object.get_slug());
 			break;
+		}
 
+		if (!command.ok_action()) {
+			return;
+		}
+		switch (type_info.id) {
 		case Hord::Cmd::Object::SetMetaField::COMMAND_ID: {
 			auto const& c = static_cast<Hord::Cmd::Object::SetMetaField const&>(command);
 			if (c.created()) {
