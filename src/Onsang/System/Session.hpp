@@ -50,14 +50,14 @@ private:
 	void
 	notify_exception_impl(
 		Hord::Cmd::UnitBase const& command,
-		Hord::Cmd::type_info const& type_info,
+		Hord::Cmd::TypeInfo const& type_info,
 		std::exception_ptr eptr
 	) noexcept override;
 
 	void
 	notify_complete_impl(
 		Hord::Cmd::UnitBase const& command,
-		Hord::Cmd::type_info const& type_info
+		Hord::Cmd::TypeInfo const& type_info
 	) noexcept override;
 
 public:
@@ -109,33 +109,33 @@ public:
 
 // properties
 	String const&
-	get_name() const noexcept {
+	name() const noexcept {
 		return m_name;
 	}
 
 	String const&
-	get_path() const noexcept {
+	path() const noexcept {
 		return m_path;
 	}
 
 	bool
-	get_auto_open() const noexcept {
+	auto_open() const noexcept {
 		return m_auto_open;
 	}
 
 	bool
-	get_auto_create() const noexcept {
+	auto_create() const noexcept {
 		return m_auto_create;
 	}
 
 	UI::SessionView::SPtr
-	get_view() noexcept {
+	view() noexcept {
 		return m_view;
 	}
 
 	bool
 	is_open() const noexcept {
-		return get_datastore().is_open();
+		return datastore().is_open();
 	}
 
 // operations

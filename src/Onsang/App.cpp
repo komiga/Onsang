@@ -416,7 +416,7 @@ App::init(
 	aux::vector<ConfigNode::node_pair_type const*>
 	session_vec{cfg_sessions_builder.node_count};
 	for (auto const& spair : cfg_sessions.node_proxy()) {
-		session_vec[spair.second.get_index()] = &spair;
+		session_vec[spair.second.index()] = &spair;
 	}
 
 	for (auto const& spair : session_vec) {
@@ -447,8 +447,8 @@ App::set_session(
 	m_ui.viewc->clear();
 	m_session = session;
 	if (m_session && m_session->is_open()) {
-		m_ui.viewc->push_back(m_session->get_view());
-		m_ui.csline->set_description("switched session: " + m_session->get_name());
+		m_ui.viewc->push_back(m_session->view());
+		m_ui.csline->set_description("switched session: " + m_session->name());
 	} else {
 		m_ui.csline->set_description("switched session: none");
 	}
@@ -464,7 +464,7 @@ App::init_session(
 
 	Log::acquire()
 		<< "Initializing session: "
-		<< session.get_name()
+		<< session.name()
 		<< '\n'
 	;
 	try {
@@ -475,7 +475,7 @@ App::init_session(
 				ErrorCode::command_failed,
 				s_err_command_failed,
 				cmd.command_name(),
-				cmd.get_message()
+				cmd.message()
 			);
 		}
 		if (!m_session) {
@@ -483,11 +483,11 @@ App::init_session(
 		}
 	} catch (...) {
 		m_ui.csline->set_error(
-			"Failed to initialize session: " + session.get_name()
+			"Failed to initialize session: " + session.name()
 		);
 		Log::acquire(Log::error)
 			<< "Failed to initialize session '"
-			<< session.get_name()
+			<< session.name()
 			<< "':\n"
 		;
 		Log::report_error_ptr(std::current_exception());
@@ -504,7 +504,7 @@ App::close_session(
 
 	Log::acquire()
 		<< "Closing session: "
-		<< session.get_name()
+		<< session.name()
 		<< '\n'
 	;
 	try {
@@ -514,7 +514,7 @@ App::close_session(
 				ErrorCode::command_failed,
 				s_err_command_failed,
 				cmd.command_name(),
-				cmd.get_message()
+				cmd.message()
 			);
 		}
 		Log::acquire()
@@ -528,11 +528,11 @@ App::close_session(
 		session.close();
 	} catch (...) {
 		m_ui.csline->set_error(
-			"Failed to close session: " + session.get_name()
+			"Failed to close session: " + session.name()
 		);
 		Log::acquire(Log::error)
 			<< "Failed to close session '"
-			<< session.get_name()
+			<< session.name()
 			<< "':\n"
 		;
 		Log::report_error_ptr(std::current_exception());
@@ -559,7 +559,7 @@ App::ui_event_filter(
 	} else if (Beard::key_input_match(event.key_input, s_kim_cline)) {
 		m_ui.csline->prompt_command();
 	} else if (m_session) {
-		auto& session_view = *m_session->get_view();
+		auto& session_view = *m_session->view();
 		auto const cp = event.key_input.cp;
 		if (
 			event.key_input.mod == Beard::KeyMod::esc
@@ -578,7 +578,7 @@ App::ui_event_filter(
 			}
 		} else if (cp == 'n') {
 			Hord::Object::ID const id{0x2a4c479c};
-			m_session->get_view()->add_object_view(id);
+			m_session->view()->add_object_view(id);
 		} else if (cp == 'c') {
 			session_view.close_sub_view();
 		}
@@ -624,7 +624,7 @@ App::start() try {
 	;
 	for (auto& pair : m_session_manager) {
 		auto& session = pair.second;
-		if (session->get_auto_open()) {
+		if (session->auto_open()) {
 			init_session(*session);
 		}
 	}

@@ -136,7 +136,7 @@ TabbedContainer::push_back(
 	UI::Widget::SPtr&& widget
 ) {
 	insert(std::move(title), std::move(widget), m_tabs.size());
-	set_current_tab(get_last_index());
+	set_current_tab(last_index());
 }
 
 unsigned
@@ -180,7 +180,7 @@ TabbedContainer::remove(
 	}
 	m_tabs[index].widget->clear_parent();
 	m_tabs.erase(m_tabs.cbegin() + index);
-	m_position = min_ce(m_position, get_last_index());
+	m_position = min_ce(m_position, last_index());
 	for (; m_tabs.size() > index; ++index) {
 		m_tabs[index].widget->set_index(static_cast<UI::index_type>(index));
 	}
@@ -243,7 +243,7 @@ void
 TabbedContainer::set_current_tab(
 	unsigned index
 ) {
-	index = min_ce(index, get_last_index());
+	index = min_ce(index, last_index());
 	if (!m_tabs.empty() && index != m_position) {
 		// TODO: Track focused widget per-tab
 		get_root()->clear_focus();
@@ -275,8 +275,8 @@ TabbedContainer::move_tab(
 	unsigned to,
 	bool const insert
 ) {
-	from = min_ce(from, get_last_index());
-	to = min_ce(to, get_last_index());
+	from = min_ce(from, last_index());
+	to = min_ce(to, last_index());
 	if (from != to) {
 		if (insert) {
 			Tab tab = m_tabs[from];

@@ -77,7 +77,7 @@ TableGrid::handle_event_impl(
 		) {
 			return false;
 		}
-		auto const& column = m_table.get_schema().column(m_cursor.col);
+		auto const& column = m_table.schema().column(m_cursor.col);
 		auto const value = m_table.iterator_at(m_cursor.row).get_field(m_cursor.col);
 		// TODO: object_id handling (translate to/from path)
 		// TODO: Size limit for string
@@ -96,7 +96,7 @@ TableGrid::handle_event_impl(
 
 		case Hord::Data::ValueType::object_id:
 			m_field.m_cursor.assign(
-				Hord::Object::path_to(value.data.object_id, m_session.get_datastore())
+				Hord::Object::path_to(value.data.object_id, m_session.datastore())
 			);
 			break;
 
@@ -150,10 +150,10 @@ TableGrid::handle_event_impl(
 				break;
 
 			case Hord::Data::ValueType::object_id: {
-				auto* object = m_session.get_datastore().find_ptr_path(
+				auto* object = m_session.datastore().find_ptr_path(
 					string_value
 				);
-				new_value = object ? object->get_id() : Hord::Object::ID_NULL;
+				new_value = object ? object->id() : Hord::Object::ID_NULL;
 			}	break;
 
 			case Hord::Data::ValueType::string:
@@ -246,7 +246,7 @@ TableGrid::render_header(
 		tty::Color::blue
 	);
 	for (auto col = col_begin; col < col_end; ++col) {
-		auto const& table_column = m_table.get_schema().column(col);
+		auto const& table_column = m_table.schema().column(col);
 		cell_frame.size.width = min_ce(
 			GRID_TMP_COLUMN_WIDTH,
 			frame.pos.x + frame.size.width - cell_frame.pos.x
@@ -337,7 +337,7 @@ TableGrid::render_content(
 			: attr_fg
 		;
 		if (value.type.type() == Hord::Data::ValueType::object_id) {
-			scratch = Hord::Object::path_to(value.data.object_id, m_session.get_datastore());
+			scratch = Hord::Object::path_to(value.data.object_id, m_session.datastore());
 			seq = {scratch};
 		} else if (value.type.type() == Hord::Data::ValueType::string) {
 			seq = {value.data.string, value.size};

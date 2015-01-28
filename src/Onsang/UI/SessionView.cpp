@@ -21,26 +21,26 @@ namespace UI {
 
 String
 SessionView::view_title() noexcept {
-	return "S:" + m_session.get_name();
+	return "S:" + m_session.name();
 }
 
 String
 SessionView::view_description() noexcept {
-	return "session view: " + m_session.get_name();
+	return "session view: " + m_session.name();
 }
 
 void
 SessionView::notify_command(
 	UI::View* const parent_view,
 	Hord::Cmd::UnitBase const& command,
-	Hord::Cmd::type_info const& type_info
+	Hord::Cmd::TypeInfo const& type_info
 ) noexcept {
 	base::notify_command(parent_view, command, type_info);
 	if (
 		command.bad() &&
 		App::instance.m_session == &m_session
 	) {
-		App::instance.m_ui.csline->set_error(command.get_message());
+		App::instance.m_ui.csline->set_error(command.message());
 	}
 }
 
@@ -49,13 +49,13 @@ SessionView::add_object_view(
 	Hord::Object::ID const object_id,
 	unsigned index
 ) {
-	auto* const object = m_session.get_datastore().find_ptr(object_id);
+	auto* const object = m_session.datastore().find_ptr(object_id);
 	if (!object) {
 		return;
 	}
 	for (auto const& tab : m_tabs) {
 		auto const object_view = std::static_pointer_cast<UI::ObjectView>(tab.widget);
-		if (object_view && object_view->m_object.get_id() == object->get_id()) {
+		if (object_view && object_view->m_object.id() == object->id()) {
 			return;
 		}
 	}

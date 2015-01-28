@@ -52,7 +52,7 @@ public:
 	using base = Hord::IO::Datastore;
 	using base::State;
 
-	static base::type_info const
+	static base::TypeInfo const
 	s_type_info;
 
 private:
@@ -165,7 +165,7 @@ private:
 	Hord::IO::Datastore::storage_info_map_type::const_iterator
 	create_object_impl(
 		Hord::Object::ID const,
-		Hord::Object::type_info const&,
+		Hord::Object::TypeInfo const&,
 		Hord::IO::Linkage const
 	) override;
 

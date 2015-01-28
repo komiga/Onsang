@@ -390,10 +390,10 @@ TableSchemaEditor::reflow_field() noexcept {
 
 void
 TableSchemaEditor::reset() {
-	auto const& schema = m_table.get_data().get_schema();
+	auto const& schema = m_table.data().schema();
 	m_data.resize(schema.num_columns());
 	auto it = m_data.begin();
-	for (auto const& schema_column : schema.get_columns()) {
+	for (auto const& schema_column : schema.columns()) {
 		it->orig = schema_column;
 		it->edit = schema_column;
 		it->modified.clear();

@@ -139,7 +139,7 @@ public:
 	}
 
 	unsigned
-	get_last_index() const noexcept {
+	last_index() const noexcept {
 		return m_tabs.empty()
 			? 0
 			: static_cast<unsigned>(m_tabs.size() - 1)

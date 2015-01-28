@@ -73,7 +73,7 @@ void
 TabbedView::notify_command(
 	UI::View* const /*parent_view*/,
 	Hord::Cmd::UnitBase const& command,
-	Hord::Cmd::type_info const& type_info
+	Hord::Cmd::TypeInfo const& type_info
 ) noexcept {
 	for (unsigned index = 0; index < m_tabs.size(); ++index) {
 		auto& tab = m_tabs[index];

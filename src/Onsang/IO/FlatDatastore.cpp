@@ -81,7 +81,7 @@ FlatDatastore::construct(
 	};
 }
 
-IO::FlatDatastore::base::type_info const
+IO::FlatDatastore::base::TypeInfo const
 FlatDatastore::s_type_info{
 	IO::FlatDatastore::construct
 };
@@ -102,7 +102,7 @@ FlatDatastore::read_index(
 	std::istream& stream
 ) {
 	auto ser = make_input_serializer(stream);
-	auto& si_map = get_storage_info();
+	auto& si_map = storage_info();
 	si_map.clear();
 
 	std::uint32_t size = 0u;
@@ -125,7 +125,7 @@ FlatDatastore::write_index(
 	std::ostream& stream
 ) {
 	auto ser = make_output_serializer(stream);
-	auto& si_map = get_storage_info();
+	auto& si_map = storage_info();
 	ser(static_cast<uint32_t>(si_map.size()));
 	for (auto const& si_pair : si_map) {
 		ser(si_pair.second);
@@ -149,7 +149,7 @@ FlatDatastore::assign_prop(
 	m_prop.sinfo = &sinfo;
 	m_prop.is_input = is_input;
 	m_prop.directory.reserve(
-		get_root_path().size() +	// root
+		root_path().size() +		// root
 		(is_orphan ? 8u : 10u) +	// "/orphan/" or "/resident/"
 		8u							// ID
 	);
@@ -170,7 +170,7 @@ FlatDatastore::assign_prop(
 		prop_info.object_id.value()
 	);
 	m_prop.directory
-		.assign(get_root_path())
+		.assign(root_path())
 		.append(
 			is_orphan
 			? "/orphan/"
@@ -205,7 +205,7 @@ FlatDatastore::acquire_stream(
 	Hord::IO::PropInfo const& prop_info,
 	bool const is_input
 ) {
-	auto& sinfo_map = get_storage_info();
+	auto& sinfo_map = storage_info();
 	auto it = sinfo_map.find(prop_info.object_id);
 	if (sinfo_map.cend() == it) {
 		HORD_THROW_FMT(
@@ -339,7 +339,7 @@ FlatDatastore::open_impl(
 	// wow
 	namespace fs = boost::filesystem;
 	boost::system::error_code ec;
-	fs::path const path{get_root_path()};
+	fs::path const path{root_path()};
 	auto const stat = fs::status(path, ec);
 	if (!fs::is_directory(stat)) {
 		HORD_THROW_FQN(
@@ -373,7 +373,7 @@ FlatDatastore::open_impl(
 	}
 
 	// Path could've changed (and we don't assign it in the ctor)
-	m_lock.set_path(get_root_path() + "/.lock");
+	m_lock.set_path(root_path() + "/.lock");
 	try {
 		m_lock.acquire();
 		base::enable_state(State::opened);
@@ -385,7 +385,7 @@ FlatDatastore::open_impl(
 	}
 
 	if (do_index) {
-		auto const index_path = get_root_path() + "/index";
+		auto const index_path = root_path() + "/index";
 		std::ifstream index_stream{index_path};
 		if (!index_stream.is_open()) {
 			HORD_THROW_FQN(
@@ -422,7 +422,7 @@ void
 FlatDatastore::close_impl() {
 	// NB: close() protects us from is_locked()
 
-	auto const index_path = get_root_path() + "/index";
+	auto const index_path = root_path() + "/index";
 	std::ofstream index_stream{index_path};
 	if (index_stream.is_open()) {
 		try {
@@ -488,19 +488,19 @@ FlatDatastore::generate_id_impl(
 	Hord::System::IDGenerator& id_generator
 ) const noexcept {
 	// TODO: seed()? Are we allowed to mutate id_generator?
-	return id_generator.generate_unique(make_const(get_storage_info()));
+	return id_generator.generate_unique(make_const(storage_info()));
 }
 
 #define HORD_SCOPE_FUNC create_object_impl
 Hord::IO::Datastore::storage_info_map_type::const_iterator
 FlatDatastore::create_object_impl(
 	Hord::Object::ID const object_id,
-	Hord::Object::type_info const& type_info,
+	Hord::Object::TypeInfo const& type_info,
 	Hord::IO::Linkage const linkage
 ) {
 	// NB: Base protects us from: closed state, locked state, and
 	// IDs that already exist
-	auto const emplace_pair = get_storage_info().emplace(
+	auto const emplace_pair = storage_info().emplace(
 		object_id,
 		Hord::IO::StorageInfo{
 			object_id,
@@ -519,7 +519,7 @@ void
 FlatDatastore::destroy_object_impl(
 	Hord::Object::ID const object_id
 ) {
-	auto& sinfo_map = get_storage_info();
+	auto& sinfo_map = storage_info();
 	auto const it = sinfo_map.find(object_id);
 	if (sinfo_map.cend() == it) {
 		HORD_THROW_FMT(

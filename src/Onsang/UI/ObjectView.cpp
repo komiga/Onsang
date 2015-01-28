@@ -25,7 +25,7 @@ namespace {
 
 String
 ObjectView::view_title() noexcept {
-	return "O:" + m_object.get_slug();
+	return "O:" + m_object.slug();
 }
 
 String
@@ -37,11 +37,11 @@ void
 ObjectView::notify_command(
 	UI::View* const parent_view,
 	Hord::Cmd::UnitBase const& command,
-	Hord::Cmd::type_info const& type_info
+	Hord::Cmd::TypeInfo const& type_info
 ) noexcept {
 	base::notify_command(parent_view, command, type_info);
 	if (
-		command.get_object_id() != m_object.get_id() ||
+		command.object_id() != m_object.id() ||
 		!command.ok_action()
 	) {
 		return;

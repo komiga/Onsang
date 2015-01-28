@@ -30,7 +30,7 @@ namespace System {
 void
 Session::notify_exception_impl(
 	Hord::Cmd::UnitBase const& /*command*/,
-	Hord::Cmd::type_info const& type_info,
+	Hord::Cmd::TypeInfo const& type_info,
 	std::exception_ptr eptr
 ) noexcept {
 	Log::acquire(Log::error)
@@ -44,7 +44,7 @@ Session::notify_exception_impl(
 void
 Session::notify_complete_impl(
 	Hord::Cmd::UnitBase const& command,
-	Hord::Cmd::type_info const& type_info
+	Hord::Cmd::TypeInfo const& type_info
 ) noexcept {
 	static const char* const
 	result_names[]{
@@ -57,8 +57,8 @@ Session::notify_complete_impl(
 		<< "notify_complete: "
 		<< std::hex << type_info.id
 		<< ' ' << type_info.name
-		<< ", result: " << result_names[enum_cast(command.get_result())]
-		<< ", message: \"" << command.get_message() << '\"'
+		<< ", result: " << result_names[enum_cast(command.result())]
+		<< ", message: \"" << command.message() << '\"'
 		<< '\n'
 	;
 
@@ -74,7 +74,7 @@ void
 Session::open(
 	UI::RootWPtr root
 ) try {
-	get_datastore().open(m_auto_create);
+	datastore().open(m_auto_create);
 	m_view.reset();
 	m_view = UI::SessionView::make(std::move(root), *this);
 } catch (...) {
@@ -86,7 +86,7 @@ Session::open(
 void
 Session::close() {
 	m_view.reset();
-	get_datastore().close();
+	datastore().close();
 }
 #undef ONSANG_SCOPE_FUNC
 

@@ -41,7 +41,7 @@ SessionManager::add_session(
 
 	- flat: IO::FlatDatastore
 	*/
-	Hord::IO::Datastore::type_info const*
+	Hord::IO::Datastore::TypeInfo const*
 	datastore_tinfo = nullptr;
 	if ("flat" == type) {
 		datastore_tinfo = &IO::FlatDatastore::s_type_info;
@@ -58,16 +58,16 @@ SessionManager::add_session(
 	);
 	Log::acquire(Log::debug)
 		<< "datastore root path: '"
-		<< datastore.get_root_path()
+		<< datastore.root_path()
 		<< "'\n"
 	;
 	m_sessions.emplace(
-		datastore.get_id(),
+		datastore.id(),
 		System::Session::make(
-			m_driver, datastore.get_id(), name, path, auto_open, auto_create
+			m_driver, datastore.id(), name, path, auto_open, auto_create
 		)
 	);
-	return datastore.get_id();
+	return datastore.id();
 }
 #undef ONSANG_SCOPE_FUNC
 

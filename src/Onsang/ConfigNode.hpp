@@ -238,7 +238,7 @@ public:
 	}
 
 	std::size_t
-	get_index() const noexcept {
+	index() const noexcept {
 		return m_index;
 	}
 

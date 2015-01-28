@@ -56,7 +56,7 @@ public:
 	notify_command(
 		UI::View* parent_view,
 		Hord::Cmd::UnitBase const& command,
-		Hord::Cmd::type_info const& type_info
+		Hord::Cmd::TypeInfo const& type_info
 	) noexcept override;
 
 public:

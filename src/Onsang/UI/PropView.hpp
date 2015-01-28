@@ -38,7 +38,7 @@ public:
 		UI::View* parent_view,
 		UI::PropView& prop_view,
 		Hord::Cmd::UnitBase const& command,
-		Hord::Cmd::type_info const& type_info
+		Hord::Cmd::TypeInfo const& type_info
 	)> signal_notify_command;
 
 private:
@@ -93,7 +93,7 @@ public:
 	notify_command(
 		UI::View* parent_view,
 		Hord::Cmd::UnitBase const& command,
-		Hord::Cmd::type_info const& type_info
+		Hord::Cmd::TypeInfo const& type_info
 	) noexcept override {
 		if (signal_notify_command.is_bound()) {
 			signal_notify_command(parent_view, *this, command, type_info);

@@ -49,17 +49,17 @@ public:
 
 // properties
 	Hord::System::Driver&
-	get_driver() noexcept {
+	driver() noexcept {
 		return m_driver;
 	}
 
 	session_collection_type&
-	get_sessions() noexcept {
+	sessions() noexcept {
 		return m_sessions;
 	}
 
 	session_collection_type const&
-	get_sessions() const noexcept {
+	sessions() const noexcept {
 		return m_sessions;
 	}
 

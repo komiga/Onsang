@@ -50,7 +50,7 @@ add_table_data_prop_view(
 	// Data property
 	auto grid_data = UI::TableGrid::make(
 		root, session, table,
-		table.get_data()
+		table.data()
 	);
 	UI::bind_field_describer(grid_data, "table data");
 
@@ -68,7 +68,7 @@ add_data_prop_view(
 	auto& session = object_view.m_session;
 	auto& object = object_view.m_object;
 
-	switch (object.get_base_type()) {
+	switch (object.base_type()) {
 	case Hord::Object::BaseType::Table:
 		UI::add_table_schema_editor_prop_view(
 			root, object_view, session, static_cast<Hord::Table::Unit&>(object), index
