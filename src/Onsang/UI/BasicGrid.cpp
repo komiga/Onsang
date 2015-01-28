@@ -15,11 +15,11 @@ namespace UI {
 void
 BasicGrid::reflow_impl() noexcept {
 	base::reflow_impl();
-	reflow_view(get_geometry().get_frame());
+	reflow_view(geometry().frame());
 	adjust_view();
 	queue_header_render();
-	queue_cell_render(0, get_row_count());
-	queue_actions(
+	queue_cell_render(0, row_count());
+	enqueue_actions(
 		UI::UpdateActions::render |
 		UI::UpdateActions::flag_noclear
 	);
@@ -39,11 +39,11 @@ BasicGrid::handle_event_impl(
 			case KeyCode::left : col_step(-1); break;
 			case KeyCode::right: col_step(+1); break;
 			case KeyCode::home: row_abs(0); break;
-			case KeyCode::end : row_abs(max_ce(0, get_row_count() - 1)); break;
+			case KeyCode::end : row_abs(max_ce(0, row_count() - 1)); break;
 			case KeyCode::pgup:
-				row_step(min_ce(0, -get_view().fit_count - 1)); break;
+				row_step(min_ce(0, -view().fit_count - 1)); break;
 			case KeyCode::pgdn:
-				row_step(max_ce(0, +get_view().fit_count - 1)); break;
+				row_step(max_ce(0, +view().fit_count - 1)); break;
 
 			default:
 				switch (event.key_input.cp) {
@@ -95,10 +95,10 @@ BasicGrid::render_impl(
 	};
 	render_view(
 		grid_rd,
-		!enum_cast(get_queued_actions() & UI::UpdateActions::flag_noclear)
+		!enum_cast(queued_actions() & UI::UpdateActions::flag_noclear)
 	);
 
-	auto const& view = get_view();
+	auto const& view = this->view();
 	Rect const empty_frame{
 		{view.content_frame.pos.x, view.content_frame.pos.y + view.row_count},
 		{
@@ -128,13 +128,13 @@ BasicGrid::content_action(
 ) noexcept {
 	using CA = UI::ProtoGrid::ContentAction;
 
-	DUCT_ASSERTE(get_row_count() == signed_cast(m_sel.size()));
+	DUCT_ASSERTE(row_count() == signed_cast(m_sel.size()));
 	// Cast insert_after in terms of insert_before
 	if (CA::insert_after == action) {
 		++row_begin;
 	}
-	row_begin = value_clamp(row_begin, 0, get_row_count());
-	auto const row_end = min_ce(row_begin + count, get_row_count());
+	row_begin = value_clamp(row_begin, 0, row_count());
+	auto const row_end = min_ce(row_begin + count, row_count());
 	auto clear_flag = UI::UpdateActions::none;
 	switch (action) {
 	// Select
@@ -167,7 +167,7 @@ BasicGrid::content_action(
 				content_action_internal(CA::insert_before, row_begin + i, 1);
 			}
 		}
-		if (get_row_count() == 1) {
+		if (row_count() == 1) {
 			set_cursor(m_cursor.col, 0);
 		} else if (row_begin <= m_cursor.row) {
 			set_cursor(m_cursor.col, m_cursor.row + count);
@@ -186,7 +186,7 @@ BasicGrid::content_action(
 		break;
 
 	case CA::erase_selected:
-		for (UI::index_type index = 0; index < get_row_count();) {
+		for (UI::index_type index = 0; index < row_count();) {
 			if (m_sel[index] && content_erase(index)) {
 				m_sel.erase(m_sel.cbegin() + index);
 				content_action_internal(CA::erase, index, 1);
@@ -209,7 +209,7 @@ BasicGrid::content_action(
 	default:
 		break;
 	}
-	queue_actions(
+	enqueue_actions(
 		UI::UpdateActions::render |
 		clear_flag
 	);
@@ -217,7 +217,7 @@ BasicGrid::content_action(
 
 void
 BasicGrid::adjust_view() noexcept {
-	auto const& view = get_view();
+	auto const& view = this->view();
 	if (
 		view.row_range.x >  m_cursor.row ||
 		view.row_range.y <= m_cursor.row ||
@@ -232,10 +232,10 @@ BasicGrid::adjust_view() noexcept {
 			row_begin,
 			row_begin + view.fit_count,
 			0,
-			get_col_count(),
+			col_count(),
 			true
 		);
-		queue_actions(UI::UpdateActions::render);
+		enqueue_actions(UI::UpdateActions::render);
 	}
 }
 
@@ -244,25 +244,25 @@ BasicGrid::set_cursor(
 	UI::index_type col,
 	UI::index_type row
 ) noexcept {
-	col = value_clamp(col, 0, max_ce(0, get_col_count() - 1));
-	row = value_clamp(row, 0, max_ce(0, get_row_count() - 1));
+	col = value_clamp(col, 0, max_ce(0, col_count() - 1));
+	row = value_clamp(row, 0, max_ce(0, row_count() - 1));
 	if (col != m_cursor.col || row != m_cursor.row) {
 		if (
-			value_in_bounds(m_cursor.row, 0, get_row_count()) &&
-			value_in_bounds(m_cursor.col, 0, get_col_count())
+			value_in_bounds(m_cursor.row, 0, row_count()) &&
+			value_in_bounds(m_cursor.col, 0, col_count())
 		) {
 			queue_cell_render(
 				m_cursor.row, m_cursor.row + 1,
 				m_cursor.col, m_cursor.col + 1
 			);
 		}
-		if (get_row_count() > 0) {
+		if (row_count() > 0) {
 			queue_cell_render(
 				row, row + 1,
 				col, col + 1
 			);
 		}
-		queue_actions(
+		enqueue_actions(
 			UI::UpdateActions::render |
 			UI::UpdateActions::flag_noclear
 		);
@@ -280,21 +280,21 @@ BasicGrid::set_cursor(
 
 void
 BasicGrid::resize_grid(
-	UI::index_type col_count,
-	UI::index_type row_count
+	UI::index_type new_col_count,
+	UI::index_type new_row_count
 ) {
-	m_sel.resize(row_count);
-	set_row_count(row_count);
-	set_col_count(col_count);
+	m_sel.resize(new_row_count);
+	set_row_count(new_row_count);
+	set_col_count(new_col_count);
 	set_cursor(0, 0);
 	update_view(
-		0, get_view().fit_count,
-		0, get_col_count(),
+		0, view().fit_count,
+		0, col_count(),
 		false
 	);
 	queue_header_render();
-	queue_cell_render(0, get_row_count());
-	queue_actions(
+	queue_cell_render(0, row_count());
+	enqueue_actions(
 		UI::UpdateActions::render
 	);
 }

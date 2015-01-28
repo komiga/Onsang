@@ -167,8 +167,8 @@ public:
 
 	void
 	resize_grid(
-		UI::index_type col_count,
-		UI::index_type row_count
+		UI::index_type new_col_count,
+		UI::index_type new_row_count
 	);
 };
 inline BasicGrid::~BasicGrid() noexcept = default;

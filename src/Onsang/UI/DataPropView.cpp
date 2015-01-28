@@ -24,7 +24,7 @@ namespace UI {
 
 static void
 add_table_schema_editor_prop_view(
-	UI::RootSPtr root,
+	UI::RootWPtr root,
 	UI::ObjectView& object_view,
 	System::Session& session,
 	Hord::Table::Unit& table,
@@ -41,7 +41,7 @@ add_table_schema_editor_prop_view(
 
 static void
 add_table_data_prop_view(
-	UI::RootSPtr root,
+	UI::RootWPtr root,
 	UI::ObjectView& object_view,
 	System::Session& session,
 	Hord::Table::Unit& table,
@@ -64,7 +64,7 @@ add_data_prop_view(
 	UI::ObjectView& object_view,
 	unsigned index
 ) {
-	auto const root = object_view.get_root();
+	auto const root = object_view.root_weak();
 	auto& session = object_view.m_session;
 	auto& object = object_view.m_object;
 

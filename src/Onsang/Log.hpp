@@ -29,8 +29,8 @@ report_error(
 	Beard::Error const& err
 ) {
 	Log::acquire(Log::error)
-		<< "[Beard:" << Beard::get_error_name(err.get_code()) << "] "
-		<< err.get_message()
+		<< "[Beard:" << Beard::get_error_name(err.code()) << "] "
+		<< err.message()
 		<< '\n'
 	;
 }
@@ -40,8 +40,8 @@ report_error(
 	Onsang::Error const& err
 ) {
 	Log::acquire(Log::error)
-		<< "[Onsang:" << get_error_name(err.get_code()) << "] "
-		<< err.get_message()
+		<< "[Onsang:" << get_error_name(err.code()) << "] "
+		<< err.message()
 		<< '\n'
 	;
 }

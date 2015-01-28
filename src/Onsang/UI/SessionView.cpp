@@ -69,7 +69,7 @@ SessionView::add_object_view(
 			return;
 		}
 	}
-	auto object_view = UI::make_object_view(get_root_weak(), m_session, *object);
+	auto object_view = UI::make_object_view(root_weak(), m_session, *object);
 	index = insert(object_view->view_title(), object_view, index);
 	set_sub_view(index);
 	// Show description if the sub view wasn't changed

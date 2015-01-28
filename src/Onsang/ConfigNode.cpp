@@ -23,14 +23,14 @@ ConfigNode::Entry::assign(
 	if (node_tpl) {
 		if (
 			flags.test(Flags::node_matcher_named) &&
-			var.get_name().empty()
+			var.name().empty()
 		) {
 			return false;
 		}
 		ConfigNode splice{*node_tpl, node_count};
 		splice.set_flags(Flags::node_built, true);
 		splice.import(var);
-		cnode.emplace_node(var.get_name(), std::move(splice));
+		cnode.emplace_node(var.name(), std::move(splice));
 		++node_count;
 	} else {
 		if (!validate(var)) {
@@ -98,7 +98,7 @@ ConfigNode::import(
 		: m_entries.end()
 	;
 	for (auto const& var : node) {
-		auto entry_it = m_entries.find(var.get_name());
+		auto entry_it = m_entries.find(var.name());
 		if (
 			m_entries.cend() == entry_it &&
 			m_has_node_matcher &&
@@ -113,15 +113,15 @@ ConfigNode::import(
 				ONSANG_THROW_FMT(
 					ErrorCode::config_var_invalid,
 					s_err_var_invalid,
-					var.get_name(),
-					duct::var_type_name(var.get_type()),
+					var.name(),
+					duct::var_type_name(var.type()),
 					entry_it->second.flags.test(Flags::node_matcher_named)
 					? "node requires name"
 					: "template validation failed"
 				);
 			}
 		} else if (var.is_type(duct::VarType::node)) {
-			auto const node_it = m_nodes.find(var.get_name());
+			auto const node_it = m_nodes.find(var.name());
 			if (m_nodes.cend() != node_it) {
 				node_it->second.import(var);
 				continue;
@@ -130,8 +130,8 @@ ConfigNode::import(
 		ONSANG_THROW_FMT(
 			ErrorCode::config_var_unknown,
 			s_err_var_unknown,
-			var.get_name(),
-			duct::var_type_name(var.get_type())
+			var.name(),
+			duct::var_type_name(var.type())
 		);
 	}
 	m_flags.enable(Flags::assigned);

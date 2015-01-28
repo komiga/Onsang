@@ -27,7 +27,7 @@ TabbedContainer::push_action_graph_impl(
 ) noexcept {
 	if (!m_tabs.empty()) {
 		// If we're clearing, there's no reason for children to clear
-		auto actions = get_queued_actions();
+		auto actions = queued_actions();
 		if (
 			ui::UpdateActions::render
 			== (actions & (ui::UpdateActions::render | ui::UpdateActions::flag_noclear))
@@ -35,7 +35,7 @@ TabbedContainer::push_action_graph_impl(
 			actions |= ui::UpdateActions::flag_noclear;
 		}
 		auto& widget = m_tabs[m_position].widget;
-		actions |= widget->get_queued_actions();
+		actions |= widget->queued_actions();
 		widget->push_action_graph(set, actions);
 	}
 }
@@ -45,13 +45,13 @@ TabbedContainer::cache_geometry_impl() noexcept {
 	if (m_tabs.empty()) {
 		return;
 	}
-	if (!get_geometry().is_static()) {
+	if (!geometry().is_static()) {
 		Tab const& tab = m_tabs.at(m_position);
-		auto rs = get_geometry().get_request_size();
-		auto const& ws = tab.widget->get_geometry().get_request_size();
+		auto rs = geometry().request_size();
+		auto const& ws = tab.widget->geometry().request_size();
 		rs.width  = max_ce(rs.width , ws.width);
 		rs.height = max_ce(rs.height, ws.height);
-		get_geometry().set_request_size(rs);
+		geometry().set_request_size(rs);
 	}
 }
 
@@ -61,30 +61,30 @@ TabbedContainer::reflow_impl() noexcept {
 	if (m_tabs.empty()) {
 		return;
 	}
-	Rect child_frame = get_geometry().get_area();
+	Rect child_frame = geometry().area();
 	++child_frame.pos.y;
 	--child_frame.size.height;
 	vec2_clamp_min(child_frame.size, Vec2{0, 0});
-	m_tabs[m_position].widget->get_geometry().set_area(child_frame);
+	m_tabs[m_position].widget->geometry().set_area(child_frame);
 }
 
 void
 TabbedContainer::render_impl(
 	UI::Widget::RenderData& rd
 ) noexcept {
-	auto const& frame = get_geometry().get_frame();
+	auto const& frame = geometry().frame();
 	rd.terminal.clear_back({frame.pos, {frame.size.width, 1}});
 	if (m_tabs.empty()) {
 		 return;
 	}
 	tty::attr_type const
 	content_fg[]{
-		rd.get_attr(ui::property_content_fg_inactive),
-		rd.get_attr(ui::property_content_fg_selected),
+		rd.attr(ui::property_content_fg_inactive),
+		rd.attr(ui::property_content_fg_selected),
 	},
 	content_bg[]{
-		rd.get_attr(ui::property_content_bg_inactive),
-		rd.get_attr(ui::property_content_bg_selected),
+		rd.attr(ui::property_content_bg_inactive),
+		rd.attr(ui::property_content_bg_selected),
 	};
 
 	auto const width = unsigned_cast(max_ce(0, frame.size.width));
@@ -123,7 +123,7 @@ TabbedContainer::num_children_impl() const noexcept {
 }
 
 UI::Widget::SPtr
-TabbedContainer::get_child_impl(
+TabbedContainer::child_at_impl(
 	signed const index
 ) {
 	return m_tabs.at(static_cast<unsigned>(index)).widget;
@@ -164,7 +164,7 @@ TabbedContainer::insert(
 	for (unsigned update_index = index; update_index < m_tabs.size(); ++update_index) {
 		m_tabs[update_index].widget->set_index(static_cast<UI::index_type>(update_index));
 	}
-	queue_actions(
+	enqueue_actions(
 		UI::UpdateActions::reflow |
 		UI::UpdateActions::render
 	);
@@ -188,7 +188,7 @@ TabbedContainer::remove(
 		m_tabs[m_position].widget->set_visible(true, false);
 		m_tabs[m_position].widget->clear_actions();
 	}
-	queue_actions(
+	enqueue_actions(
 		UI::UpdateActions::reflow |
 		UI::UpdateActions::render
 	);
@@ -197,7 +197,7 @@ TabbedContainer::remove(
 void
 TabbedContainer::remove_current() {
 	if (!m_tabs.empty()) {
-		get_root()->clear_focus();
+		root()->clear_focus();
 		remove(m_position);
 	}
 }
@@ -209,7 +209,7 @@ TabbedContainer::clear() {
 	}
 	m_tabs.clear();
 	m_position = 0;
-	queue_actions(
+	enqueue_actions(
 		UI::UpdateActions::reflow |
 		UI::UpdateActions::render
 	);
@@ -221,7 +221,7 @@ TabbedContainer::set_title(
 	String title
 ) {
 	m_tabs.at(index).title = std::move(title);
-	queue_actions(
+	enqueue_actions(
 		UI::UpdateActions::render |
 		UI::UpdateActions::flag_noclear
 	);
@@ -233,7 +233,7 @@ TabbedContainer::set_tab(
 	UI::Widget::SPtr widget
 ) {
 	m_tabs.at(index).widget = std::move(widget);
-	queue_actions(
+	enqueue_actions(
 		UI::UpdateActions::reflow |
 		UI::UpdateActions::render
 	);
@@ -246,11 +246,11 @@ TabbedContainer::set_current_tab(
 	index = min_ce(index, last_index());
 	if (!m_tabs.empty() && index != m_position) {
 		// TODO: Track focused widget per-tab
-		get_root()->clear_focus();
+		root()->clear_focus();
 		m_tabs[m_position].widget->set_visible(false, false);
 		m_tabs[index].widget->set_visible(true, false);
 		m_position = index;
-		queue_actions(
+		enqueue_actions(
 			UI::UpdateActions::reflow |
 			UI::UpdateActions::render
 		);
@@ -297,7 +297,7 @@ TabbedContainer::move_tab(
 		if (from == m_position) {
 			m_position = to;
 		}
-		queue_actions(UI::UpdateActions::render);
+		enqueue_actions(UI::UpdateActions::render);
 	}
 }
 

@@ -49,7 +49,7 @@ TableSchemaEditor::set_input_control_impl(
 		);
 	}
 	m_field.input_control_changed(*this);
-	queue_actions(
+	enqueue_actions(
 		ui::UpdateActions::render |
 		ui::UpdateActions::flag_noclear
 	);
@@ -125,7 +125,7 @@ TableSchemaEditor::handle_event_impl(
 			queue_cell_render(
 				m_cursor.row, m_cursor.row + 1
 			);
-			queue_actions(
+			enqueue_actions(
 				ui::UpdateActions::render |
 				ui::UpdateActions::flag_noclear
 			);
@@ -133,7 +133,7 @@ TableSchemaEditor::handle_event_impl(
 		}
 		return false;
 	} else if (event.key_input.code == KeyCode::enter) {
-		auto const& node = m_field.m_cursor.get_node();
+		auto const& node = m_field.m_cursor.node();
 		auto& data = m_data[m_cursor.row];
 		if (node.points() > 0) {
 			data.edit.name = node.to_string();
@@ -150,7 +150,7 @@ TableSchemaEditor::handle_event_impl(
 		return true;
 	} else {
 		if (m_field.input(event.key_input)) {
-			queue_actions(
+			enqueue_actions(
 				ui::UpdateActions::render |
 				ui::UpdateActions::flag_noclear
 			);
@@ -188,11 +188,10 @@ TableSchemaEditor::render_header(
 		)
 	);
 
-	auto const& view = get_view();
 	auto const x_end = frame.pos.x + frame.size.width;
 	Vec2 pos = frame.pos;
 	Vec2 size = frame.size;
-	pos.x += s_column_offset[col_begin] - s_column_offset[view.col_range.x];
+	pos.x += s_column_offset[col_begin] - s_column_offset[view().col_range.x];
 	for (auto col = col_begin; col < col_end; ++col) {
 		size.width = min_ce(s_column_width[col], x_end - pos.x);
 		if (size.width <= 0) {
@@ -228,15 +227,14 @@ TableSchemaEditor::render_content(
 		", size = {%3d, %3d}",
 		row_begin, row_end,
 		col_begin, col_end,
-		get_view().col_range.x, get_view().col_range.y,
-		get_view().row_range.x, get_view().row_range.y,
+		view().col_range.x, view().col_range.y,
+		view().row_range.x, view().row_range.y,
 		frame.pos.x, frame.pos.y,
 		frame.size.width, frame.size.height
 	);*/
 
-	auto const& view = get_view();
 	auto const x_end = frame.pos.x + frame.size.width;
-	auto const begin_offset = s_column_offset[col_begin] - s_column_offset[view.col_range.x];
+	auto const begin_offset = s_column_offset[col_begin] - s_column_offset[view().col_range.x];
 	auto const range_width = s_column_offset[col_end] - s_column_offset[col_begin];
 	Vec2 pos = frame.pos;
 	Vec2 size = frame.size;
@@ -371,7 +369,7 @@ TableSchemaEditor::get_cell_seq(
 
 void
 TableSchemaEditor::reflow_field() noexcept {
-	auto const& view = get_view();
+	auto const& view = this->view();
 	auto const& content_frame = view.content_frame;
 	Quad cell_quad{
 		{
@@ -467,7 +465,7 @@ TableSchemaEditor::cursor_step_value(
 		m_cursor.row, m_cursor.row + 1,
 		m_cursor.col, m_cursor.col + 1
 	);
-	queue_actions(
+	enqueue_actions(
 		ui::UpdateActions::render |
 		ui::UpdateActions::flag_noclear
 	);

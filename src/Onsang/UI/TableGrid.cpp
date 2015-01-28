@@ -46,7 +46,7 @@ TableGrid::set_input_control_impl(
 		);
 	}
 	m_field.input_control_changed(*this);
-	queue_actions(
+	enqueue_actions(
 		ui::UpdateActions::render |
 		ui::UpdateActions::flag_noclear
 	);
@@ -125,7 +125,7 @@ TableGrid::handle_event_impl(
 		Hord::Data::ValueRef new_value{};
 		if (!m_field.m_text_tree.empty()) {
 			m_field.m_cursor.col_extent(txt::Extent::tail);
-			auto const& node = m_field.m_cursor.get_node();
+			auto const& node = m_field.m_cursor.node();
 			if (
 				m_field_type.type() == Hord::Data::ValueType::string ||
 				m_field.m_text_tree.lines() > 1
@@ -196,7 +196,7 @@ TableGrid::handle_event_impl(
 		}
 		if (view_modified) {
 			m_field.update_view();
-			queue_actions(
+			enqueue_actions(
 				ui::UpdateActions::render |
 				ui::UpdateActions::flag_noclear
 			);
@@ -230,7 +230,7 @@ TableGrid::render_header(
 
 	grid_rd.rd.terminal.put_line(
 		frame.pos,
-		get_geometry().get_frame().size.width,
+		geometry().frame().size.width,
 		Axis::horizontal,
 		tty::make_cell(' ',
 			tty::Color::term_default,
@@ -291,7 +291,7 @@ TableGrid::render_content(
 		", size = {%3d, %3d}",
 		row_begin, row_end,
 		col_begin, col_end,
-		get_view().col_range.x, get_view().col_range.y,
+		view().col_range.x, view().col_range.y,
 		frame.pos.x, frame.pos.y,
 		frame.size.width, frame.size.height
 	);*/
@@ -314,7 +314,7 @@ TableGrid::render_content(
 			attr_fg = grid_rd.content_fg;
 			cell.attr_bg = grid_rd.content_bg;
 		}
-		cell_frame.pos.x = frame.pos.x + (col_begin - get_view().col_range.x) * GRID_TMP_COLUMN_WIDTH;
+		cell_frame.pos.x = frame.pos.x + (col_begin - view().col_range.x) * GRID_TMP_COLUMN_WIDTH;
 
 	for (UI::index_type col = col_begin; col < col_end; ++col) {
 		if (row == m_cursor.row && col == m_cursor.col && is_focused()) {
@@ -389,11 +389,11 @@ TableGrid::content_erase(
 
 void
 TableGrid::reflow_field() noexcept {
-	auto const& content_frame = get_view().content_frame;
+	auto const& content_frame = view().content_frame;
 	Quad cell_quad{
 		{
-			content_frame.pos.x + (m_cursor.col - get_view().col_range.x) * GRID_TMP_COLUMN_WIDTH,
-			content_frame.pos.y + (m_cursor.row - get_view().row_range.x)
+			content_frame.pos.x + (m_cursor.col - view().col_range.x) * GRID_TMP_COLUMN_WIDTH,
+			content_frame.pos.y + (m_cursor.row - view().row_range.x)
 		},
 		{0, 0}
 	};
@@ -460,7 +460,7 @@ TableGrid::notify_cell_changed(
 		set_input_control(false);
 	}
 	queue_cell_render(row, row + 1, col, col + 1);
-	queue_actions(
+	enqueue_actions(
 		ui::UpdateActions::render |
 		ui::UpdateActions::flag_noclear
 	);

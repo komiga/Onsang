@@ -38,14 +38,14 @@ add_base_prop_view(
 	UI::ObjectView& object_view,
 	unsigned const index
 ) {
-	auto const root = object_view.get_root();
+	auto const root = object_view.root();
 	auto& session = object_view.m_session;
 	auto& object = object_view.m_object;
 
 	// Slug property
 	auto field_slug = UI::Field::make(root, object.slug());
 	auto& field_slug_ref = *field_slug;
-	field_slug->get_geometry().set_sizing(UI::Axis::horizontal, UI::Axis::horizontal);
+	field_slug->geometry().set_sizing(UI::Axis::horizontal, UI::Axis::horizontal);
 	UI::bind_field_describer(field_slug, "slug");
 	field_slug->signal_user_modified.bind([&session, &object](
 		UI::Field::SPtr const& field_slug,
@@ -54,7 +54,7 @@ add_base_prop_view(
 		if (accept) {
 			// NB: signal_notify_command handles result
 			Hord::Cmd::Object::SetSlug{session}(
-				object, field_slug->get_text()
+				object, field_slug->text()
 			);
 		} else {
 			field_slug->set_text(object.slug());
@@ -79,13 +79,13 @@ add_base_prop_view(
 		auto const* kim_match = key_input_match(event.key_input, s_kim_erase_metafield);
 		if (kim_match) {
 			Hord::Cmd::Object::RemoveMetaField c_remove{session};
-			if (grid_metadata_ref.get_row_count() <= 0) {
+			if (grid_metadata_ref.row_count() <= 0) {
 				return false;
 			}
 			if (&s_kim_erase_metafield[0] != kim_match) {
 				c_remove(object, grid_metadata_ref.m_cursor.row);
 			}
-			for (signed index = grid_metadata_ref.get_row_count() - 1; index >= 0; --index) {
+			for (signed index = grid_metadata_ref.row_count() - 1; index >= 0; --index) {
 				if (grid_metadata_ref.m_sel[index]) {
 					c_remove(object, index);
 				}
@@ -93,7 +93,7 @@ add_base_prop_view(
 			return true;
 		} else if (event.key_input.cp == 'i' || event.key_input.cp == 'n') {
 			Hord::Cmd::Object::SetMetaField{session}(
-				object, "new" + std::to_string(grid_metadata_ref.get_row_count()), {}, true
+				object, "new" + std::to_string(grid_metadata_ref.row_count()), {}, true
 			);
 			return true;
 		}

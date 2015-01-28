@@ -49,7 +49,7 @@ ObjectView::notify_command(
 	switch (type_info.id) {
 	case Hord::Cmd::Object::SetSlug::COMMAND_ID:
 		if (parent_view) {
-			parent_view->sub_view_title_changed(UI::Widget::Base::get_index());
+			parent_view->sub_view_title_changed(UI::Widget::Base::index());
 		}
 		break;
 	}

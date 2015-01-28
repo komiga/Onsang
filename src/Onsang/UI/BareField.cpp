@@ -21,7 +21,7 @@ namespace UI {
 
 void
 BareField::update_view() noexcept {
-	auto const& frame = m_geom.get_frame();
+	auto const& frame = m_geom.frame();
 	auto const inner_width = max_ce(0, frame.size.width - 2 - 1);
 	if (
 		m_view.col() > m_cursor.col() ||
@@ -35,7 +35,7 @@ void
 BareField::input_control_changed(
 	UI::Widget::Base& widget
 ) noexcept {
-	widget.get_root()->get_context().get_terminal().set_caret_visible(
+	widget.root()->context().terminal().set_caret_visible(
 		widget.has_input_control()
 	);
 	if (widget.has_input_control()) {
@@ -66,26 +66,26 @@ BareField::render(
 	UI::Widget::RenderData& rd,
 	bool const active
 ) noexcept {
-	auto const& frame = m_geom.get_frame();
-	auto const& node = m_cursor.get_node();
+	auto const& frame = m_geom.frame();
+	auto const& node = m_cursor.node();
 
 	tty::attr_type const
-		primary_fg = rd.get_attr(
+		primary_fg = rd.attr(
 			active
 			? ui::property_primary_fg_active
 			: ui::property_primary_fg_inactive
 		),
-		primary_bg = rd.get_attr(
+		primary_bg = rd.attr(
 			active
 			? ui::property_primary_bg_active
 			: ui::property_primary_bg_inactive
 		),
-		content_fg = rd.get_attr(
+		content_fg = rd.attr(
 			active
 			? ui::property_content_fg_active
 			: ui::property_content_fg_inactive
 		),
-		content_bg = rd.get_attr(
+		content_bg = rd.attr(
 			active
 			? ui::property_content_bg_active
 			: ui::property_content_bg_inactive

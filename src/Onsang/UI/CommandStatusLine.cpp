@@ -20,11 +20,11 @@ CommandStatusLine::set_input_control_impl(
 	base::set_input_control_impl(enabled);
 	if (!has_input_control()) {
 		auto prev_focus = m_prev_focus.lock();
-		get_root()->set_focus(prev_focus);
+		root()->set_focus(prev_focus);
 		m_prev_focus.reset();
 	}
 	m_field.input_control_changed(*this);
-	queue_actions(
+	enqueue_actions(
 		ui::UpdateActions::render |
 		ui::UpdateActions::flag_noclear
 	);
@@ -34,7 +34,7 @@ void
 CommandStatusLine::reflow_impl() noexcept {
 	base::reflow_impl();
 	if (has_input_control()) {
-		m_field.reflow_into(get_geometry().get_area());
+		m_field.reflow_into(geometry().area());
 	}
 }
 
@@ -53,7 +53,7 @@ CommandStatusLine::handle_event_impl(
 		if (event.key_input.code == KeyCode::enter) {
 			if (!m_field.m_text_tree.empty()) {
 				// TODO
-				//String const string_value = m_field.m_cursor.get_node().to_string();
+				//String const string_value = m_field.m_cursor.node().to_string();
 			}
 			m_field.m_cursor.clear();
 			set_input_control(false);
@@ -65,7 +65,7 @@ CommandStatusLine::handle_event_impl(
 		} else {
 			// TODO: Command history
 			if (m_field.input(event.key_input)) {
-				queue_actions(
+				enqueue_actions(
 					ui::UpdateActions::render |
 					ui::UpdateActions::flag_noclear
 				);
@@ -84,14 +84,14 @@ void
 CommandStatusLine::render_impl(
 	UI::Widget::RenderData& rd
 ) noexcept {
-	auto const& frame = get_geometry().get_frame();
+	auto const& frame = geometry().frame();
 	if (!has_input_control()) {
 		// render message & location
 		tty::attr_type const
-			primary_fg = rd.get_attr(ui::property_primary_fg_inactive),
-			primary_bg = rd.get_attr(ui::property_primary_bg_inactive),
-			content_fg = rd.get_attr(ui::property_content_fg_inactive),
-			content_bg = rd.get_attr(ui::property_content_bg_inactive)
+			primary_fg = rd.attr(ui::property_primary_fg_inactive),
+			primary_bg = rd.attr(ui::property_primary_bg_inactive),
+			content_fg = rd.attr(ui::property_content_fg_inactive),
+			content_bg = rd.attr(ui::property_content_bg_inactive)
 		;
 		auto const cell_clear = tty::make_cell(' ', primary_fg, primary_bg);
 		rd.terminal.put_line(frame.pos, frame.size.width, Axis::horizontal, cell_clear);
@@ -132,7 +132,7 @@ CommandStatusLine::set_message(
 ) {
 	m_message_type = type;
 	m_message = std::move(text);
-	queue_actions(
+	enqueue_actions(
 		ui::UpdateActions::render |
 		ui::UpdateActions::flag_noclear
 	);
@@ -143,7 +143,7 @@ CommandStatusLine::set_location(
 	String text
 ) {
 	m_location = std::move(text);
-	queue_actions(
+	enqueue_actions(
 		ui::UpdateActions::render |
 		ui::UpdateActions::flag_noclear
 	);
@@ -151,10 +151,10 @@ CommandStatusLine::set_location(
 
 void
 CommandStatusLine::prompt_command() {
-	m_field.reflow_into(get_geometry().get_area());
+	m_field.reflow_into(geometry().area());
 	set_input_control(true);
-	m_prev_focus = get_root()->get_focus();
-	get_root()->set_focus(shared_from_this());
+	m_prev_focus = root()->focused_widget();
+	root()->set_focus(shared_from_this());
 }
 
 } // namespace UI

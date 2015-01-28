@@ -257,7 +257,7 @@ App::init(
 			log_controller.file(false);
 		} else {
 			log_controller.set_file_path(
-				arg_log.value.get_as_str()
+				arg_log.value.as_str()
 			);
 			log_controller.file(true);
 		}
@@ -285,7 +285,7 @@ App::init(
 
 	// Load config
 	auto const& arg_config = m_args.entry("--config");
-	auto const cfg_path = arg_config.value.get_as_str();
+	auto const cfg_path = arg_config.value.as_str();
 	Log::acquire()
 		<< "Loading config from '"
 		<< cfg_path
@@ -360,7 +360,7 @@ App::init(
 				log_controller.file(false);
 			} else {
 				log_controller.set_file_path(
-					cfg_log_path.value.get_string_ref()
+					cfg_log_path.value.string_ref()
 				);
 				log_controller.file(true);
 				Log::acquire()
@@ -374,7 +374,7 @@ App::init(
 
 	// Load terminfo
 	auto const& cfg_term_info = m_config.node("term").entry("info");
-	auto const& terminfo_path = cfg_term_info.value.get_string_ref();
+	auto const& terminfo_path = cfg_term_info.value.string_ref();
 	Log::acquire()
 		<< "Loading terminfo from '"
 		<< terminfo_path
@@ -383,7 +383,7 @@ App::init(
 	stream.open(terminfo_path);
 	if (stream.is_open()) {
 		try {
-			m_ui.ctx.get_terminal().get_info().deserialize(stream);
+			m_ui.ctx.terminal().info().deserialize(stream);
 			stream.close();
 		} catch (Beard::Error& err) {
 			Log::acquire(Log::error)
@@ -404,7 +404,7 @@ App::init(
 	}
 
 	// Update terminal cap cache
-	m_ui.ctx.get_terminal().update_cache();
+	m_ui.ctx.terminal().update_cache();
 
 	// Initialize driver
 	driver_init(m_driver);
@@ -427,11 +427,11 @@ App::init(
 		auto const& auto_open_entry = session.entry("auto-open");
 		auto const& auto_create_entry = session.entry("auto-create");
 		add_session(
-			session.entry("type").value.get_string_ref(),
+			session.entry("type").value.string_ref(),
 			spair->first,
-			session.entry("path").value.get_string_ref(),
-			!auto_open_entry.assigned() || auto_open_entry.value.get_bool(),
-			!auto_create_entry.assigned() || auto_create_entry.value.get_bool()
+			session.entry("path").value.string_ref(),
+			!auto_open_entry.assigned() || auto_open_entry.value.boolean(),
+			!auto_create_entry.assigned() || auto_create_entry.value.boolean()
 		);
 	}
 	return true;
@@ -468,7 +468,7 @@ App::init_session(
 		<< '\n'
 	;
 	try {
-		session.open(m_ui.ctx.get_root());
+		session.open(m_ui.ctx.root());
 		auto cmd = Hord::Cmd::Datastore::Init{session};
 		if (!cmd(Hord::IO::PropTypeBit::base)) {
 			ONSANG_THROW_FMT(
@@ -602,7 +602,7 @@ App::start_ui() {
 	root->push_back(m_ui.viewc);
 
 	m_ui.csline = UI::CommandStatusLine::make(root);
-	m_ui.csline->get_geometry().set_sizing(
+	m_ui.csline->geometry().set_sizing(
 		UI::Axis::horizontal,
 		UI::Axis::horizontal
 	);
@@ -634,7 +634,7 @@ App::start() try {
 	m_running = true;
 	while (m_running) {
 		if (!m_ui.ctx.update(20u)) {
-			ui_event_filter(m_ui.ctx.get_last_event());
+			ui_event_filter(m_ui.ctx.last_event());
 		}
 		// TODO: Process data from sessions, handle global hotkeys
 		m_session_manager.process();

@@ -66,7 +66,7 @@ protected:
 	num_children_impl() const noexcept override;
 
 	UI::Widget::SPtr
-	get_child_impl(
+	child_at_impl(
 		signed const index
 	) override;
 
