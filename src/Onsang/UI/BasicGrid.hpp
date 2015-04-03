@@ -71,7 +71,7 @@ protected:
 		UI::index_type const col_begin,
 		UI::index_type const col_end,
 		Rect const& frame
-	) noexcept = 0;
+	) noexcept override = 0;
 
 	// Carried forward
 	virtual void
@@ -82,7 +82,7 @@ protected:
 		UI::index_type col_begin,
 		UI::index_type col_end,
 		Rect const& frame
-	) noexcept = 0;
+	) noexcept override = 0;
 
 protected:
 // BasicGrid implementation
