@@ -1,39 +1,22 @@
 
-dofile("premake_common.lua")
+dofile("precore_import.lua")
 
--- Core solution
+local _, G, P = precore.helpers()
 
-precore.make_solution(
-	"Onsang",
-	{"debug", "release"},
-	{"x64", "x32"},
+precore.init(
 	nil,
 	{
-		"precore-generic",
-		"onsang-strict",
-		"onsang-deps",
-		"onsang-import"
+		"precore.clang-opts",
+		"precore.c++11-core",
+		"precore.env-common",
 	}
 )
 
--- Client
+precore.import(".")
 
-precore.make_project(
-	"onsang",
-	"C++", "ConsoleApp",
-	"bin/", "out/",
-	nil,
-	{
-		"onsang-client-deps"
-	}
-)
+precore.apply_global("onsang.projects")
 
-configuration {"debug"}
-	targetsuffix("_debug")
-
-configuration {}
-	files {
-		"src/**.cpp"
-	}
-
-precore.action_clean("out", "bin")
+precore.action_clean("out")
+if _ACTION == "clean" then
+	os.rmdir(G"${BUILD_PATH}")
+end
